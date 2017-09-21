@@ -1,0 +1,90 @@
+<!-- reserve a CMIP6 case name template -->
+
+<form action="/expdb2.0/cgi-bin/expList.cgi?action=reserveCase" method="POST">
+  <p><span class="error">*</span> Indicates a required field.</p>
+  <span class="error">*</span> Unique Case Name:
+  <input type="text" name="case" maxlength="128" size="64" required>
+  <br/>
+  <br/>
+  <span class="error">*</span> Realization Identifier "ripf":
+  <input type="text" name="ripf" maxlength="128" size="64" required>
+  <br/>
+    <a href="https://www.earthsystemcog.org/projects/wip/position_papers" target="_blank">View CMIP6 Global Attributes, DRS, Filenames, Directory Structure, and CVs</a> for details concerning the "ripf" specification.
+  <br/>
+  <br/>
+  Run Type?<br/>
+  <input type="radio" name="runtype" value="startup" checked> Startup<br/>
+  <input type="radio" name="runtype" value="branch"> Branch<br/>
+  <input type="radio" name="runtype" value="hybrid"> Hybrid<br/>
+  <br/>
+  <br/>
+  Is this an ensemble experiment?<br/>
+  <input type="radio" name="ensemble" value="false" checked> No<br/>
+  <input type="radio" name="ensemble" value="true"> Yes
+  If "Yes", enter ensemble size:  <input type="number" name="ensemble_size" min="1" max="100" value="">
+  <p>Note: Ensemble experiments need to only reserve one unique casename 
+  corresponding to the first ensemble name of the experiment. <br/>
+  For example, "b.e20.dp.hd-1961.20C.1d.001" is the only case name that needs to be 
+  entered for the hindcast initialization of the 20th Century run starting
+  at 1961. Subsequent ensemble case entries in the database will be 
+  handled by archive_metadata.</p>
+
+  
+  <fieldset>
+    <legend>CMIP6 Associations:</legend>
+    <table> 
+      <thead>
+        <th><span class="error">*</span> CMIP6 Experiment</th>
+        <th>CMIP6 Parent Experiment</th>
+        <th><span class="error">*</span> Users</th>
+      </thead>
+      <tbody>
+        <tr>
+	  <td valign="top">
+	    <select required name="expName">
+	        <option value="0">Select Experiment</option>
+	      [% FOREACH exp IN CMIP6Exps %]	
+	        <option value="[% exp.id %]">[% exp.expName %]</option>
+	      [% END %]
+	    </select>
+	  </td>
+	  <td valign="top">
+	    <select name="parentExp">
+	      <option value="0">Select Experiment</option>
+	      [% FOREACH exp IN CMIP6Exps %]	
+	        <option value="[% exp.id %]">[% exp.expName %]</option>
+	      [% END %]
+	    </select>
+	  </td>
+	  <td valign="top">
+	    Assigned To:
+	    <select required name="assignUser">
+	      <option value="0">Select User</option>
+	      [% FOREACH user IN NCARUsers %]	
+	        <option value="[% user.id %]">[% user.lastname %], [% user.firstname %]</option>
+	      [% END %]
+	    </select>
+	    <br/><br/>
+	    Scientific Lead:
+	    <select required name="scienceUser">
+	      <option value="0">Select User</option>
+	      [% FOREACH user IN NCARUsers %]	
+	        <option value="[% user.id %]">[% user.lastname %], [% user.firstname %]</option>
+	      [% END %]
+	    </select>
+	  </td>
+	</tr>	
+      </tbody>	
+    </table>
+    <a href="http://clipc-services.ceda.ac.uk/dreq/index.html" target="_blank">View CMIP6 Data Request Definitions</a>
+  </fieldset>
+  <br/>
+  <fieldset>
+    <legend>Case Notes:</legend>
+    <textarea name="notes" cols="100" rows="5"></textarea>
+  </fieldset>
+
+  <br/>
+  <input type="submit" value="Submit">
+  <input type="reset">
+</form>

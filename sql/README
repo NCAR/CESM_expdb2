@@ -1,0 +1,5 @@
+Conventions:
+
+t2_ -> expdb2.0 table definition
+t2j_ -> expdb2.0 join table definition for many-to-many relationships
+t2e_ -> expdb2.0 extension table definition for one-to-many relationships

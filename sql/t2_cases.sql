@@ -1,0 +1,48 @@
+use csegdb;
+
+DROP TABLE IF EXISTS `t2_cases`;
+		
+CREATE TABLE `t2_cases` (
+  `id` INTEGER AUTO_INCREMENT NOT NULL,
+  `archive_date` DATETIME DEFAULT NULL,
+  `casename` VARCHAR(128) DEFAULT NULL,
+  `caseroot` VARCHAR(200) DEFAULT NULL,
+  `caseuser` VARCHAR(20) DEFAULT NULL,
+  `compiler` VARCHAR(20) DEFAULT NULL,
+  `compset` VARCHAR(100) DEFAULT NULL,
+  `continue_run` VARCHAR(5) DEFAULT NULL,
+  `dout_l_ms` VARCHAR(5) DEFAULT NULL,
+  `dout_l_msroot` VARCHAR(200) DEFAULT NULL,
+  `dout_s` VARCHAR(5) DEFAULT NULL,
+  `dout_s_root` VARCHAR(200) DEFAULT NULL,
+  `expType_id` INTEGER DEFAULT NULL,
+  `grid` VARCHAR(100) DEFAULT NULL,
+  `is_ens` VARCHAR(5) DEFAULT NULL,
+  `job_queue` VARCHAR(10) DEFAULT NULL,
+  `job_time` VARCHAR(10) DEFAULT NULL,
+  `machine` VARCHAR(20) DEFAULT NULL,
+  `model` VARCHAR(20) DEFAULT NULL,
+  `model_cost` VARCHAR(50) DEFAULT NULL,
+  `model_throughput` VARCHAR(50) DEFAULT NULL,
+  `model_version` VARCHAR(40) DEFAULT NULL,
+  `mpilib` VARCHAR(20) DEFAULT NULL,
+  `postprocess` VARCHAR(5) DEFAULT NULL,
+  `project` VARCHAR(20) DEFAULT NULL,
+  `rest_n` VARCHAR(5) DEFAULT NULL,
+  `rest_option` VARCHAR(10) DEFAULT NULL,
+  `run_dir` VARCHAR(200) DEFAULT NULL,
+  `run_lastdate` VARCHAR(25) DEFAULT NULL,
+  `run_refcase` VARCHAR(128) DEFAULT NULL,
+  `run_refdate` VARCHAR(25) DEFAULT NULL,
+  `run_startdate` VARCHAR(25) DEFAULT NULL,
+  `run_type` VARCHAR(20) DEFAULT NULL,
+  `stop_n` VARCHAR(5) DEFAULT NULL,
+  `stop_option` VARCHAR(10) DEFAULT NULL,
+  `svn_repo_url` VARCHAR(200) DEFAULT NULL,
+  `svnuser_id` INTEGER DEFAULT NULL,
+  `title` VARCHAR(200) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+
+
+

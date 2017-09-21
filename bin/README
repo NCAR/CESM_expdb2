@@ -1,0 +1,13 @@
+Instructions for loading the CMIP6 Dreq values into the database
+
+Install the dreqpy library in ~/.local
+
+>pip uninstall dreqpy
+>pip install -i https://pypi.python.org/pypi --user dreqPy==[latest version]
+
+Then load the database tables with the CMIP6 info
+
+>cd /piofs/var/www/html/expdb2.0/bin
+>./load_cmip6_exps.py
+>./load_cmip6_mips.py
+>./load_cmip6_join.py
