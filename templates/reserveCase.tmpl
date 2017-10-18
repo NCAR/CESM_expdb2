@@ -1,90 +1,207 @@
-<!-- reserve a CMIP6 case name template -->
 
-<form action="/expdb2.0/cgi-bin/expList.cgi?action=reserveCase" method="POST">
-  <p><span class="error">*</span> Indicates a required field.</p>
-  <span class="error">*</span> Unique Case Name:
-  <input type="text" name="case" maxlength="128" size="64" required>
-  <br/>
-  <br/>
-  <span class="error">*</span> Realization Identifier "ripf":
-  <input type="text" name="ripf" maxlength="128" size="64" required>
-  <br/>
-    <a href="https://www.earthsystemcog.org/projects/wip/position_papers" target="_blank">View CMIP6 Global Attributes, DRS, Filenames, Directory Structure, and CVs</a> for details concerning the "ripf" specification.
-  <br/>
-  <br/>
-  Run Type?<br/>
-  <input type="radio" name="runtype" value="startup" checked> Startup<br/>
-  <input type="radio" name="runtype" value="branch"> Branch<br/>
-  <input type="radio" name="runtype" value="hybrid"> Hybrid<br/>
-  <br/>
-  <br/>
-  Is this an ensemble experiment?<br/>
-  <input type="radio" name="ensemble" value="false" checked> No<br/>
-  <input type="radio" name="ensemble" value="true"> Yes
-  If "Yes", enter ensemble size:  <input type="number" name="ensemble_size" min="1" max="100" value="">
-  <p>Note: Ensemble experiments need to only reserve one unique casename 
-  corresponding to the first ensemble name of the experiment. <br/>
-  For example, "b.e20.dp.hd-1961.20C.1d.001" is the only case name that needs to be 
-  entered for the hindcast initialization of the 20th Century run starting
-  at 1961. Subsequent ensemble case entries in the database will be 
-  handled by archive_metadata.</p>
+	  <form id="reserveCaseForm" action="/expdb2.0/cgi-bin/expList.cgi" method="POST">
+	    <input type="hidden" name="action" value="reserveCase">
+	      <p>This form must be completed for every CMIP6 experiment prior to running create_newcase.
+		It contains expert knowledge that cannot be retrieved by the caseroot <b>archive_metadata</b>
+		script required by the CMIP6 project. For detatils, please see the following <b>CMIP6 Specific References:</b>
+	      <br/>
+	      <br/>
+	      <a href="http://clipc-services.ceda.ac.uk/dreq/index.html" target="_blank">View CMIP6 Data Request Definitions</a><br/>
+	      <a href="https://www.earthsystemcog.org/projects/wip/position_papers" target="_blank">
+		View CMIP6 Global Attributes, DRS, Filenames, Directory Structure, and Controlled Vocabularies (CVs)</a> 
+	      for details concerning the "ripf" specification.
+	      </p>
+	      <br/>
+	      <hr/>
+	      <br/>
+	      <br/>
+	    <span class="error">*</span> Indicates a required field.<br/>
+	    CMIP6 Global Attributes are enclosed in ( ).
+	    <table>
+	      <thead>
+		<th colspan="2">General Case Information</th>
+	      </thead>
+	      <tbody>
+		<tr>
+		  <td align="right"><span class="error">*</span> <b>Unique Case Name:</b></td>
+		  <td><input type="text" name="case" maxlength="128" size="64" required/></td>
+		</tr>
+		<tr>
+		  <td align="right" valign="top"><span class="error">*</span> <b>Brief Title/Description:</b><br/>
+		  (variant_info)</td>
+		  <td><textarea name="case_title" rows="3" maxlength="256" cols="64" required/></textarea></td>
+		</tr>
+		<tr>
+		  <td align="right"><b>Total number of model years to be run:</b></td>  
+		  <td align="left"><input type="number" name="nyears" min="1" max="10000" value="" required/></td>
+		</tr>
+	        <tr>
+		  <td colspan="2"><span class="error">*</span> <b>Run Type and Start Date (YYYY-MM-DD HH:MM):</b><br/>
+		  (branch_method) and (branch_time_in_child)</td>
+		</tr>
+		<tr>
+		  <td align="right"><input type="radio" name="runtype" value="startup"/> <b>Startup</b></td>
+		  <td><input type="text" name="startyear" maxlength="16" size="18"/></td>
+		</tr>
+		<tr>
+		  <td align="right"><input type="radio" name="runtype" value="branch"/> <b>Branch</b></td>
+		  <td><input type="text" name="startyear" maxlength="16" size="18"/></td>
+		</tr>
+		<tr>
+		  <td align="right"><input type="radio" name="runtype" value="hybrid"/> <b>Hybrid</b></td>
+		  <td><input type="text" name="startyear" maxlength="16" size="18"/></td>
+		</tr>
+	      </tbody>
+	    </table>
 
-  
-  <fieldset>
-    <legend>CMIP6 Associations:</legend>
-    <table> 
-      <thead>
-        <th><span class="error">*</span> CMIP6 Experiment</th>
-        <th>CMIP6 Parent Experiment</th>
-        <th><span class="error">*</span> Users</th>
-      </thead>
-      <tbody>
-        <tr>
-	  <td valign="top">
-	    <select required name="expName">
-	        <option value="0">Select Experiment</option>
-	      [% FOREACH exp IN CMIP6Exps %]	
-	        <option value="[% exp.id %]">[% exp.expName %]</option>
-	      [% END %]
-	    </select>
-	  </td>
-	  <td valign="top">
-	    <select name="parentExp">
-	      <option value="0">Select Experiment</option>
-	      [% FOREACH exp IN CMIP6Exps %]	
-	        <option value="[% exp.id %]">[% exp.expName %]</option>
-	      [% END %]
-	    </select>
-	  </td>
-	  <td valign="top">
-	    Assigned To:
-	    <select required name="assignUser">
-	      <option value="0">Select User</option>
-	      [% FOREACH user IN NCARUsers %]	
-	        <option value="[% user.id %]">[% user.lastname %], [% user.firstname %]</option>
-	      [% END %]
-	    </select>
-	    <br/><br/>
-	    Scientific Lead:
-	    <select required name="scienceUser">
-	      <option value="0">Select User</option>
-	      [% FOREACH user IN NCARUsers %]	
-	        <option value="[% user.id %]">[% user.lastname %], [% user.firstname %]</option>
-	      [% END %]
-	    </select>
-	  </td>
-	</tr>	
-      </tbody>	
-    </table>
-    <a href="http://clipc-services.ceda.ac.uk/dreq/index.html" target="_blank">View CMIP6 Data Request Definitions</a>
-  </fieldset>
-  <br/>
-  <fieldset>
-    <legend>Case Notes:</legend>
-    <textarea name="notes" cols="100" rows="5"></textarea>
-  </fieldset>
+	    <br/>
+	      <hr/>
+	    <br/>
 
-  <br/>
-  <input type="submit" value="Submit">
-  <input type="reset">
-</form>
+	    <table>
+	      <thead>
+		<th colspan="2">Decadal Prediction Experiment Ensembles</th>
+	      </thead>
+	      <tbody>
+		<tr>
+		  <td align="right" valign="top"><b>Is this an ensemble experiment?</b></td>
+		  <td align="left"><input type="radio" name="ensemble" value="false" checked required/> No<br/>
+		      <input type="radio" name="ensemble" value="true"/> Yes</td>
+		</tr>
+		<tr>
+		  <td align="right"><b>If "Yes", enter the number of ensemble members:</b></td> 
+		  <td align="left"><input type="number" name="ensemble_size" min="1" max="100" value=""/></td>
+		</tr>
+		<tr>
+		  <td align="right"><b>... and number of years for each ensemble member:</b></td>  
+		  <td align="left"><input type="number" name="ensemble_years" min="1" max="100" value=""/></td>
+		</tr>
+	      </tbody>
+	    </table>
+	    <p>Note: Ensemble experiments need to only reserve one unique casename 
+	      corresponding to the first ensemble name of the experiment.
+	      For example, "b.e20.dp.hd-1961.20C.1d.001" is the only case name that needs to be 
+	      entered for the hindcast initialization of the 20th Century run starting
+	      at 1961. Subsequent ensemble member casenames will be automatically added to the database
+	      with the last numeric extension incremented for each ensemble member. </p>
+	    <br/>
+	      <hr/>
+	    <br/>
+	    <table> 
+	      <thead>
+		<th colspan="2">CMIP6 Experiment Associations</th>
+	      </thead>
+	      <tbody>
+		<tr>
+		  <td align="right"><span class="error">*</span> <b>CMIP6 Experiment</b><br/>
+		  (experiment_id)</td>
+		  <td><select required name="expName">
+		      <option value="">Select Experiment</option>
+		      [% FOREACH exp IN CMIP6Exps %]	
+		      <option value="[% exp.exp_id %]">[% exp.expName %]</option>
+		      [% END %]
+		    </select>
+		  </td>
+		</tr>	
+		<tr>
+		  <td align="right" valign="top"><span class="error">*</span> <b>Variant Label "ripf":</b><br/>
+		  (variant_label) All entries must be integer values > 0.</td>
+		  <td>
+		    <table>
+		      <tbody>
+			<tr>
+			  <td align="right">realization_index:</td> <td><input type="number" name="real_num" min="1" max="100" required/></td>
+			</tr>
+			<tr>
+			  <td align="right">intialization_index:</td> <td><input type="number" name="init_num" min="1" max="100" required/></td>
+			</tr>
+			<tr>
+			  <td align="right">physics_index:</td> <td><input type="number" name="phys_num" min="1" max="100" required/></td>
+			</tr>
+			<tr>
+			  <td align="right">forcing_index:</td> <td><input type="number" name="force_num" min="1" max="100" required/></td>
+			</tr>
+		      </tbody>
+		    </table>
+		</tr>
+		<tr>
+		  <td align="right" valign="top"><span class="error">*</span> <b>Source Types:</b><br/>
+		    (source_type)<br/>check all that apply
+		      <p>Note: <b>Only for source types AGCM and AOGCM</b>, one or more of the following combinations are allowed.</p>
+			<table>
+			  <tbody>
+			    <tr>
+			      <td>AGCM</td><td>BGC</td><td>AER</td><td>CHEM</td><td>SLAB</td>
+			    </tr>
+			    <tr>
+			      <td>AOGCM</td><td>BGC</td><td>AER</td><td>CHEM</td><td>ISM</td>
+			    </tr>
+			  </tbody>
+			</table>
+		  </td>
+		  <td align="left">
+		    [% FOREACH source IN CMIP6Sources %]	
+		    <input type="checkbox" name="source" value="[% source.id %]" required/> [% source.name %] - [% source.description %]<br/>
+		    [% END %]<br>
+		  </td>
+		</tr>
+		<tr>
+		  <td align="right" nowrap><b>CMIP6 Parent Experiment</b><br/>
+		  (parent_experiment_id)</td>
+		  <td>
+		    <select name="parentExp">
+		      <option value="0">Select Experiment</option>
+		      [% FOREACH exp IN CMIP6Exps %]	
+		      <option value="[% exp.exp_id %]">[% exp.expName %]</option>
+		      [% END %]
+		    </select>
+		  </td>
+		<tr>
+		  <td align="right"><b>Parent Reference Date (YYYY-MM-DD HH:MM):</b><br/>
+		  (branch_time_in_parent)</td>
+		  <td><input type="text" name="run_refdate" maxlength="16" size="18"/></td>
+		</tr>
+	      </tbody>	
+	    </table>
+
+	    <br/>
+	    <hr/>
+	    <br/>
+
+	    <table> 
+	      <thead>
+		<th colspan="2">Case Specific Information</th>
+	      </thead>
+	      <thead>
+		<tr>
+		  <td>
+		    <span class="error">*</span> <b>Assigned To:</b>
+		    <select required name="assignUser">
+		      <option value="">Select User</option>
+		      [% FOREACH user IN NCARUsers %]	
+		      <option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
+		      [% END %]
+		    </select>
+		  </td>
+		  <td>
+		    <span class="error">*</span> <b>Scientific Lead:</b>
+		    <select required name="scienceUser">
+		      <option value="">Select User</option>
+		      [% FOREACH user IN NCARUsers %]	
+		      <option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
+		      [% END %]
+		    </select>
+		  </td>
+		</tr>
+		<tr>
+		  <td colspan="2"><b>Case Notes:</b><br/>
+		  <textarea name="notes" cols="100" rows="5"></textarea></td>
+		</tr>
+	      </tbody>	
+	    </table>
+	    <br/>
+	    <hr/>
+	    <br/>
+	    <input id="submit" class="button" type="submit" value="Submit"/>
+	    <input type="reset"/>
+	    </form>

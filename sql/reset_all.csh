@@ -11,3 +11,4 @@ mysql < ./t2j_cmip6.sql
 mysql < ./t2j_status.sql
 mysql < ./t2_process.sql
 mysql < ./t2_status.sql
+mysql < ./t2j_links.sql

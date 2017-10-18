@@ -1,11 +1,12 @@
 use csegdb;
 
-drop table if exists t2e_fields;
+drop table if exists t2j_links;
 
-create table t2e_fields(
+create table t2j_links(
        `id` INTEGER AUTO_INCREMENT NOT NULL,
        `case_id` INTEGER,
-       `field_name` VARCHAR(20),
-       `field_value` VARCHAR(200),
+       `process_id` INTEGER,
+       `link_url` varchar(512),
+       `description` TEXT,
        `last_update` DATETIME,
         PRIMARY KEY (`id`));

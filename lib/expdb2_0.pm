@@ -5,6 +5,7 @@ use DBI;
 use DBD::mysql;
 use Time::localtime;
 use DateTime::Format::MySQL;
+use Array::Utils qw(:all);
 use vars qw(@ISA @EXPORT);
 use Exporter;
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser); 
@@ -13,7 +14,7 @@ use lib "/home/www/html/csegdb/lib";
 use config;
 
 @ISA = qw(Exporter);
-@EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCasesByType getPerfExperiments getCaseByID getAllCases getNCARUsers checkCase getUserByID);
+@EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCasesByType getPerfExperiments getCaseByID getAllCases getNCARUsers checkCase getUserByID getCMIP6Sources checkSources getNoteByID getLinkByID getProcess);
 
 sub getCMIP6Experiments
 {
@@ -305,7 +306,7 @@ sub getCaseByID
     my $dbh = shift;
     my $id = shift;
     my (%case, %fields, %status, %project, %user) = ();
-    my @projects = ();
+    my (@notes, @links);
     my $count = 0;
     my ($field_name, $process_name) = '';
     my ($sql1, $sth1);
@@ -385,14 +386,13 @@ sub getCaseByID
     }
     else 
     {
-## START HERE to get the project lines correct...
 	# get CMIP6 fields 
 	if ($case{'expType_id'} == 1) {
-	    $sql = qq(select e.name as expName, m.name as mipName, j.real_num, 
-                    j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id,
-                    DATE_FORMAT(j.request_date, '%Y-%m-%d') as req_date, j.deck_id, j.parentExp_id
-                    from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m
-                    where j.case_id = $case{'case_id'} and j.exp_id = e.id and j.mip_id = m.id);
+	    $sql = qq(select e.name as expName, m.name as mipName, j.real_num, j.nyears,
+		     j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
+		     DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, j.parentExp_id
+		     from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m
+		     where j.case_id = $case{'case_id'} and j.exp_id = e.id and j.design_mip_id = m.id);
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
 	    while (my $ref = $sth->fetchrow_hashref())
@@ -402,7 +402,9 @@ sub getCaseByID
 		$project{'cmip6_real_num'} = $ref->{'real_num'};
 		$project{'cmip6_ensemble_num'} = $ref->{'ensemble_num'};
 		$project{'cmip6_ensemble_size'} = $ref->{'ensemble_size'};
+		$project{'cmip6_nyears'} = $ref->{'nyears'};
 		$project{'cmip6_request_date'} = $ref->{'req_date'};
+		$project{'cmip6_source_type'} = $ref->{'source_type'};
 
 		# get the DECK name if deck_id defined
 		$project{'cmip6_deckName'} = '';
@@ -415,11 +417,11 @@ sub getCaseByID
 		    $sth1->finish();
 		}
 
-		# get the DECK name if deck_id defined
+		# get the parent name if there is one
 		$project{'cmip6_parent_casename'} = '';
 		if( defined($ref->{'parentExp_id'}) and ($ref->{'parentExp_id'} > 0) )
 		{
-		    $sql = qq(select name from t2_cmip6_exps where id = $ref->{'deck_id'});
+		    $sql = qq(select name from t2_cmip6_exps where id = $ref->{'parentExp_id'});
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute();
 		    $project{'cmip6_parent_casename'} = $sth1->fetchrow();
@@ -431,16 +433,30 @@ sub getCaseByID
 		    %user = getUserByID($dbh, $ref->{'assign_id'});
 		    $project{'cmip6_assign'} = $user{'firstname'} . ' ' . $user{'lastname'} . ' (' .$user{'email'} .')';
 		}
-		    
+		
 		if( $ref->{'science_id'} > 0 )
 		{
 		    %user = getUserByID($dbh, $ref->{'science_id'});
 		    $project{'cmip6_science'} = $user{'firstname'} . ' ' . $user{'lastname'} . ' (' . $user{'email'} . ')';
 		}
-		push(@projects, \%project);
 	    }
 	    $sth->finish();
 	}
+
+	# get case notes
+	$sql = qq(select * from t2e_notes where case_id = $case{'case_id'}
+                order by note, last_update desc);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	while (my $ref = $sth->fetchrow_hashref())
+	{
+	    my %note;
+	    $note{'note_id'} = $ref->{'id'};
+	    $note{'note'} = $ref->{'note'};
+	    $note{'last_update'} = $ref->{'last_update'};
+	    push(@notes, \%note);
+	}
+	$sth->finish();
 
 	# get changed fields
 	$sql = qq(select * from t2e_fields where case_id = $case{'case_id'}
@@ -450,6 +466,7 @@ sub getCaseByID
 	while (my $ref = $sth->fetchrow_hashref())
 	{
 	    $field_name = $ref->{'field_name'};
+	    $fields{$field_name}{'field_id'} = $ref->{'id'};
 	    $fields{$field_name}{'field_value'} = $ref->{'field_value'};
 	    $fields{$field_name}{'last_update'} = $ref->{'last_update'};
 	}
@@ -475,12 +492,19 @@ sub getCaseByID
 	}
 	$sth->finish();
 
-	# TODO - get diagnostics links
-
-	# TODO - get ESG links
+	# get case links
+	$sql = qq(select id from t2j_links where case_id = $case{'case_id'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	while (my $ref = $sth->fetchrow_hashref())
+	{
+	    my $link = getLinkByID($ref->{'id'});
+	    push(@links, $link);
+	}
+	$sth->finish();
 
     }
-    return \%case, \%fields, \%status, @projects;
+    return \%case, \%fields, \%status, \%project, @notes, @links;
 }
 
 sub getAllCases
@@ -554,7 +578,7 @@ sub getUserByID
 	$user{'email'} = $ref->{'email'};
     }
 
-    return \%user;
+    return %user;
 }
 
 sub getPerfExperiments
@@ -565,4 +589,114 @@ sub getPerfExperiments
 #TODO - retrieve perf data for all experiments
     return @perfExps;
     
+}
+
+
+sub getCMIP6Sources
+{
+    my $dbh = shift;
+    my @CMIP6Sources;
+    my $sql = "select * from t2_cmip6_sources order by id";
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while(my $ref = $sth->fetchrow_hashref())
+    {
+	my %CMIP6Source;
+	$CMIP6Source{'id'} = $ref->{'id'};
+	$CMIP6Source{'name'} = $ref->{'name'};
+	$CMIP6Source{'description'} = $ref->{'description'};
+
+	push(@CMIP6Sources, \%CMIP6Source);
+    }
+    $sth->finish();
+    return @CMIP6Sources;
+}
+
+sub checkSources
+{
+    my $dbh = shift;
+    my $source_ref = shift;
+    my @inSources = @{$source_ref};
+    my $CMIP6Sources;
+    my $valid = 1;
+    my @associates;
+
+    if (scalar @inSources == 0) {
+	$valid = 0;
+	return ($valid, @inSources);
+    }
+    
+    while(my $CMIP6Source = shift(@inSources)) {
+	if ($CMIP6Source ~~ [1,3]) {
+	    my $sql = "select subtype_source_id from t2j_cmip6_source_types 
+                       where parent_source_id = $CMIP6Source";
+	    my @associates = @{$dbh->selectcol_arrayref($sql)};
+	    # TODO - cross-check the associates array with
+	    # inSources using the Array::Utils module
+	}
+	my $sql = "select name from t2_cmip6_sources 
+                   where id = $CMIP6Source";
+	my $sth = $dbh->prepare($sql);
+	$sth->execute();
+	my $source_name = $sth->fetchrow();
+	$sth->finish();
+	$CMIP6Sources .= $source_name;
+	$CMIP6Sources .= ' ';
+    }
+    
+    $CMIP6Sources = $dbh->quote(substr($CMIP6Sources,0,-1));
+    return ($valid, $CMIP6Sources);
+}
+
+sub getNoteByID
+{
+   my $dbh = shift;
+   my $note_id = shift;
+
+   my $sql = qq(select note from t2e_notes where id = $note_id);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   my $note = $sth->fetchrow();
+   $sth->finish();
+
+   return $note;
+}
+
+
+sub getLinkByID
+{
+   my $dbh = shift;
+   my $link_id = shift;
+   my %link;
+
+   my $sql = qq(select j.id, j.case_id, j.process_id, j.link_url, j.description, DATE_FORMAT(j.last_update, '%Y-%m-%d) 
+                c.casename, p.name
+                from t2j_links as j, t2_case as c, t2_process as p  
+                where id = $link_id and j.case_id = c.id and j.process_id = p.id);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   ($link{'id'},$link{'case_id'},$link{'process_id'},$link{'link_url'},$link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'})  = $sth->fetchrow();
+   $sth->finish();
+
+   return \%link;
+}
+
+sub getProcess
+{
+   my $dbh = shift;
+   my @processes;
+
+   my $sql = qq(select * from t2_process);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   while(my $ref = $sth->fetchrow_hashref())
+   {
+       my %process;
+       $process{'process_id'} = $ref->{'id'};
+       $process{'process_name'} = $ref->{'name'};
+       $process{'description'} = $ref->{'description'};
+       push(@processes, \%process);
+   }
+   $sth->finish();
+   return @processes;
 }

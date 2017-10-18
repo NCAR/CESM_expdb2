@@ -1,29 +1,3 @@
-	<script type="text/javascript">
-	    function changeExp(value)
-	    {
-	       var xmlhttp;
-	       if (window.XMLHttpRequest)
-	         {// code for IE7+, Firefox, Chrome, Opera, Safari
-		   xmlhttp=new XMLHttpRequest();
-		 }
-		 else
-		 {// code for IE6, IE5
-		   xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-		 }
-		 xmlhttp.onreadystatechange=function()
-		 {
-		    if (xmlhttp.readyState==4 && xmlhttp.status==200)
-		    {
-		    	// window.location.reload;
-			window.location.href = "/expdb2.0/cgi-bin/expList.cgi";
-		    }
-		 }
-		 xmlhttp.open("GET","/expdb2.0/cgi-bin/expList.cgi?action=showExpDetail&case_id="+value,true);
-	         xmlhttp.send();
-	    }
-	  </script>
-
-
 <div class="loginHeader">
     <div class="ui-state-default ui-corner-all" style="position: absolute; top: 20px; left: 20px; font-weight:normal">
      <form name="expForm">
@@ -31,14 +5,20 @@
      <a href="/expdb2.0/cgi-bin/expList.cgi">CESM2.0 Experiments</a>&nbsp;&nbsp;|&nbsp;&nbsp;
      <a href="/expdb2.0/cgi-bin/search.cgi">Advanced Search</a>&nbsp;&nbsp;|&nbsp;&nbsp;
      	Select a Case Name:
-    	  <select id="expPD" name="expPD" onchange="changeExp(this.value)">
+    	  <select id="expPD">
 	     <option>Select Case Name</option>
-	     [% FOREACH exp IN allCases %]
-	   	  <option value="[% exp.case_id %]">[% exp.casename %]</option>
+	     [% FOREACH case IN allCases %]
+	   	  <option value="[% case.case_id %]">[% case.casename %]</option>
 	     [% END %]
 	  </select>
       </form>
 
+<script>
+$('#expPD').change(function() {
+//  alert('The option with value ' + $(this).val() + ' and text ' + $(this).text() + ' was selected.');
+  window.location = '/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=' + $(this).val();
+});
+</script>
 
     </div>
     Logged in as <b>[% authUser.lfirstname %] [% authUser.llastname %]</b>&nbsp;&nbsp;|&nbsp;&nbsp;<span class="ui-state-default ui-corner-all" style="font-weight:normal"><a href="/expdb2.0/cgi-bin/login.cgi?action=logout">Logout</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="/expdb2.0/html/procedures.html">Help</a></span>

@@ -20,104 +20,108 @@
      @import "/jqueryui/css/redmond/jquery-ui-1.8.23.custom.css";
      @import "/jquerydt/DataTables-1.9.3/media/css/jquery.dataTables.css";
    </style>
-   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
-   <script src="https://code.jquery.com/ui/1.8.23/jquery-ui.min.js" type="text/javascript"></script>
+
    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+   <script src="/jquery-validation/jquery.validate.js" language="javascript" type="text/javascript"></script>
    <script type="text/javascript" language="javascript" src="/scripts/jquery.dataTables.js"></script>
-   <script  type="text/javascript" src="/scripts/exp_dashboard.js"></script>  
    <script type="text/javascript" src="/scripts/popitup.js"></script>
-   <script  type="text/javascript">
-     $(document).ready(function()
-     {
-        $("tr:even").css("background-color", "#E3E4E6");
-     });
-   </script>
+   <script type="text/javascript" src="/scripts/exp_dashboard.js"></script>  
 
 </head>
 
-<body style="text-align: left">
+<body>
   <p>
     [% INCLUDE header.tmpl %]
   </p>
 
-  <div id="wrap"><!-- begin wrap -->
-    <div align="center">
+  <div class="body">
     <h1>[% case.casename %] - Experiment Detail</h1>
 
+    <h2>CESM Case Working Title:</h2>
+    <p><button onclick="return popitup('/expdb2.0/cgi-bin/caseTitle.cgi?case_id=[% case.case_id %]&action=update','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button> [% case.title %]</p>
+    
     [% IF validstatus %]
-    <div id="msgbox" [% IF validstatus.status %] style="color:green" [% ELSE %] style="color:red"
-	 [% END %]>
+    <div id="msgbox" [% IF validstatus.status %] style="color:green" [% ELSE %] style="color:red" [% END %]>
       [% validstatus.message %]
-      <br>
+      <br/>
     </div>
     [% END %]
 
-    <div align="center">
-      <h2>Case Process Status and Project Details</h2>
+    <table style="width: 100%">
+      <tr>
+	<td><a class="show-all-exp-details show-hide">show all</a></td>
+	<td align="right"><a class="show-hide" href="">Publish Experiment to DSET</a></td>
+      </tr>
+    </table>
+    <br/>
+    <br/>
 
-      <table width="65%">
-	<thead>
-	  <th>Case Process Status</th>
-	  <th>Project Details</th>
-	</thead>
-	<tr valign="top">
-	  <td class="block">
-	    <table border=".5" cellpadding="2px" cellspacing="2px">
-	      <thead>
-		<th>Description</th>		
-		<th>Process Name</th>		
-		<th>Status</th>		
-		<th>Last Update</th>		
-	      </thead>
-	      [% FOREACH key IN status.keys.sort %]
-	      <tr>
-		<td>[% status.$key.description %]</td>
-		<td>[% key %]</td>
-		<td style="background-color:[% status.$key.color %]">[% status.$key.code %]</td>
-		<td>[% status.$key.last_update %]</td>
-	      </tr>
-	      [% END %]
-	    </table>
-	  </td>
-	  <td></td>	  
-	</tr>
-      </table>
+  <div class="expDetail_accordion expDetail_applying">
 
-    </div>
+    <div id="expDetail_accordion">
 
-    <br/><br/>
-
-    <div align="center">
-      <h2>Case Details</h2>
-      <span class="textred">Only users associated with this experiment may update details.</span>
-
-     <form method="POST" action="/exp2.0/cgi-bin/expList.cgi">
-      <input type="hidden" name="action" value="expUpdate"/>
-      <input type="hidden" name="id" value="[% case.id %]"></input>
-	<table width="95%" border=".5" cellpadding="2px" cellspacing="2px">
+      <h3>Case Workflow Process Status</h3>
+      <div id="expDetail_table">
+	<table class="bordered">
 	  <thead>
-	    <th>Case Field Name</th>		
-	    <th>Case Field Value(s)</th>
+	    <th>Description</th>		
+	    <th>Process Name</th>		
+	    <th>Status</th>		
+	    <th>Last Update</th>		
+	  </thead>
+	  [% FOREACH key IN status.keys.sort %]
+	  <tr>
+	    <td>[% status.$key.description %]</td>
+	    <td>[% key %]</td>
+	    <td style="background-color:[% status.$key.color %]">[% status.$key.code %]</td>
+	    <td>[% status.$key.last_update %]</td>
+	  </tr>
+	  [% END %]
+	</table>
+      </div>
+
+      <h3>[% case.project_name %] Project Details</h3>
+      <div id="expDetail_table">
+	<table class="bordered">
+	  <thead>
+	    <th>Field Name</th>		
+	    <th>Value</th>		
+	  </thead>
+	  [% FOREACH key IN project.keys.sort  %]
+	  <tr>
+	    <td>[% key %]</td>
+	    <td>[% project.$key %]</td>
+	  </tr>
+	  [% END %]
+	</table>
+      </div>
+
+      <h3>Caseroot Settings</h3>
+      <div id="expDetail_table">
+	<table class="bordered">
+	  <thead>
+	    <th>Variable Name</th>		
+	    <th>Value</th>		
 	  </thead>
 	  <tr>
 	    <td>Case Name (CASE):</td>
 	    <td>[% case.casename %]
 	      [% IF fields.defined(casename) %]
 	      <br/>History of field changes:
-	         [% FOREACH pair IN fields.pairs %]
-	            <br/>[% pair.field_value %] (updated: [% pair.last_update %]
-	         [% END %]
+	      [% FOREACH pair IN fields.pairs %]
+	      <br/>[% pair.field_value %] (updated: [% pair.last_update %]
+	      [% END %]
 	      [% END %]
 	    </td>
 	  </tr>
 	  <tr>
-	    <td>Title:</td>
-	    <td><input name="title" value="[% case.title %]" type="text"></input></td>
-	  </tr>
-	  <tr>
 	    <td>Caseroot (CASEROOT):</td>
 	    <td>[% case.caseroot %]</td>
+	  </tr>
+	  <tr>
+	    <td>SVN Caseroot Repository Link:</td>
+	    <td><a href="[% case.svn_repo_url %]" target="_blank">[% case.svn_repo_url %]</a></td>
 	  </tr>
 	  <tr>
 	    <td>Compiler (COMPILER):</td>
@@ -168,10 +172,6 @@
 	    <td>[% case.project %]</td>
 	  </tr>
 	  <tr>
-	    <td>SVN Caseroot Repository Link:</td>
-	    <td><a href="[% case.svn_repo_url %]" target="_blank">[% case.svn_repo_url %]</a></td>
-	  </tr>
-	  <tr>
 	    <td>Initial Archive Date:</td>
 	    <td>[% case.archive_date %]</td>
 	  </tr>
@@ -208,10 +208,6 @@
 	    <td>[% case.caseuser %]</td>
 	  </tr>
 	  <tr>
-	    <td>Scientific User:</td>
-	    <td>[% case.runscientifc_id %]</td>
-	  </tr>
-	  <tr>
 	    <td>Stop Frequency (STOP_N):</td>
 	    <td>[% case.stop_n %]</td>
 	  </tr>
@@ -219,31 +215,71 @@
 	    <td>Stop Option (STOP_OPTION):</td>
 	    <td>[% case.stop_option %]</td>
 	  </tr>
+	</table>
+      </div>
+
+      <h3>Case Notes</h3>
+      <div id="expDetail_table">
+	<table class="bordered">
 	  <tr>
-	    <td>Case Notes:</td>
-	    <td>TODO Loop</td>
-	  </tr>
-	  <tr>
-	    <td>Diagnostics Links:</td>
-	    <td>TODO Loop</td>
-	  </tr>
-	  <tr>
-	    <td>ESG Links:</td>
-	    <td>TODO Loop</td>
-	  </tr>
-	  <tr style="text-align:center; background-color:#DFEFFC">
-	    <td colspan="2" style="text-align:center; background-color:#DFEFFC">
-	      <input type="submit" name="Submit" value="Save Changes to Experiment"/>
-	      <input type="reset">
-	      <input type="button" name="DSET" value="TODO Publish to DSET"/>
+	    <td valign="top"> <button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Notes:</td>
+	    <td>
+	      <table>
+		<thead>
+		  <th></th>		
+		  <th>Note</th>		
+		  <th>Last Update</th>		
+		</thead>
+		[% FOREACH n IN notes %]
+		<tr>
+		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id %]&note_id=[% n.note_id %]&action=update','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+		  <td>[% n.note %]</td>
+		  <td>[% n.last_update %]</td>
+		</tr>
+		[% END %]
+	      </table>
 	    </td>
 	  </tr>
 	</table>
-      </form>
+      </div>
 
-      <br/><br/>
-  </div>
+      <h3>Case Diagnostics and ESG Links</h3>
+      <div id="expDetail_table">
+	<table class="bordered">
+	  <tr>
+	    <td valign="top"><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Links:</td>
+	    [% FOREACH key IN links.keys.sort %]
+	    <td>
+	      <table>
+		<thead>
+		  <th></th>
+		  <th>Process</th>		
+		  <th>URL</th>		
+		  <th>Last Update</th>		
+		</thead>
+
+		<tr>
+		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&link_id=[% links.$key.link_id %]&action=update','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+		  <td>[% links.$key.process_name %]</td>
+		  <td>[% links.$key.link_url %]</td>
+		  <td>[% links.$key.last_update %]</td>
+		</tr>
+		<tr>
+		  <th colspan="4">Description</th>
+		</tr>
+		<tr>
+		  <td colspan="4">[% links.$key.description %]</td>
+		</tr>
+	      </table>
+	    </td>
+	    [% END %]
+	  </tr>
+	</table>
+      </div>
+
+    </div>
   </div>
 
+</div>
 </body>
 </html>
