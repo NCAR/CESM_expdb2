@@ -115,15 +115,15 @@ sub doActions()
     }
     elsif ($action eq "update")
     {
-	&updateLink($req->param('case_id'),$req->param('note_id'));
+	&updateLink($req->param('case_id'),$req->param('link_id'));
     }
     elsif ($action eq "updateLinkProc")
     {
-	&updateLinkProcess($req->param('note_id'));
+	&updateLinkProcess($req->param('link_id'));
     }
     elsif ($action eq "deleteLinkProc")
     {
-	&deleteLinkProcess($req->param('note_id'));
+	&deleteLinkProcess($req->param('link_id'));
     }
     else
     {
@@ -137,7 +137,7 @@ sub doActions()
 }
 
 #------------------
-# addLink - popup form to add a new case note
+# addLink - popup form to add a new case link
 #------------------
 
 sub addLink
@@ -145,10 +145,12 @@ sub addLink
     my $case_id = shift;
     my ($case, $fields, $status, $project, @notes, @links) = getCaseByID($dbh, $case_id);
     my @processes = getProcess($dbh);
+    my @linkTypes = getLinkTypes($dbh);
 
     my $vars = {
 	case          => $case,
 	processes     => \@processes,
+	linkTypes     => \@linkTypes,
 	authUser      => \%item,
 	validstatus   => \%validstatus,
     };
@@ -178,9 +180,11 @@ sub addLinkProcess
     foreach my $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
     }
-    my $note = $dbh->quote($item{'note'});
-    my $sql = qq(insert into t2e_notes (case_id, note, last_update) 
-               value ($case_id, $note, NOW()));
+    my $link = $dbh->quote($item{'link'});
+    my $description = $dbh->quote($item{'description'});
+    my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update) 
+               value ($case_id, $item{'processName'}, $item{'linkType'}, $link, $description, NOW()));
+    print STDERR "addLinkProcess sql = " . $sql;
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish();
@@ -188,7 +192,7 @@ sub addLinkProcess
     # refresh the current page
     print $req->header(-cookie=>$cookie);
     $item{message} =  qq(<script type="text/javascript">
-                     alert('Case note added.');
+                     alert('Case link added.');
                      window.close();
                      if (window.opener && !window.opener.closed) {
                             window.opener.location.reload();

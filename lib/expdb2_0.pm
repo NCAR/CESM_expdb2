@@ -14,7 +14,7 @@ use lib "/home/www/html/csegdb/lib";
 use config;
 
 @ISA = qw(Exporter);
-@EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCasesByType getPerfExperiments getCaseByID getAllCases getNCARUsers checkCase getUserByID getCMIP6Sources checkSources getNoteByID getLinkByID getProcess);
+@EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCasesByType getPerfExperiments getCaseByID getAllCases getNCARUsers checkCase getUserByID getCMIP6Sources checkSources getNoteByID getLinkByID getProcess getLinkTypes);
 
 sub getCMIP6Experiments
 {
@@ -306,7 +306,8 @@ sub getCaseByID
     my $dbh = shift;
     my $id = shift;
     my (%case, %fields, %status, %project, %user) = ();
-    my (@notes, @links);
+    my @notes;
+    my @links;
     my $count = 0;
     my ($field_name, $process_name) = '';
     my ($sql1, $sth1);
@@ -498,13 +499,13 @@ sub getCaseByID
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
 	{
-	    my $link = getLinkByID($ref->{'id'});
+	    my $link = getLinkByID($dbh, $ref->{'id'});
 	    push(@links, $link);
 	}
 	$sth->finish();
 
     }
-    return \%case, \%fields, \%status, \%project, @notes, @links;
+    return \%case, \%fields, \%status, \%project, \@notes, \@links;
 }
 
 sub getAllCases
@@ -662,20 +663,19 @@ sub getNoteByID
    return $note;
 }
 
-
 sub getLinkByID
 {
    my $dbh = shift;
    my $link_id = shift;
    my %link;
 
-   my $sql = qq(select j.id, j.case_id, j.process_id, j.link_url, j.description, DATE_FORMAT(j.last_update, '%Y-%m-%d) 
-                c.casename, p.name
-                from t2j_links as j, t2_case as c, t2_process as p  
-                where id = $link_id and j.case_id = c.id and j.process_id = p.id);
+   my $sql = qq(select j.id, j.case_id, j.process_id, j.linkType_id, j.link, j.description, 
+                DATE_FORMAT(j.last_update, '%Y-%m-%d'), c.casename, p.name, t.name
+                from t2j_links as j, t2_cases as c, t2_process as p, t2_linkType as t
+                where j.id = $link_id and j.case_id = c.id and j.process_id = p.id and j.linkType_id = t.id);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
-   ($link{'id'},$link{'case_id'},$link{'process_id'},$link{'link_url'},$link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'})  = $sth->fetchrow();
+   ($link{'id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},$link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},$link{'linkType_name'})  = $sth->fetchrow();
    $sth->finish();
 
    return \%link;
@@ -699,4 +699,23 @@ sub getProcess
    }
    $sth->finish();
    return @processes;
+}
+
+sub getLinkTypes
+{
+   my $dbh = shift;
+   my @linkTypes;
+
+   my $sql = qq(select * from t2_linkType);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   while(my $ref = $sth->fetchrow_hashref())
+   {
+       my %linkType;
+       $linkType{'linkType_id'} = $ref->{'id'};
+       $linkType{'linkType_name'} = $ref->{'name'};
+       push(@linkTypes, \%linkType);
+   }
+   $sth->finish();
+   return @linkTypes;
 }

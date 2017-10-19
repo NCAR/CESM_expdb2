@@ -106,13 +106,7 @@
 	  </thead>
 	  <tr>
 	    <td>Case Name (CASE):</td>
-	    <td>[% case.casename %]
-	      [% IF fields.defined(casename) %]
-	      <br/>History of field changes:
-	      [% FOREACH pair IN fields.pairs %]
-	      <br/>[% pair.field_value %] (updated: [% pair.last_update %]
-	      [% END %]
-	      [% END %]
+	    <td>[% case.casename %]</td>
 	    </td>
 	  </tr>
 	  <tr>
@@ -248,31 +242,32 @@
 	<table class="bordered">
 	  <tr>
 	    <td valign="top"><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Links:</td>
-	    [% FOREACH key IN links.keys.sort %]
 	    <td>
 	      <table>
+	      [% FOREACH lk IN links %]
 		<thead>
 		  <th></th>
 		  <th>Process</th>		
-		  <th>URL</th>		
+		  <th>Link Type</th>		
+		  <th>Link</th>		
 		  <th>Last Update</th>		
 		</thead>
-
 		<tr>
-		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&link_id=[% links.$key.link_id %]&action=update','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
-		  <td>[% links.$key.process_name %]</td>
-		  <td>[% links.$key.link_url %]</td>
-		  <td>[% links.$key.last_update %]</td>
+		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&link_id=[% lk.link_id %]&action=update','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+		  <td>[% lk.process_name %]</td>
+		  <td>[% lk.linkType_name %]</td>
+		  <td>[% lk.link %]</td>
+		  <td>[% lk.last_update %]</td>
 		</tr>
 		<tr>
-		  <th colspan="4">Description</th>
+		  <td colspan="5"><b>Description</b></td>
 		</tr>
 		<tr>
-		  <td colspan="4">[% links.$key.description %]</td>
+		  <td colspan="5">[% lk.description %]</td>
 		</tr>
+	      [% END %]
 	      </table>
 	    </td>
-	    [% END %]
 	  </tr>
 	</table>
       </div>

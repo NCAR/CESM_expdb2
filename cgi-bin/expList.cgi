@@ -180,7 +180,7 @@ sub showExpList
 sub showCaseDetail
 {
     my $case_id = shift;
-    my ($case, $fields, $status, $project, @notes, @links) = getCaseByID($dbh, $case_id);
+    my ($case, $fields, $status, $project, $notes, $links) = getCaseByID($dbh, $case_id);
     my @allCases = getAllCases($dbh);
 
     $validstatus{'status'} = 1;
@@ -202,8 +202,8 @@ sub showCaseDetail
 	fields      => $fields,
 	status      => $status,
 	project     => $project,
-	notes       => \@notes,
-	links       => \@links,
+	notes       => $notes,
+	links       => $links,
 	allCases    => \@allCases,
 	authUser    => \%item,
 	validstatus => \%validstatus,
