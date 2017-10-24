@@ -225,7 +225,7 @@ sub getCMIP6DCPPs
                    DATE_FORMAT(request_date, '%Y-%m-%d') as req_date  
                    from t2j_cmip6 
                    where design_mip_id = $DCPPMIPid
-                   and parentExp_id = $ref->{'id'});
+                   and exp_id = $ref->{'id'});
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	while(my $ref1 = $sth1->fetchrow_hashref())
@@ -308,6 +308,7 @@ sub getCaseByID
     my (%case, %fields, %status, %project, %user) = ();
     my @notes;
     my @links;
+    my @sorted;
     my $count = 0;
     my ($field_name, $process_name) = '';
     my ($sql1, $sth1);
@@ -411,7 +412,7 @@ sub getCaseByID
 		$project{'cmip6_deckName'} = '';
 		if( defined($ref->{'deck_id'}) and ($ref->{'deck_id'} > 0) )
 		{
-		    $sql = qq(select name from t2_cmip6_DECK_types where id = $ref->{'deck_id'});
+		    $sql1 = qq(select name from t2_cmip6_DECK_types where id = $ref->{'deck_id'});
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute();
 		    $project{'cmip6_deckName'} = $sth1->fetchrow();
@@ -422,7 +423,15 @@ sub getCaseByID
 		$project{'cmip6_parent_casename'} = '';
 		if( defined($ref->{'parentExp_id'}) and ($ref->{'parentExp_id'} > 0) )
 		{
-		    $sql = qq(select name from t2_cmip6_exps where id = $ref->{'parentExp_id'});
+		    $sql1 = qq(select name from t2_cmip6_exps where id = $ref->{'parentExp_id'});
+		    $sth1 = $dbh->prepare($sql1);
+		    $sth1->execute();
+		    $project{'cmip6_parent_expname'} = $sth1->fetchrow();
+		    $sth1->finish();
+
+		    $sql1 = qq(select c.casename from t2_cases as c, t2j_cmip6 as j
+                               where j.exp_id = $ref->{'parentExp_id'} 
+                               and j.case_id = c.id);
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute();
 		    $project{'cmip6_parent_casename'} = $sth1->fetchrow();
@@ -504,8 +513,10 @@ sub getCaseByID
 	}
 	$sth->finish();
 
+	# sort on process_id key
+	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
     }
-    return \%case, \%fields, \%status, \%project, \@notes, \@links;
+    return \%case, \%fields, \%status, \%project, \@notes, \@sorted;
 }
 
 sub getAllCases
@@ -675,7 +686,7 @@ sub getLinkByID
                 where j.id = $link_id and j.case_id = c.id and j.process_id = p.id and j.linkType_id = t.id);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
-   ($link{'id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},$link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},$link{'linkType_name'})  = $sth->fetchrow();
+   ($link{'link_id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},$link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},$link{'linkType_name'})  = $sth->fetchrow();
    $sth->finish();
 
    return \%link;

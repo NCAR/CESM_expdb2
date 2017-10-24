@@ -98,7 +98,7 @@
 		  <td><select required name="expName">
 		      <option value="">Select Experiment</option>
 		      [% FOREACH exp IN CMIP6Exps %]	
-		      <option value="[% exp.exp_id %]">[% exp.expName %]</option>
+		      <option value="[% exp.exp_id %]">[% exp.expName %] - [% exp.casename %]</option>
 		      [% END %]
 		    </select>
 		  </td>
@@ -152,7 +152,7 @@
 		    <select name="parentExp">
 		      <option value="0">Select Experiment</option>
 		      [% FOREACH exp IN CMIP6Exps %]	
-		      <option value="[% exp.exp_id %]">[% exp.expName %]</option>
+		      <option value="[% exp.exp_id %]">[% exp.expName %] - [% exp.casename %]</option>
 		      [% END %]
 		    </select>
 		  </td>

@@ -130,7 +130,7 @@
 	    <td>[% case.dout_s_root %]</td>
 	  </tr>
 	  <tr>
-	    <td>Experiment Type:</td>
+	    <td>Project or Experiment Type:</td>
 	    <td>[% case.expType_name %] - [% case.expType_desc %]</td>
 	  </tr>
 	  <tr>
@@ -253,10 +253,15 @@
 		  <th>Last Update</th>		
 		</thead>
 		<tr>
-		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&link_id=[% lk.link_id %]&action=update','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&link_id=[% lk.link_id %]&action=update','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
 		  <td>[% lk.process_name %]</td>
 		  <td>[% lk.linkType_name %]</td>
+		  [% http = lk.link %]
+		  [% IF lk.linkType_id == 1 %]
+		  <td><a href="[% lk.link %]" target="_blank">[% lk.link %]</a></td>
+		  [% ELSE %]
 		  <td>[% lk.link %]</td>
+		  [% END %]
 		  <td>[% lk.last_update %]</td>
 		</tr>
 		<tr>

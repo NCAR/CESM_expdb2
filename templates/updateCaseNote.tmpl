@@ -42,19 +42,22 @@
     <h3>Update a case note for [% case.casename %]</h3>
     <br/>
     <form id="updateNoteForm" action="/expdb2.0/cgi-bin/caseNotes.cgi" method="POST">
-    <table>
-      <tr>
-	<textarea name="note" cols="100" rows="5" required>[% note %]</textarea>
-      </tr>
-      <tr>
-	<td>
+      <table>
+	<tr>
+	  <td>Note:</td>
+	  <td ><textarea name="note" cols="100" rows="5" required>[% note %]</textarea></td>
+	</tr>
+      </table>
+      <table>
+	<tr>
+	  <td>
 	    <input type="hidden" name="action" value="updateNoteProc"/>
 	    <input type="hidden" name="note_id" value="[% note_id %]"/>
 	    <input id="submit" class="button" type="submit" value="Update"/>
-	  </form>
-	</td>
+	  </td>
+	</form>
 	<td>
-	  <form id="DeleteNoteForm" action="/expdb2.0/cgi-bin/caseNotes.cgi" method="POST">
+	  <form id="deleteNoteForm" action="/expdb2.0/cgi-bin/caseNotes.cgi" method="POST">
 	    <input type="hidden" name="action" value="deleteNoteProc"/>
 	    <input type="hidden" name="note_id" value="[% note_id %]"/>
 	    <input id="delete" class="button" type="submit" value="Delete"/>
@@ -63,7 +66,7 @@
 	<td>
 	  <input class="button" type="button" value="Cancel" onclick="window.close(); if (window.opener && !window.opener.closed) { window.opener.location.reload();}"/>
 	</td>
-      </tr>
-  </div>
+      </table>
+ </div>
 </body>
 </html>

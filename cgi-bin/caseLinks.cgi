@@ -184,7 +184,6 @@ sub addLinkProcess
     my $description = $dbh->quote($item{'description'});
     my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update) 
                value ($case_id, $item{'processName'}, $item{'linkType'}, $link, $description, NOW()));
-    print STDERR "addLinkProcess sql = " . $sql;
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish();
@@ -209,21 +208,25 @@ sub addLinkProcess
 }
 
 #------------------
-# updateLink - popup form to update a case note
+# updateLink - popup form to update a case link
 #------------------
 
 sub updateLink
 {
     my $case_id = shift;
-    my $note_id = shift;
+    my $link_id = shift;
 
     my ($case, $fields, $status, $project, @notes, @links) = getCaseByID($dbh, $case_id);
-    my $note = getLinkByID($dbh, $note_id);
+    my $link = getLinkByID($dbh, $link_id);
+    my @processes = getProcess($dbh);
+    my @linkTypes = getLinkTypes($dbh);
 
     my $vars = {
 	case          => $case,
-	note          => $note,
-	note_id       => $note_id,
+	link          => $link,
+	link_id       => $link_id,
+	processes     => \@processes,
+	linkTypes     => \@linkTypes,
 	authUser      => \%item,
 	validstatus   => \%validstatus,
     };
@@ -248,15 +251,17 @@ sub updateLink
 
 sub updateLinkProcess
 {
-    my $note_id = shift;
+    my $link_id = shift;
 
     # get all the input params
     foreach my $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
     }
-    my $note = $dbh->quote($item{'note'});
-    my $sql = qq(update t2e_notes set note = $note, last_update = NOW()
-                 where id = $note_id);
+    my $link = $dbh->quote($item{'link'});
+    my $description = $dbh->quote($item{'description'});
+    my $sql = qq(update t2j_links set link = $link, description = $description, last_update = NOW(),
+                 process_id = $item{'processName'}, linkType_id = $item{'linkType'}
+                 where id = $link_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish();
@@ -264,7 +269,7 @@ sub updateLinkProcess
     # refresh the current page
     print $req->header(-cookie=>$cookie);
     $item{message} =  qq(<script type="text/javascript">
-                     alert('Case note updated.');
+                     alert('Case link updated.');
                      window.close();
                      if (window.opener && !window.opener.closed) {
                             window.opener.location.reload();
@@ -287,14 +292,13 @@ sub updateLinkProcess
 
 sub deleteLinkProcess
 {
-    my $note_id = shift;
+    my $link_id = shift;
 
     # get all the input params
     foreach my $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
     }
-    my $note = $dbh->quote($item{'note'});
-    my $sql = qq(delete from t2e_notes where id = $note_id);
+    my $sql = qq(delete from t2j_links where id = $link_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish();
@@ -302,7 +306,7 @@ sub deleteLinkProcess
     # refresh the current page
     print $req->header(-cookie=>$cookie);
     $item{message} =  qq(<script type="text/javascript">
-                     alert('Case note deleted.');
+                     alert('Case link deleted.');
                      window.close();
                      if (window.opener && !window.opener.closed) {
                             window.opener.location.reload();

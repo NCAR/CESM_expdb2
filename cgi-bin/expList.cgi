@@ -316,7 +316,6 @@ sub reserveCase
                              "$item{'runtype'}", $startyear, $run_refdate));
 	}
 	$sth = $dbh->prepare($sql);
-	print STDERR '>>> insert t2_cases sql = ' . $sql . '<<<<\n';
 	$sth->execute();
 	$sth->finish();
 
@@ -333,7 +332,6 @@ sub reserveCase
 	{
 	    $sql = qq(insert into t2e_notes (case_id, note, last_update) value ($case_id, $note, NOW()));
 	    $sth = $dbh->prepare($sql);
-	    print STDERR '>>> insert t2e_notes sql = ' . $sql . '<<<<\n';
 	    $sth->execute();
 	    $sth->finish();
 	}
@@ -351,17 +349,19 @@ sub reserveCase
                   ensemble_num = 1, nyears = $item{'nyears'},
                   source_type = $source_type, request_date = NOW()
                   where exp_id = $item{'expName'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
 	if ($item{'parentExp'} > 0)
 	{
 	    $sql = qq(update t2j_cmip6 set 
                       parentExp_id = $item{'parentExp'}
                       where exp_id = $item{'expName'});
-	}
-	print STDERR '>>> update t2j_cmip6 sql = ' . $sql . '<<<<\n';
-	$sth = $dbh->prepare($sql);
-	$sth->execute();
-	$sth->finish();
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $sth->finish();
 
+	}
 
 	# insert pending entries in the t2j_status table for this case
 	my %proc_stat;
@@ -396,9 +396,16 @@ EOF
 	# insert ensemble cases
 	if ($ensemble_size)
 	{
+	    my %base;
 	    my ($base_name, $base_ext) = split(/\.([^\.]+)$/, $case_name);
+	    $base_name =~ s/^.//;
+	    $base_ext = substr $base_ext, 0, -1;
+
 	    # build up the casenames and add entries into the correct tables
 	    for (my $i = 2; $i <= $item{'ensemble_size'}; $i++) {
+		$ripf = "r" . $i . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
+		$variant_label = $dbh->quote($ripf);
+
 		my $ext = sprintf("%03d",$i);
 		my $ens_casename = $dbh->quote($base_name . "." . $ext);
 		$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title)
@@ -408,9 +415,7 @@ EOF
 		    $sql = qq(insert into t2_cases (casename, expType_id, is_ens, title, run_refdate)
                       value ($ens_casename, 1, "$item{'ensemble'}", $title, $run_refdate));
 		}
-
 		$sth = $dbh->prepare($sql);
-		print STDERR '>>> ensemble insert t2_cases sql = ' . $sql . '<<<<\n';
 		$sth->execute();
 		$sth->finish();
 
@@ -421,36 +426,26 @@ EOF
 		my $ens_case_id = $sth->fetchrow();
 		$sth->finish();
 
+		# insert values in the t2j_cmip6 table based on the first ensemble experiment
+		$sql = qq(insert into t2j_cmip6 (case_id, exp_id, deck_id, design_mip_id,
+                          parentExp_id, real_num, ensemble_num, ensemble_size, assign_id,
+                          science_id, request_date, source_type, nyears) select
+                          $ens_case_id, exp_id, deck_id, design_mip_id,
+                          parentExp_id, $variant_label, $i, ensemble_size, assign_id,
+                          science_id, request_date, source_type, nyears from t2j_cmip6
+                          where case_id = $case_id);
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+
 		# insert notes
 		if (length($note) > 0)
 		{
 		    $sql = qq(insert into t2e_notes (case_id, note, last_update) value ($ens_case_id, $note, NOW()));
 		    $sth = $dbh->prepare($sql);
-		    print STDERR '>>> ensemble insert t2e_notes sql = ' . $sql . '<<<<\n';
 		    $sth->execute();
 		    $sth->finish();
 		}
-
-		# update values in the t2j_cmip6 table based on the experiment association
-		$ripf = "r" . $i . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
-		$variant_label = $dbh->quote($item{'ripf'});
-		$sql = qq(update t2j_cmip6 set case_id = $ens_case_id,
-                  real_num = $variant_label, assign_id = $item{'assignUser'},
-                  science_id = $item{'scienceUser'}, ensemble_size = $ensemble_size,
-                  ensemble_num = $i, nyears = $item{'ensemble_years'},
-                  source_type = $source_type, request_date = NOW()
-                  where exp_id = $item{'expName'});
-		if ($item{'parentExp'} > 0)
-		{
-		    $sql = qq(update t2j_cmip6 set 
-                      parentExp_id = $item{'parentExp'}
-                      where exp_id = $item{'expName'});
-		}
-		print STDERR '>>> ensemble update t2j_cmip6 sql = ' . $sql . '<<<<\n';
-		$sth = $dbh->prepare($sql);
-		$sth->execute();
-		$sth->finish();
-
 
 		# insert pending entries in the t2j_status table for this case
 		my %proc_stat;
