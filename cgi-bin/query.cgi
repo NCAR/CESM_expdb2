@@ -25,8 +25,8 @@ my $req = CGI->new;
 my %item;
 
 # get the username, password and JSON data that has been posted to the form
-my $user = $req->param('username');
-my $password = $req->param('password');
+my $user = uri_unescape($req->param('username'));
+my $password = uri_unescape($req->param('password'));
 my $data = uri_unescape($req->param('data'));
 my $loginType = 'SVN';
 

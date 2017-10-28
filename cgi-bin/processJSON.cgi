@@ -33,9 +33,8 @@ my ($sql, $sth);
 my ($sql1, $sth1);
 
 # get the username, password and JSON data that has been posted to the form
-my $user = $req->param('username');
-my $password = $req->param('password');
-
+my $user = uri_unescape($req->param('username'));
+my $password = uri_unescape($req->param('password'));
 my $data = uri_unescape($req->param('data'));
 my $loginType = 'SVN';
 
@@ -61,6 +60,7 @@ if(!$authsuccessful)
     die "401 - Unauthorized";
 }
 
+my $count;
 my @comps = qw(atm ice lnd ocn);
 my %fields;
 my $fields;
@@ -125,6 +125,9 @@ if (length($item{user_id}) < 1) {
 
 # get the exp id based on the case name
 ($count, $item{case_id}) = checkCase($dbh, $json->{'CASE'});
+
+##print STDERR '>>> count = ' . $count . '<<<<\n';
+##print STDERR '>>> case_id = ' . $item{case_id} . '<<<<\n';
 
 my $action = "insert";
 if ($count == 1) {
@@ -221,44 +224,78 @@ else {
     # check the new fields against the existing fields add to t2e_fields table if necessary
     foreach my $field (@keys) {
 	$status = 'nochange';
+	$count = 0;
 
-	# first check if the field has changed from the t2_cases original
-	$sql = qq(select "change" from t2_cases  where 
-                  $field != $fields{$field} and id = $item{case_id});
+	# handle the initial archive_date as a separate case
+	$sql = qq(select count(id) from t2_cases  where 
+                  archive_date is NULL and id = $item{case_id});
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
-	my $returnstatus1 = $sth->fetchrow;
+	my $count = $sth->fetchrow;
 	$sth->finish();
-
-	# next check if the field has changed from the last update in the t2e_fields table
-	$sql = qq(select "change" from t2e_fields where 
-                  field_name = '$field' and field_value != $fields{$field} and
-                  case_id = $item{case_id} order by last_update desc);
-	$sth = $dbh->prepare($sql);
-	$sth->execute() or die $dbh->errstr;
-	my $returnstatus2 = $sth->fetchrow;
-	$sth->finish();
-
-	if (length($returnstatus1) > 1 || length($returnstatus2) > 1) {
-	    $status = "change";
-	}
-
-	if ($status eq "change") {
-	    $count = 0;
-	    $sql = qq(select count(*), last_update from t2e_fields where 
-                          field_name = '$field' and field_value = $fields{$field} and
-                          case_id = $item{case_id} order by last_update desc);
+	if ($count) 
+	{
+	    $sql = qq(update t2_cases set archive_date=NOW() where id = $item{case_id});
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute() or die $dbh->errstr;
-	    ($count, $last_update) = $sth->fetchrow;
+	    $sth->finish();
+	}
+
+	$count = 0;
+	# check if the field is null in t2_cases
+	$sql = qq(select count(id) from t2_cases  where 
+                  $field is NULL and id = $item{case_id});
+	$sth = $dbh->prepare($sql);
+	$sth->execute() or die $dbh->errstr;
+	my $count = $sth->fetchrow;
+	$sth->finish();
+	if ($count) 
+	{
+	    $sql = qq(update t2_cases set $field = $fields{$field} where id = $item{case_id});
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute() or die $dbh->errstr;
+	    $sth->finish();
+	}
+	else 
+	{
+	    # check if the field has changed from the t2_cases original
+	    $sql = qq(select "change" from t2_cases  where 
+                  $field != $fields{$field} and id = $item{case_id});
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute() or die $dbh->errstr;
+	    my $returnstatus1 = $sth->fetchrow;
 	    $sth->finish();
 
-	    if (!$count) {
-		$sql = qq(insert into t2e_fields (case_id, field_name, field_value, last_update)
-                              value ($item{case_id}, '$field', $fields{$field}, NOW()));
+	    # next check if the field has changed from the last update in the t2e_fields table
+	    $sql = qq(select "change" from t2e_fields where 
+                  field_name = '$field' and field_value != $fields{$field} and
+                  case_id = $item{case_id} order by last_update desc);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute() or die $dbh->errstr;
+	    my $returnstatus2 = $sth->fetchrow;
+	    $sth->finish();
+
+	    if (length($returnstatus1) > 1 || length($returnstatus2) > 1) {
+		$status = "change";
+	    }
+
+	    if ($status eq "change") {
+		$count = 0;
+		$sql = qq(select count(*), last_update from t2e_fields where 
+                          field_name = '$field' and field_value = $fields{$field} and
+                          case_id = $item{case_id} order by last_update desc);
 		$sth = $dbh->prepare($sql);
 		$sth->execute() or die $dbh->errstr;
+		($count, $last_update) = $sth->fetchrow;
 		$sth->finish();
+
+		if (!$count) {
+		    $sql = qq(insert into t2e_fields (case_id, field_name, field_value, last_update)
+                              value ($item{case_id}, '$field', $fields{$field}, NOW()));
+		    $sth = $dbh->prepare($sql);
+		    $sth->execute() or die $dbh->errstr;
+		    $sth->finish();
+		}
 	    }
 	}
     }
@@ -286,8 +323,6 @@ else {
 	}
     }
     $sth->finish();
-    
-
 }
 
 print $req->header;
