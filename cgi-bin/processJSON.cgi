@@ -114,34 +114,13 @@ $fields{'title'}            = $dbh->quote($json->{'title'});
 my $svnlogin = $dbh->quote($json->{'svnlogin'});
 
 # get the svnuser id 
-$sql = qq(select user_id from t_svnusers where svnlogin = $fields{'svnlogin'});
-$sth = $dbh->prepare($sql);
+my $sql = qq(select count, user_id from t_svnusers where svnlogin = $fields{'svnlogin'});
+my $sth = $dbh->prepare($sql);
 $sth->execute() or die $dbh->errstr;
-($item{user_id}) = $sth->fetchrow;
+($count, $item{'user_id'}) = $sth->fetchrow;
 $sth->finish();
-if (length($item{user_id}) < 1) {
+if ($count == 0) {
     die "Error in $sql - no SVN user found";
-}
-
-# get the exp id based on the case name
-($count, $item{case_id}) = checkCase($dbh, $json->{'CASE'});
-
-##print STDERR '>>> count = ' . $count . '<<<<\n';
-##print STDERR '>>> case_id = ' . $item{case_id} . '<<<<\n';
-
-my $action = "insert";
-if ($count == 1) {
-    $action = "update";
-}
-
-# get the expType id
-$sql = qq(select id from t2_expType where name = $fields{'expType'});
-$sth = $dbh->prepare($sql);
-$sth->execute() or die $dbh->errstr;
-($item{expType_id}) = $sth->fetchrow;
-$sth->finish();
-if (length($item{expType_id}) < 1) {
-    die "Error in $sql - no expType found";
 }
 
 my %status;
@@ -154,13 +133,21 @@ while( my $ref = $sth->fetchrow_hashref() ) {
 }
 $sth->finish();
 
-if ($action eq "insert") {
+# get the case_id and expType_id based on the case name 
+# NOTE - passing the json string because checkCase adds the quotes
+($count, $item{'case_id'}, $item{'expType_id'}) = checkCase($dbh, $json->{'CASE'}, $json->{'expType'});
+
+##print STDERR '>>> count = ' . $count . '<<<<\n';
+##print STDERR '>>> case_id = ' . $item{'case_id'} . '<<<<\n';
+##print STDERR '>>> case_id = ' . $item{'expType_id'} . '<<<<\n';
+
+if ($count == 0) {
     # load up an sql insert statement
     $sql = qq(insert into t2_cases
               (casename, caseroot, caseuser, compiler, compset, continue_run, dout_l_ms, dout_l_msroot, 
                dout_s, dout_s_root, grid,
                job_queue, job_time, machine, model, model_cost, model_throughput,  model_version, mpilib, 
-               postprocess, project,
+               postprocess, project, expType_id, svnuser_id,
                rest_n, rest_option, run_dir, run_lastdate, run_refcase, run_refdate, run_startdate, 
                run_type, stop_n, stop_option, svn_repo_url, title, archive_date) value
               ($fields{'casename'}, $fields{'caseroot'}, $fields{'caseuser'}, $fields{'compiler'}, 
@@ -169,29 +156,11 @@ if ($action eq "insert") {
                $fields{'job_queue'}, $fields{'job_time'}, $fields{'machine'}, $fields{'model'}, 
                $fields{'model_cost'}, $fields{'model_throughput'}, 
                $fields{'model_version'}, $fields{'mpilib'}, $fields{'postprocess'}, $fields{'project'},
+               $item{'expType_id'}, $item{'user_id'},
                $fields{'rest_n'}, $fields{'rest_option'}, $fields{'run_dir'}, 
                $fields{'run_lastdate'}, $fields{'run_refcase'}, $fields{'run_refdate'},
                $fields{'run_startdate'}, $fields{'run_type'}, $fields{'stop_n'}, 
                $fields{'stop_option'}, $fields{'svn_repo_url'}, $fields{'title'}, NOW()));
-    $sth = $dbh->prepare($sql);
-    $sth->execute() or die $dbh->errstr;
-    $sth->finish();
-
-    # get the id of the case just inserted
-    $sql = qq(select id from t2_cases where casename = $fields{'casename'});
-    $sth = $dbh->prepare($sql);
-    $sth->execute() or die $dbh->errstr;
-    ($item{case_id}) = $sth->fetchrow;
-    $sth->finish();
-    if (length($item{case_id}) < 1) {
-	die "Error in $sql - no experiment found";
-    }
-
-    # update the record just loaded
-    $sql = qq(update t2_cases set 
-              expType_id = $item{expType_id},
-              svnuser_id = $item{user_id}
-              where id = $item{case_id});
     $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
     $sth->finish();
@@ -210,7 +179,7 @@ if ($action eq "insert") {
 		if ($status{$statid} eq $json->{$ref->{'name'}}) 
 		{
 		    $sql1 = qq(insert into t2j_status (case_id, status_id, process_id, last_update)
-                              value ($item{case_id}, $statid, $ref->{'id'}, NOW()));
+                              value ($item{'case_id'}, $statid, $ref->{'id'}, NOW()));
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute() or die $dbh->errstr;
 		    $sth1->finish();
@@ -228,14 +197,15 @@ else {
 
 	# handle the initial archive_date as a separate case
 	$sql = qq(select count(id) from t2_cases  where 
-                  archive_date is NULL and id = $item{case_id});
+                  archive_date is NULL and 
+                  id = $item{'case_id'} and expType_id = $item{'expType_id'});
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	my $count = $sth->fetchrow;
 	$sth->finish();
 	if ($count) 
 	{
-	    $sql = qq(update t2_cases set archive_date=NOW() where id = $item{case_id});
+	    $sql = qq(update t2_cases set archive_date=NOW() where id = $item{'case_id'} and expType_id = $item{'expType_id'});
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute() or die $dbh->errstr;
 	    $sth->finish();
@@ -244,14 +214,14 @@ else {
 	$count = 0;
 	# check if the field is null in t2_cases
 	$sql = qq(select count(id) from t2_cases  where 
-                  $field is NULL and id = $item{case_id});
+                  $field is NULL and id = $item{'case_id'} and expType_id = $item{'expType_id'});
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	my $count = $sth->fetchrow;
 	$sth->finish();
 	if ($count) 
 	{
-	    $sql = qq(update t2_cases set $field = $fields{$field} where id = $item{case_id});
+	    $sql = qq(update t2_cases set $field = $fields{$field} where id = $item{'case_id'} and expType_id = $item{'expType_id'});
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute() or die $dbh->errstr;
 	    $sth->finish();
@@ -260,7 +230,7 @@ else {
 	{
 	    # check if the field has changed from the t2_cases original
 	    $sql = qq(select "change" from t2_cases  where 
-                  $field != $fields{$field} and id = $item{case_id});
+                  $field != $fields{$field} and id = $item{'case_id'} and expType_id = $item{'expType_id'});
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute() or die $dbh->errstr;
 	    my $returnstatus1 = $sth->fetchrow;
@@ -269,7 +239,7 @@ else {
 	    # next check if the field has changed from the last update in the t2e_fields table
 	    $sql = qq(select "change" from t2e_fields where 
                   field_name = '$field' and field_value != $fields{$field} and
-                  case_id = $item{case_id} order by last_update desc);
+                  case_id = $item{'case_id'} order by last_update desc);
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute() or die $dbh->errstr;
 	    my $returnstatus2 = $sth->fetchrow;
@@ -283,7 +253,7 @@ else {
 		$count = 0;
 		$sql = qq(select count(*), last_update from t2e_fields where 
                           field_name = '$field' and field_value = $fields{$field} and
-                          case_id = $item{case_id} order by last_update desc);
+                          case_id = $item{'case_id'} order by last_update desc);
 		$sth = $dbh->prepare($sql);
 		$sth->execute() or die $dbh->errstr;
 		($count, $last_update) = $sth->fetchrow;
@@ -291,7 +261,7 @@ else {
 
 		if (!$count) {
 		    $sql = qq(insert into t2e_fields (case_id, field_name, field_value, last_update)
-                              value ($item{case_id}, '$field', $fields{$field}, NOW()));
+                              value ($item{'case_id'}, '$field', $fields{$field}, NOW()));
 		    $sth = $dbh->prepare($sql);
 		    $sth->execute() or die $dbh->errstr;
 		    $sth->finish();
@@ -314,7 +284,7 @@ else {
 		if ($status{$statid} eq $json->{$ref->{'name'}}) 
 		{
 		    $sql1 = qq(update t2j_status set status_id=$statid, last_update=NOW()
-                               where case_id=$item{case_id} and process_id=$ref->{'id'});
+                               where case_id=$item{'case_id'} and process_id=$ref->{'id'});
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute() or die $dbh->errstr;
 		    $sth1->finish();

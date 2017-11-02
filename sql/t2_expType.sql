@@ -12,6 +12,7 @@ insert into t2_expType (name, description)
 values ('CMIP6', 'CMIP6 Experiments'),
        ('production', 'CESM2.0 Production Experiments'),
        ('projectA', 'CESM2.0 Project A Experiments'),
-       ('projectB', 'CESM2.0 Project B Experiments');
+       ('projectB', 'CESM2.0 Project B Experiments'),
+       ('tuning', 'CESM2.0 Tuning Experiments');
 
 

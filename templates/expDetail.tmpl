@@ -81,20 +81,45 @@
 	</table>
       </div>
 
-      <h3>[% case.project_name %] Project Details</h3>
+      <h3>[% case.expType_name %] Project Details</h3>
       <div id="expDetail_table">
-	<table class="bordered">
-	  <thead>
-	    <th>Field Name</th>		
-	    <th>Value</th>		
-	  </thead>
-	  [% FOREACH key IN project.keys.sort  %]
-	  <tr>
-	    <td>[% key %]</td>
-	    <td>[% project.$key %]</td>
-	  </tr>
-	  [% END %]
-	</table>
+	
+	<div class="left">
+	  <table class="bordered">
+	    <thead>
+	      <th colspan="2">CMIP6 Fields</th>
+	    </thead>
+	    <thead>
+	      <th>Field Name</th>		
+	      <th>Value</th>		
+	    </thead>
+	    [% FOREACH key IN project.keys.sort  %]
+	    <tr>
+	      <td>[% key %]</td>
+	      <td>[% project.$key %]</td>
+	    </tr>
+	    [% END %]
+	  </table>
+	</div>
+
+	<div class="right">
+	  <table class="bordered">
+	    <thead>
+	      <th colspan="2">CMIP6 File Global Attributes</th>
+	    </thead>
+	    <thead>
+	      <th>Field Name</th>		
+	      <th>Value</th>		
+	    </thead>
+	    [% FOREACH key IN globalAtts.keys.sort  %]
+	    <tr>
+	      <td>[% key %]</td>
+	      <td>[% globalAtts.$key %]</td>
+	    </tr>
+	    [% END %]
+	  </table>
+	</div>
+
       </div>
 
       <h3>Caseroot Settings</h3>

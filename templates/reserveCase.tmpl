@@ -110,7 +110,7 @@
 		    <table>
 		      <tbody>
 			<tr>
-			  <td align="right">realization_index:</td> <td><input type="number" name="real_num" min="1" max="100" required/></td>
+			  <td align="right">realization_index:</td> <td><input type="number" name="variant_label" min="1" max="100" required/></td>
 			</tr>
 			<tr>
 			  <td align="right">intialization_index:</td> <td><input type="number" name="init_num" min="1" max="100" required/></td>
@@ -124,6 +124,13 @@
 		      </tbody>
 		    </table>
 		</tr>
+		<tr>
+		  <td align="right" valign="top"><span class="error">*</span> <b>Variant Info:</b><br/>
+		  Brief description of variant differences. <br/>
+		  Example "forcing: black carbon aerosol only"</td>
+		  <td><textarea name="variant_info" rows="3" maxlength="256" cols="64"/></textarea></td>
+		</tr>		 
+
 		<tr>
 		  <td align="right" valign="top"><span class="error">*</span> <b>Source Types:</b><br/>
 		    (source_type)<br/>check all that apply

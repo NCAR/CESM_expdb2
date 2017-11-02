@@ -14,7 +14,9 @@ use lib "/home/www/html/csegdb/lib";
 use config;
 
 @ISA = qw(Exporter);
-@EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCasesByType getPerfExperiments getCaseByID getAllCases getNCARUsers checkCase getUserByID getCMIP6Sources checkSources getNoteByID getLinkByID getProcess getLinkTypes);
+@EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCasesByType 
+getPerfExperiments getCaseByID getAllCases getNCARUsers checkCase getUserByID getCMIP6Sources 
+checkSources getNoteByID getLinkByID getProcess getLinkTypes getCMIP6GlobalAttributes);
 
 sub getCMIP6Experiments
 {
@@ -43,7 +45,7 @@ sub getCMIP6Experiments
 	if (defined $case_id && $case_id > 0)
 	{
 	    $CMIP6Exp{'case_id'} = $case_id;
-	    $sql1 = qq(select casename from t2_cases where id = $CMIP6Exp{'case_id'});
+	    $sql1 = qq(select casename from t2_cases where id = $CMIP6Exp{'case_id'} and expType_id = 1);
 	    $sth1 = $dbh->prepare($sql1);
 	    $sth1->execute();
 	    $CMIP6Exp{'casename'} = $sth1->fetchrow();
@@ -91,7 +93,8 @@ sub getCMIP6MIPs
                            c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d') as arc_date 
                            from t2_cmip6_exps as e, t2_cases as c
                            where e.id = $ref1->{'exp_id'}
-                           and c.id = $ref1->{'case_id'});
+                           and c.id = $ref1->{'case_id'} 
+                           and c.expType_id = 1);
 	    }
 	    $sth2 = $dbh->prepare($sql2);
 	    $sth2->execute();
@@ -159,7 +162,8 @@ sub getCMIP6DECKs
                            c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d') as arc_date
                            from t2_cmip6_exps as e, t2_cases as c
                            where e.id = $ref1->{'exp_id'}
-                           and c.id = $ref1->{'case_id'});
+                           and c.id = $ref1->{'case_id'}
+                           and c.expType_id = 1);
 	    }
 	    $sth2 = $dbh->prepare($sql2);
 	    $sth2->execute();
@@ -239,7 +243,8 @@ sub getCMIP6DCPPs
                            c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d') as arc_date
                            from t2_cmip6_exps as e, t2_cases as c
                            where e.id = $ref1->{'exp_id'}
-                           and c.id = $ref1->{'case_id'});
+                           and c.id = $ref1->{'case_id'}
+                           and c.expType_id = 1);
 	    }
 	    $sth2 = $dbh->prepare($sql2);
 	    $sth2->execute();
@@ -390,8 +395,8 @@ sub getCaseByID
     {
 	# get CMIP6 fields 
 	if ($case{'expType_id'} == 1) {
-	    $sql = qq(select e.name as expName, m.name as mipName, j.real_num, j.nyears,
-		     j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
+	    $sql = qq(select e.name as expName, m.name as mipName, j.variant_label, j.variant_info,
+		      j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
 		     DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, j.parentExp_id
 		     from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m
 		     where j.case_id = $case{'case_id'} and j.exp_id = e.id and j.design_mip_id = m.id);
@@ -401,7 +406,8 @@ sub getCaseByID
 	    {
 		$project{'cmip6_expName'} = $ref->{'expName'};
 		$project{'cmip6_mipName'} = $ref->{'mipName'};
-		$project{'cmip6_real_num'} = $ref->{'real_num'};
+		$project{'cmip6_variant_label'} = $ref->{'variant_label'};
+		$project{'cmip6_variant_info'} = $ref->{'variant_info'};
 		$project{'cmip6_ensemble_num'} = $ref->{'ensemble_num'};
 		$project{'cmip6_ensemble_size'} = $ref->{'ensemble_size'};
 		$project{'cmip6_nyears'} = $ref->{'nyears'};
@@ -423,15 +429,16 @@ sub getCaseByID
 		$project{'cmip6_parent_casename'} = '';
 		if( defined($ref->{'parentExp_id'}) and ($ref->{'parentExp_id'} > 0) )
 		{
-		    $sql1 = qq(select name from t2_cmip6_exps where id = $ref->{'parentExp_id'});
+		    $sql1 = qq(select name, variant_label from t2_cmip6_exps where id = $ref->{'parentExp_id'});
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute();
-		    $project{'cmip6_parent_expname'} = $sth1->fetchrow();
+		    ($project{'cmip6_parent_expname'}, $project{'cmip6_parent_variant_label'}) = $sth1->fetchrow();
 		    $sth1->finish();
 
 		    $sql1 = qq(select c.casename from t2_cases as c, t2j_cmip6 as j
                                where j.exp_id = $ref->{'parentExp_id'} 
-                               and j.case_id = c.id);
+                               and j.case_id = c.id
+                               and c.expType_id = 1);
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute();
 		    $project{'cmip6_parent_casename'} = $sth1->fetchrow();
@@ -561,17 +568,38 @@ sub checkCase
 {
     my $dbh = shift;
     my $case = shift;
-    $case = $dbh->quote($case);
-    my $sql = qq(select count(id), id from t2_cases where casename = $case);
+    my $expType = shift;
+    my ($case_id, $expType_id) = 0; 
+    my ($expCount, $caseCount) = 0; 
+
+    # get the expType_id
+    $expType = $dbh->quote($expType);
+    my $sql = qq(select count(id), id from t2_expType where name = $expType);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
-    my ($count, $case_id) = $sth->fetchrow();
+    ($expCount, $expType_id) = $sth->fetchrow();
     $sth->finish();
-    if ($count == 0)
+    if ($expCount != 0)
     {
-	$case_id = 0;
+	# get the case_id
+	$case = $dbh->quote($case);
+	$sql = qq(select count(id), id from t2_cases 
+                     where casename = $case
+                     and expType_id = $expType_id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	($caseCount, $case_id) = $sth->fetchrow();
+	$sth->finish();
+	if ($caseCount == 0)
+	{
+	    $case_id = 0;
+	}
     }
-    return ($count, $case_id);
+    else 
+    {
+	$expType_id = 0;
+    }
+    return ($caseCount, $case_id, $expType_id);
 }
 
 
@@ -729,4 +757,53 @@ sub getLinkTypes
    }
    $sth->finish();
    return @linkTypes;
+}
+
+sub getCMIP6GlobalAttributes
+{
+   my $dbh = shift;
+   my $case_id = shift;   
+   my %globalAtts;
+
+   my ($case, $fields, $status, $project, $notes, $links) = getCaseByID($dbh, $case_id);
+
+   # massage the dates to get the correct format for CMIP6
+   $globalAtts{'branch_time_in_child'} = '';
+   $globalAtts{'branch_time_in_parent'} = '';
+
+   my @child_times = split('-',$case->{'run_startdate'});
+   my @parent_times = split('-',$case->{'run_refdate'});
+   my $child_times = @child_times;
+   my $parent_times = @parent_times;
+   if ($parent_times > 0 && $child_times > 0) 
+   {
+       my $temp_time = ($child_times[0] - $parent_times[0]) * 365;
+       $globalAtts{'branch_time_in_child'} = $temp_time . ".0DO";
+       $temp_time = $parent_times[0] * 365;
+       $globalAtts{'branch_time_in_parent'} = $temp_time . ".0DO";
+   }
+   elsif ($parent_times == 0 && $child_times > 0) 
+   {
+       my $temp_time = $child_times[0] * 365;
+       $globalAtts{'branch_time_in_child'} = $temp_time . ".0DO";
+   }       
+   $globalAtts{'branch_method'} = $case->{'run_type'};
+   $globalAtts{'experiment_id'} = $project->{'cmip6_expName'};
+   $globalAtts{'parent_activity_id'} = $project->{'cmip6_mipName'};
+   $globalAtts{'parent_experiment_id'} = $project->{'cmip6_parent_casename'};
+   $globalAtts{'parent_variant_label'} = $project->{'cmip6_parent_variant_label'};
+   $globalAtts{'source_type'} = $project->{'cmip6_source_type'};
+   $globalAtts{'variant_info'} = $project->{'cmip6_variant_info'};
+   $globalAtts{'variant_label'} = $project->{'cmip6_variant_label'};
+
+   # construct the sub_experiment and sub_experiment_id
+   $globalAtts{'sub_experiment'} = '';
+   $globalAtts{'sub_experiment_id'} = '';
+   if ($case->{'is_ens'} eq "true") 
+   {
+       $globalAtts{'sub_experiment'} = qq(ensemble member $project->{'cmip6_ens_num'} of $project->{'cmip6_ens_size'}) ;
+       $globalAtts{'sub_experiment_id'} = qq(ensemble initilization date $case->{'run_startdate'});
+   }
+
+   return \%globalAtts;
 }

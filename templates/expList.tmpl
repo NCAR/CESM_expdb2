@@ -62,6 +62,7 @@
 	  <li><a href="#DCPP">Decadal Prediction Experiments</a></li>
 	  <li><a href="#NAMED">Experiments by Name</a></li>
 	  <li><a href="#RESERVE">Reserve a CMIP6 Case Name</a></li>
+	  <li><a href="#STATUS">Overall Experiment Status</a></li>
 	</ul>
 	
 	<div id="DECK">
@@ -174,7 +175,7 @@
 	</div>
 
 	<div id="NAMED">
-	  <table class="bordered" id="expNameTable">
+	  <table class="bordered">
 	    <thead>
 	      <th>Case Name</th>
 	      <th>Experiment Name</th>
@@ -199,6 +200,34 @@
 	<div id=RESERVE>
 	  [% INCLUDE reserveCase.tmpl %]
 	</div>
+
+	<div id=STATUS>
+	  <table class="bordered">
+	    <thead>
+	      <th>Case Name</th>
+	      <th>Experiment Name</th>
+	      <th>Run Status</th>
+	      <th>Timeseries Status</th>
+	      <th>Conformer Status</th>
+	      <th>Disk Space Usage</th>
+	      <th>Last Update</th>
+	    </thead>
+	    <tbody>
+	      [% FOREACH exp IN statueExps %]
+	      <tr>
+		<td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+		<td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
+		<td>[% exp.runStatus %]</td>
+		<td>[% exp.timeseriesStatus %]</td>
+		<td>[% exp.conformerStatus %]</td>
+		<td>[% exp.diskStatus %]</td>
+		<td>[% exp.lastUpdate %]</td>
+	      </tr>
+	      [% END %]
+	    </tbody>
+	  </table>
+	</div>
+
       </div>
     </div>
 

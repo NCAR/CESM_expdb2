@@ -15,7 +15,8 @@ create table t2j_cmip6(
        `science_id` INTEGER,
        `request_date` DATETIME,
        `source_type` VARCHAR(100),
-       `nyears` INTEGER);
+       `nyears` INTEGER,
+       `variant_info` TEXT);
 
 
 

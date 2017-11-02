@@ -182,6 +182,7 @@ sub showCaseDetail
     my $case_id = shift;
     my ($case, $fields, $status, $project, $notes, $links) = getCaseByID($dbh, $case_id);
     my @allCases = getAllCases($dbh);
+    my ($globalAtts) = getCMIP6GlobalAttributes($dbh, $case_id);
 
     $validstatus{'status'} = 1;
     $validstatus{'message'} = '';
@@ -202,6 +203,7 @@ sub showCaseDetail
 	fields      => $fields,
 	status      => $status,
 	project     => $project,
+	globalAtts  => $globalAtts,
 	notes       => $notes,
 	links       => $links,
 	allCases    => \@allCases,
@@ -244,7 +246,7 @@ sub reserveCase
     }
         
     # check if the casename already exists
-    my ($exists, $case_id) = checkCase($dbh, $item{'case'});
+    my ($exists, $case_id, $expType_id) = checkCase($dbh, $item{'case'}, 'CMIP6');
     if ($exists) 
     {
 	# Error - a casename already exists
@@ -290,12 +292,15 @@ sub reserveCase
 	$validstatus{'message'} .= qq(Error - One or more source associations are not allowed.\n);
     }
 
-    # construct the "ripf" value
+    # construct the "ripf" variant_label
     my $real_num = $item{'real_num'};
     my $init_num = $item{'init_num'};
     my $phys_num = $item{'phys_num'};
     my $force_num = $item{'force_num'};
-    my $ripf = "r" . $real_num . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
+    my $variant_label = "r" . $real_num . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
+
+    # get the variant_info
+    my $variant_info = $dbh->quote($item{'variant_info'});
 
     # reserve this CMIP6 case
     if ($validstatus{'status'})
@@ -319,12 +324,8 @@ sub reserveCase
 	$sth->execute();
 	$sth->finish();
 
-	# get the case id
-	$sql = qq(select id from t2_cases where casename = $case_name);
-	$sth = $dbh->prepare($sql);
-	$sth->execute();
-	my $case_id = $sth->fetchrow();
-	$sth->finish();
+	# get the case id 
+	my ($exists, $case_id, $expType_id) = checkCase($dbh, $case_name, 'CMIP6');
 
 	# insert notes
 	my $note = $dbh->quote($item{'notes'});
@@ -337,14 +338,15 @@ sub reserveCase
 	}
 
 	# update values in the t2j_cmip6 table based on the experiment association
-	my $variant_label = $dbh->quote($ripf);
+	my $variant_label = $dbh->quote($variant_label);
+
 	my $ensemble_size = 0;
 	if(($item{'ensemble'} eq 'true') && defined ($item{'ensemble_size'}))
 	{
 	    $ensemble_size = $item{'ensemble_size'}
 	}
 	$sql = qq(update t2j_cmip6 set case_id = $case_id,
-                  real_num = $variant_label, assign_id = $item{'assignUser'},
+                  variant_label = $variant_label, variant_info = $variant_info, assign_id = $item{'assignUser'},
                   science_id = $item{'scienceUser'}, ensemble_size = $ensemble_size,
                   ensemble_num = 1, nyears = $item{'nyears'},
                   source_type = $source_type, request_date = NOW()
@@ -403,8 +405,8 @@ EOF
 
 	    # build up the casenames and add entries into the correct tables
 	    for (my $i = 2; $i <= $item{'ensemble_size'}; $i++) {
-		$ripf = "r" . $i . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
-		$variant_label = $dbh->quote($ripf);
+		$variant_label = "r" . $i . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
+		$variant_label = $dbh->quote($variant_label);
 
 		my $ext = sprintf("%03d",$i);
 		my $ens_casename = $dbh->quote($base_name . "." . $ext);
@@ -420,18 +422,14 @@ EOF
 		$sth->finish();
 
 		# get the case id
-		$sql = qq(select id from t2_cases where casename = $ens_casename);
-		$sth = $dbh->prepare($sql);
-		$sth->execute();
-		my $ens_case_id = $sth->fetchrow();
-		$sth->finish();
+		my ($count, $ens_case_id, $expType_id) = checkCase($dbh, $ens_casename, 'CMIP6');
 
 		# insert values in the t2j_cmip6 table based on the first ensemble experiment
 		$sql = qq(insert into t2j_cmip6 (case_id, exp_id, deck_id, design_mip_id,
-                          parentExp_id, real_num, ensemble_num, ensemble_size, assign_id,
+                          parentExp_id, variant_label, variant_info, ensemble_num, ensemble_size, assign_id,
                           science_id, request_date, source_type, nyears) select
                           $ens_case_id, exp_id, deck_id, design_mip_id,
-                          parentExp_id, $variant_label, $i, ensemble_size, assign_id,
+                          parentExp_id, $variant_label, $variant_info, $i, ensemble_size, assign_id,
                           science_id, request_date, source_type, nyears from t2j_cmip6
                           where case_id = $case_id);
 		$sth = $dbh->prepare($sql);

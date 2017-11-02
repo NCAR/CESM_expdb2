@@ -57,21 +57,38 @@ my $jsonObj = JSON->new->allow_nonref;
 my $json = $jsonObj->decode($data);
 
 my $queryType = $json->{'queryType'};
+my $expType = $json->{'expType'};
+my $returnCode = ''; 
+
+my ($count, $case_id, $expType_id) = checkCase($dbh, $json->{'casename'}, $expType);
 
 # look at the queryType to determine what needs to be returned
 if ($queryType eq 'checkCaseExists') {
-    my ($count, $case_id) = checkCase($dbh, $json->{'casename'});
 
     # return the count value as True or False
-    my $returnCode = 'True'; 
+    $returnCode = 'True'; 
     if ($count == 0) {
 	$returnCode = 'False';
+	print $req->header('text/html', '500 Case does not exist!');
+	print $req->h1($returnCode);
     }
-
+    else {
+	print $req->header('text/html', '200');
+	print $req->h1($returnCode);
+    }
+}
+elsif ($queryType eq 'CMIP6GlobalAtts') {
+    my $json = JSON->new;
+    my ($globalAtts) = getCMIP6GlobalAttributes($dbh, $case_id);
+    
     print $req->header('text/html', '200');
+    print $req->h1($json->encode($globalAtts));
+}
+else {
+    $returnCode = 'False';
+    print $req->header('text/html', '501 invalid query type');
     print $req->h1($returnCode);
 }
-
 exit 0;
 
 
