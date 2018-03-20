@@ -1,6 +1,7 @@
 
 	  <form id="reserveCaseForm" action="/expdb2.0/cgi-bin/expList.cgi" method="POST">
 	    <input type="hidden" name="action" value="reserveCase">
+	    <input type="hidden" name="expType_id" value="1">
 	      <p>This form must be completed for every CMIP6 experiment prior to running create_newcase.
 		It contains expert knowledge that cannot be retrieved by the caseroot <b>archive_metadata</b>
 		script required by the CMIP6 project. For detatils, please see the following <b>CMIP6 Specific References:</b>
@@ -98,7 +99,7 @@
 		  <td><select required name="expName">
 		      <option value="">Select Experiment</option>
 		      [% FOREACH exp IN CMIP6Exps %]	
-		      <option value="[% exp.exp_id %]">[% exp.expName %] - [% exp.casename %]</option>
+		      <option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
 		      [% END %]
 		    </select>
 		  </td>
@@ -110,7 +111,7 @@
 		    <table>
 		      <tbody>
 			<tr>
-			  <td align="right">realization_index:</td> <td><input type="number" name="variant_label" min="1" max="100" required/></td>
+			  <td align="right">realization_index:</td> <td><input type="number" name="real_num" min="1" max="100" required/></td>
 			</tr>
 			<tr>
 			  <td align="right">intialization_index:</td> <td><input type="number" name="init_num" min="1" max="100" required/></td>
@@ -124,12 +125,6 @@
 		      </tbody>
 		    </table>
 		</tr>
-		<tr>
-		  <td align="right" valign="top"><span class="error">*</span> <b>Variant Info:</b><br/>
-		  Brief description of variant differences. <br/>
-		  Example "forcing: black carbon aerosol only"</td>
-		  <td><textarea name="variant_info" rows="3" maxlength="256" cols="64"/></textarea></td>
-		</tr>		 
 
 		<tr>
 		  <td align="right" valign="top"><span class="error">*</span> <b>Source Types:</b><br/>
@@ -159,7 +154,7 @@
 		    <select name="parentExp">
 		      <option value="0">Select Experiment</option>
 		      [% FOREACH exp IN CMIP6Exps %]	
-		      <option value="[% exp.exp_id %]">[% exp.expName %] - [% exp.casename %]</option>
+		      <option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
 		      [% END %]
 		    </select>
 		  </td>

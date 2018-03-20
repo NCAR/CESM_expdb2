@@ -179,12 +179,13 @@ def main(options):
         return 1
 
     # update t2j_cmip6
-    sql = "update t2j_cmip6 set case_id = NULL, parentExp_id = NULL, real_num = NULL, " \
+    sql = "update t2j_cmip6 set case_id = NULL, parentExp_id = NULL, variant_label = NULL, " \
           "ensemble_num = NULL, ensemble_size = NULL, assign_id = NULL, science_id = NULL, " \
-          "request_date = NULL where exp_id = {0} and design_mip_id = {1}".format(str(exp_id),str(design_mip_id))
+          "request_date = NULL, source_type = NULL, nyears = NULL " \
+          "where exp_id = {0} and design_mip_id = {1}".format(str(exp_id),str(design_mip_id))
     try:
         print ("Executing sql = {0}".format(sql))
-        cursor.execute("update t2j_cmip6 set case_id = NULL, parentExp_id = NULL, real_num = NULL, ensemble_num = NULL, ensemble_size = NULL, assign_id = NULL, science_id = NULL, request_date = NULL where exp_id = %s and design_mip_id = %s",(int(exp_id), int(design_mip_id)))
+        cursor.execute("update t2j_cmip6 set case_id = NULL, parentExp_id = NULL, variant_label = NULL, ensemble_num = NULL, ensemble_size = NULL, assign_id = NULL, science_id = NULL, request_date = NULL, source_type = NULL, nyears = NULL where exp_id = %s and design_mip_id = %s",(int(exp_id), int(design_mip_id)))
     except:
         print ("Error executing sql = {0}".format(sql))
         db.rollback()

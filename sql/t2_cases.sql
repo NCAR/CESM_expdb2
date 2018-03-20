@@ -11,8 +11,6 @@ CREATE TABLE `t2_cases` (
   `compiler` VARCHAR(20) DEFAULT NULL,
   `compset` VARCHAR(100) DEFAULT NULL,
   `continue_run` VARCHAR(5) DEFAULT NULL,
-  `dout_l_ms` VARCHAR(5) DEFAULT NULL,
-  `dout_l_msroot` VARCHAR(200) DEFAULT NULL,
   `dout_s` VARCHAR(5) DEFAULT NULL,
   `dout_s_root` VARCHAR(200) DEFAULT NULL,
   `expType_id` INTEGER DEFAULT NULL,

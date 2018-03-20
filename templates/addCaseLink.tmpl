@@ -44,6 +44,7 @@
     <form id="caseAddLinkForm" action="/expdb2.0/cgi-bin/caseLinks.cgi" method="POST">
       <input type="hidden" name="action" value="addLinkProc"/>
       <input type="hidden" name="case_id" value="[% case.case_id %]"/>
+      <input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
       <table class="bordered">
 	<tr>
 	  <td><b>Process:</b></td>

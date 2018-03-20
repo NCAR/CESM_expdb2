@@ -53,6 +53,7 @@
 	  <td>
 	    <input type="hidden" name="action" value="updateNoteProc"/>
 	    <input type="hidden" name="note_id" value="[% note_id %]"/>
+	    <input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
 	    <input id="submit" class="button" type="submit" value="Update"/>
 	  </td>
 	</form>
@@ -60,6 +61,7 @@
 	  <form id="deleteNoteForm" action="/expdb2.0/cgi-bin/caseNotes.cgi" method="POST">
 	    <input type="hidden" name="action" value="deleteNoteProc"/>
 	    <input type="hidden" name="note_id" value="[% note_id %]"/>
+	    <input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
 	    <input id="delete" class="button" type="submit" value="Delete"/>
 	  </form>
 	</td>

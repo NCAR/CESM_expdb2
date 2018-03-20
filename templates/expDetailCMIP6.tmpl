@@ -39,7 +39,7 @@
     <h1>[% case.casename %] - Experiment Detail</h1>
 
     <h2>CESM Case Working Title:</h2>
-    <p><button onclick="return popitup('/expdb2.0/cgi-bin/caseTitle.cgi?case_id=[% case.case_id %]&action=update','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button> [% case.title %]</p>
+    <p><button onclick="return popitup('/expdb2.0/cgi-bin/caseTitle.cgi?case_id=[% case.case_id %]&action=update&expType_id=[% case.expType_id %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button> [% case.title %]</p>
     
     [% IF validstatus %]
     <div id="msgbox" [% IF validstatus.status %] style="color:green" [% ELSE %] style="color:red" [% END %]>
@@ -51,7 +51,8 @@
     <table style="width: 100%">
       <tr>
 	<td><a class="show-all-exp-details show-hide">show all</a></td>
-	<td align="right"><a class="show-hide" href="">Publish Experiment to DSET</a></td>
+	<td align="right"><a class="show-hide" href="">Publish Experiment to ESG</a><br/><br/>
+	<a class="show-hide" onclick="return popitup('/expdb2.0/cgi-bin/publishDSET.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]','height=800,width=800,scrollbars=yes')">Publish Experiment to CKAN/DSET</a></td>
       </tr>
     </table>
     <br/>
@@ -215,7 +216,7 @@
 	    <td>[% case.run_refdate %]</td>
 	  </tr>
 	  <tr>
-	    <td>Run Start Date (STARTDATE):</td>
+	    <td>Run Start Date (RUN_STARTDATE):</td>
 	    <td>[% case.run_startdate %]</td>
 	  </tr>
 	  <tr>
@@ -241,7 +242,7 @@
       <div id="expDetail_table">
 	<table class="bordered">
 	  <tr>
-	    <td valign="top"> <button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Notes:</td>
+	    <td valign="top"> <button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Notes:</td>
 	    <td>
 	      <table>
 		<thead>
@@ -251,7 +252,7 @@
 		</thead>
 		[% FOREACH n IN notes %]
 		<tr>
-		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id %]&note_id=[% n.note_id %]&action=update','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id %]&note_id=[% n.note_id %]&action=update&expType_id=[% case.expType_id %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
 		  <td>[% n.note %]</td>
 		  <td>[% n.last_update %]</td>
 		</tr>
@@ -266,7 +267,7 @@
       <div id="expDetail_table">
 	<table class="bordered">
 	  <tr>
-	    <td valign="top"><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Links:</td>
+	    <td valign="top"><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Links:</td>
 	    <td>
 	      <table>
 	      [% FOREACH lk IN links %]
@@ -278,7 +279,7 @@
 		  <th>Last Update</th>		
 		</thead>
 		<tr>
-		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&link_id=[% lk.link_id %]&action=update','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&link_id=[% lk.link_id %]&action=update&expType_id=[% case.expType_id %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
 		  <td>[% lk.process_name %]</td>
 		  <td>[% lk.linkType_name %]</td>
 		  [% http = lk.link %]

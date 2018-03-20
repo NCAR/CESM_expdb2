@@ -8,7 +8,7 @@
     	  <select id="expPD">
 	     <option>Select Case Name</option>
 	     [% FOREACH case IN allCases %]
-	   	  <option value="[% case.case_id %]">[% case.casename %]</option>
+	   	  <option value="[% case.case_id %]"><b>[% case.expType %]</b> - [% case.casename %]</option>
 	     [% END %]
 	  </select>
       </form>

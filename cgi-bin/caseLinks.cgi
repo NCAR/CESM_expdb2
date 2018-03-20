@@ -21,6 +21,7 @@ use session;
 use user;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
+use CMIP6;
 
 #------
 # main 
@@ -107,7 +108,7 @@ sub doActions()
     # call the function corresponding to the requested action
     if ( length($action) == 0)
     {
-	&addLink($req->param('case_id'));
+	&addLink($req->param('case_id'), $req->param('expType_id'));
     }
     elsif ($action eq "addLinkProc")
     {
@@ -115,7 +116,7 @@ sub doActions()
     }
     elsif ($action eq "update")
     {
-	&updateLink($req->param('case_id'),$req->param('link_id'));
+	&updateLink($req->param('case_id'), $req->param('expType_id'), $req->param('link_id'));
     }
     elsif ($action eq "updateLinkProc")
     {
@@ -143,7 +144,14 @@ sub doActions()
 sub addLink
 {
     my $case_id = shift;
-    my ($case, $fields, $status, $project, @notes, @links) = getCaseByID($dbh, $case_id);
+    my $expType_id = shift;
+    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
+
+    # TODO add all the experiment types
+    if ($expType_id == 1) 
+    {
+	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
     my @processes = getProcess($dbh);
     my @linkTypes = getLinkTypes($dbh);
 
@@ -214,9 +222,15 @@ sub addLinkProcess
 sub updateLink
 {
     my $case_id = shift;
+    my $expType_id = shift;
     my $link_id = shift;
+    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
 
-    my ($case, $fields, $status, $project, @notes, @links) = getCaseByID($dbh, $case_id);
+    # TODO add all the experiment types
+    if ($expType_id == 1) 
+    {
+	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
     my $link = getLinkByID($dbh, $link_id);
     my @processes = getProcess($dbh);
     my @linkTypes = getLinkTypes($dbh);

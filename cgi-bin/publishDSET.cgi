@@ -22,6 +22,7 @@ use user;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
 use CMIP6;
+##use GCMD;
 
 #------
 # main 
@@ -105,49 +106,54 @@ sub doActions()
 	$validstatus{'message'} = $req->param('statusMsg');
     }
 
-    if ($action eq "update")
+    if ($action eq "")
     {
-	&updateTitle($req->param('case_id'),$req->param('expType_id'));
+	&publishDSET($req->param('case_id'),$req->param('expType_id'));
     }
-    elsif ($action eq "updateTitleProc")
+    elsif ($action eq "publishDSET")
     {
-	&updateTitleProcess($req->param('case_id'));
+	&publishDSETProcess($req->param('case_id'),$req->param('expType_id'));
     }
     else
     {
 	$dbh->disconnect;
 	print $req->header(-cookie=>$cookie);
 	print qq(<script type="text/javascript">
-                            alert('Problem in caseTitle doactions'); 
+                            alert('Problem in publishDSET doactions'); 
                             window.close();
                             </script>);
     }
 }
 
 #------------------
-# updateTitle - popup form to update a case title
+# publishDSET form
 #------------------
 
-sub updateTitle
+sub publishDSET
 {
     my $case_id = shift;
     my $expType_id = shift;
-    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
+    my ($case, $fields, $notes, $links);
 
     # TODO branch on expType_id
     if ($expType_id == 1) 
     {
-	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+	($case, $fields, $notes, $links) = CMIP6publishDSET($dbh, $case_id);
     }
 
+    # TODO get GCMD keywords by category
+
     my $vars = {
-	case          => $case,
-	authUser      => \%item,
-	validstatus   => \%validstatus,
+	case        => $case,
+	fields      => $fields,
+	notes       => $notes,
+	links       => $links,
+	authUser    => \%item,
+	validstatus => \%validstatus,
     };
 	
     print $req->header(-cookie=>$cookie);
-    my $tmplFile = '../templates/updateTitle.tmpl';
+    my $tmplFile = '../templates/publishDSET.tmpl';
 
     my $template = Template->new({
 	ENCODING => 'utf8',
@@ -161,10 +167,10 @@ sub updateTitle
 
 
 #------------------
-# updateTitleProc
+# publishDSETProcess
 #------------------
 
-sub updateTitleProcess
+sub publishDSETProcess
 {
     my $case_id = shift;
 
@@ -172,16 +178,13 @@ sub updateTitleProcess
     foreach my $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
     }
-    my $title = $dbh->quote($item{'title'});
-    my $sql = qq(update t2_cases set title = $title where id = $case_id);
-    my $sth = $dbh->prepare($sql);
-    $sth->execute();
-    $sth->finish();
+
+    # TODO generate ISO record and post to github repo
 
     # refresh the current page
     print $req->header(-cookie=>$cookie);
     $item{message} =  qq(<script type="text/javascript">
-                     alert('Case title updated.');
+                     alert('Case published to DSET.');
                      window.close();
                      if (window.opener && !window.opener.closed) {
                             window.opener.location.reload();

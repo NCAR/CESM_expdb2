@@ -10,10 +10,7 @@ create table t2_status (
   primary key (id));
 
 insert into t2_status (code,description,color)
-       values ('Pending','process not yet started','#ffff00');
-
-insert into t2_status (code,description,color)
-       values ('Complete','process completed','#33ffff');
+       values ('Unknown','process status unknown','#D3D3D3');
 
 insert into t2_status (code,description,color)
        values ('Started','process has started','#00ff00');
@@ -22,4 +19,7 @@ insert into t2_status (code,description,color)
        values ('Shutdown','process was shutdown','#ff8000');
 
 insert into t2_status (code,description,color)
-       values ('Error','process errored','#ff0000');
+       values ('Failed','process failed to complete','#ff0000');
+
+insert into t2_status (code,description,color)
+       values ('Succeeded','process completed successfully','#33ffff');

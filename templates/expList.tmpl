@@ -38,7 +38,7 @@
 
   [% IF validstatus.status == 0 %]
   <div align="center">
-  <span class="error">Reserve a CMIP6 Case Name Errors:</span>
+  <span class="error">Reserve a Casename Errors:</span>
       <p>
 	[% validstatus.message %]
       </p>
@@ -48,8 +48,8 @@
   <div id="dashtabs">
     <ul>
       <li><a href="#cmip6exp">CESM 2 / CMIP 6 Experiments</a></li>
-      <li><a href="#cesm2exp">CESM 2 Production Experiments</a></li>
       <li><a href="#cesm2tune">CESM 2 Tuning Experiments</a></li>
+      <li><a href="#cesm2exp">CESM 2 Production Experiments</a></li>
       <li><a href="#projectA">CESM 2 Project A Experiments</a></li>
       <li><a href="#projectB">CESM 2 Project B Experiments</a></li>
     </ul>
@@ -61,7 +61,7 @@
 	  <li><a href="#MIP">MIP Experiments</a></li>
 	  <li><a href="#DCPP">Decadal Prediction Experiments</a></li>
 	  <li><a href="#NAMED">Experiments by Name</a></li>
-	  <li><a href="#RESERVE">Reserve a CMIP6 Case Name</a></li>
+	  <li><a href="#RESERVE_CMIP6">Reserve a CMIP6 Case Name</a></li>
 	  <li><a href="#STATUS">Overall Experiment Status</a></li>
 	</ul>
 	
@@ -197,8 +197,8 @@
 	  </table>
 	</div>
 
-	<div id=RESERVE>
-	  [% INCLUDE reserveCase.tmpl %]
+	<div id=RESERVE_CMIP6>
+	  [% INCLUDE reserveCaseCMIP6.tmpl %]
 	</div>
 
 	<div id=STATUS>
@@ -231,25 +231,6 @@
       </div>
     </div>
 
-    <div id="cesm2exp">
-      <table class="bordered" id="cesm2expTable">
-	<thead>
-	  <th>Case Name</th>
-	  <th>Title</th>
-	  <th>Archive Date</th>
-	</thead>
-	<tbody>
-	  [% FOREACH exp IN cesm2exps %]
-	  <tr>
-	    <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
-	    <td>[% exp.title %]</td>
-	    <td>[% exp.archive_date %]</td>
-	  </tr>
-	  [% END %] 
-	</tbody>
-      </table>
-    </div>
-
     <div id="cesm2tune">
       <table class="bordered" id="cesm2tuneTable">
 	<thead>
@@ -265,6 +246,25 @@
 	    <td>[% exp.archive_date %]</td>
 	  </tr>
 	  [% END %]
+	</tbody>
+      </table>
+    </div>
+
+    <div id="cesm2exp">
+      <table class="bordered" id="cesm2expTable">
+	<thead>
+	  <th>Case Name</th>
+	  <th>Title</th>
+	  <th>Archive Date</th>
+	</thead>
+	<tbody>
+	  [% FOREACH exp IN cesm2exps %]
+	  <tr>
+	    <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+	    <td>[% exp.title %]</td>
+	    <td>[% exp.archive_date %]</td>
+	  </tr>
+	  [% END %] 
 	</tbody>
       </table>
     </div>

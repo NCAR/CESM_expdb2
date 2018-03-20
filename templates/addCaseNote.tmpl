@@ -44,6 +44,7 @@
       <form id="caseAddNoteForm" action="/expdb2.0/cgi-bin/caseNotes.cgi" method="POST">
         <input type="hidden" name="action" value="addNoteProc"/>
         <input type="hidden" name="case_id" value="[% case.case_id %]"/>
+        <input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
 	<textarea name="note" cols="100" rows="5" required></textarea>
 	<br/>
 	<input id="submit" class="button" type="submit" value="Submit"/>

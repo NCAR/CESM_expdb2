@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Insert the CMIP6 experiments into the t2_cmip6_exps table
+cleean-up the CMIP6 experiments and mips based on most current dreqpy
 --------------------------
-Created November, 2016
+Created March, 2018
 
 Author: CSEG <cseg@cgd.ucar.edu>
 """
@@ -50,6 +50,10 @@ import json
 import pprint
 import traceback
 
+
+# these mips are not required in the database
+_exclude_mips = []
+
 # these experiments are not required in the database because they will not be run by CESM
 _exclude_exps = []
 
@@ -61,7 +65,7 @@ def commandline_options():
 
     """
     parser = argparse.ArgumentParser(
-        description='load experiments name and UID fields from the CMIP6 data request database into t2_cmip6_exps.')
+        description='Delete any experiments and MIPS that are no longer supported in the current dreqpy')
 
     parser.add_argument('--backtrace', action='store_true', 
                         help='Show exception backtraces as extra debugging output')
@@ -133,50 +137,28 @@ def main(options):
 
     dq = dreq.loadDreq()
     version = dq.version
+    mips = get_mip_list(dq=dq)
     exps = get_exp_list(dq=dq)
 
     # create a db connection and cursor
     db = MySQLdb.connect(host="localhost", user="u_csegdb", passwd="c$3gdb", db="csegdb")
     cursor = db.cursor()
 
-    # loop through the exps dictionary and load them into the database keying off the name
-    for key, value in exps.iteritems():
-        # check that the key (experiment name) isn't included in the _exclude_exps list
-        if key not in _exclude_exps:
-            count = 0
-            sql = "select count(id), id, name, description, uid, design_mip, dreq_version from t2_cmip6_exps where name = '"+key+"'"
-            dreq_description = db.escape_string(value[0])
-            dreq_uid = db.escape_string(value[1])
-            dreq_design_mip = db.escape_string(value[2])
-            try:
-                print ("Executing sql = {0}".format(sql))
-                cursor.execute(sql)
-                (count, id, name, description, uid, design_mip, dreq_version) = cursor.fetchone()
-            except:
-                print ("Error executing sql = {0}".format(sql))
-                db.rollback()
-        
-            if count == 1:
-                sql = "update t2_cmip6_exps set description = '{0}', uid = '{1}', design_mip = '{2}', dreq_version = '{3}' where id = {4}".format(dreq_description, dreq_uid, dreq_design_mip, version, str(id))
-                try:
-                    print ("Executing sql = {0}".format(sql))
-                    cursor.execute(sql)
-                    db.commit()
-                except:
-                    print("Error executing sql = {0}".format(sql))
-                    db.rollback()
+# sql statements that work... need to change the dreq_version <> 'version' for a script 
+delete from t2j_cmip6_exps_mips where exp_id in (select id from t2_cmip6_exps where dreq_version = '01.00.21');
+delete from t2j_cmip6 where exp_id in (select id from t2_cmip6_exps where dreq_version = '01.00.21') and case_id is NULL;
+delete from t2_cmip6_exps where dreq_version = '01.00.21';
 
-            elif count == 0:
-                sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version) value ('{0}','{1}','{2}','{3}','{4}')".format(key, dreq_description, dreq_uid, dreq_design_mip, version)
-                try:
-                    print ("Executing sql = {0}".format(sql))
-                    cursor.execute(sql)
-                    db.commit()
-                except:
-                    print ("Error executing sql = {0}".format(sql))
-                    db.rollback()
-            else:
-                print("Error in database {0} rows found matching experiment name '{1}'".format(count, name))
+    # remove experiments that are not in this dreqpy version
+    # CAUTION - this could be dangerous if there's already a casename assigned to the experiment
+#    sql = "delete t2_cmip6_exps where dreq_version <> '{0}'".format(version)
+#    try:
+#        print ("Executing sql = {0}".format(sql))
+#        cursor.execute(sql)
+#        db.commit()
+#    except:
+#        print ("Error executing sql = {0}".format(sql))
+#        db.rollback()
 
     # disconnect from server
     db.close()
@@ -192,3 +174,18 @@ if __name__ == "__main__":
         if options.backtrace:
             traceback.print_exc()
         sys.exit(1)
+
+
+
+
+
+    # remove experiments that are not in this dreqpy version
+    # CAUTION - this could be dangerous if there's already a casename assigned to the experiment
+    sql = "delete t2_cmip6_exps where dreq_version <> '{0}'".format(version)
+    try:
+        print ("Executing sql = {0}".format(sql))
+        cursor.execute(sql)
+        db.commit()
+    except:
+        print ("Error executing sql = {0}".format(sql))
+        db.rollback()

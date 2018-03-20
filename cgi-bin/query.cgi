@@ -10,7 +10,7 @@ use CGI::Session qw/-ip-match/;
 use CGI::Carp qw( set_die_handler );
 use DBI;
 use DBD::mysql;
-use JSON qw( decode_json );
+use JSON qw( decode_json to_json );
 use URI::Escape;
 
 use lib qw(.);
@@ -19,10 +19,9 @@ use config;
 use session;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
+use CMIP6;
 
 my $req = CGI->new;
-
-my %item;
 
 # get the username, password and JSON data that has been posted to the form
 my $user = uri_unescape($req->param('username'));
@@ -78,11 +77,12 @@ if ($queryType eq 'checkCaseExists') {
     }
 }
 elsif ($queryType eq 'CMIP6GlobalAtts') {
-    my $json = JSON->new;
-    my ($globalAtts) = getCMIP6GlobalAttributes($dbh, $case_id);
+    my $json = JSON->new->allow_nonref;
+    my ($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     
-    print $req->header('text/html', '200');
-    print $req->h1($json->encode($globalAtts));
+    my $json_text = 
+    print $req->header('application/json');
+    print to_json($globalAtts);
 }
 else {
     $returnCode = 'False';

@@ -9,8 +9,8 @@ create table t2_process(
        primary key (id));	
 
 insert into t2_process (name, description)
-values ('model_run','CESM model run'),
-       ('st_archive', 'CESM short term archiver'), 
+values ('case_run','CESM model run'),
+       ('case_st_archive', 'CESM short term archiver'), 
        ('timeseries', 'CESM single variable timeseries generator'),
        ('atm_averages', 'CESM atmosphere averages generator'),
        ('ice_averages', 'CESM sea-ice averages generator'),
@@ -24,6 +24,6 @@ values ('model_run','CESM model run'),
        ('iomb_diagnostics', 'CESM ocean IOMB diagnostics generator'),
        ('atm_regrid', 'CESM atmosphere regridding generator'),
        ('lnd_regrid', 'CESM land regridding generator'),
-       ('cmorize', 'CESM CMOR variable generator'),
+       ('conform', 'CESM CMOR variable generator'),
        ('publish_esg', 'CESM to ESG publication'),
        ('publish_dset', 'CESM to DSET publication');

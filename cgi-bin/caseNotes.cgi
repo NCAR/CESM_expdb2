@@ -21,6 +21,7 @@ use session;
 use user;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
+use CMIP6;
 
 #------
 # main 
@@ -107,7 +108,7 @@ sub doActions()
     # call the function corresponding to the requested action
     if ( length($action) == 0)
     {
-	&addNote($req->param('case_id'));
+	&addNote($req->param('case_id'),$req->param('expType_id'));
     }
     elsif ($action eq "addNoteProc")
     {
@@ -115,7 +116,7 @@ sub doActions()
     }
     elsif ($action eq "update")
     {
-	&updateNote($req->param('case_id'),$req->param('note_id'));
+	&updateNote($req->param('case_id'),$req->param('expType_id'),$req->param('note_id'));
     }
     elsif ($action eq "updateNoteProc")
     {
@@ -143,7 +144,14 @@ sub doActions()
 sub addNote
 {
     my $case_id = shift;
-    my ($case, $fields, $status, $project, @notes, @links) = getCaseByID($dbh, $case_id);
+    my $expType_id = shift;
+    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
+
+    # TODO branch on expType_id
+    if ($expType_id == 1) 
+    {
+	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
 
     my $vars = {
 	case          => $case,
@@ -171,7 +179,7 @@ sub addNote
 sub addNoteProcess
 {
     my $case_id = shift;
-
+    
     # get all the input params
     foreach my $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
@@ -209,9 +217,15 @@ sub addNoteProcess
 sub updateNote
 {
     my $case_id = shift;
+    my $expType_id = shift;
     my $note_id = shift;
+    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
 
-    my ($case, $fields, $status, $project, @notes, @links) = getCaseByID($dbh, $case_id);
+    # TODO branch on expType_id
+    if ($expType_id == 1) 
+    {
+	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
     my $note = getNoteByID($dbh, $note_id);
 
     my $vars = {

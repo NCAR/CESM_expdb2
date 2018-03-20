@@ -22,6 +22,12 @@ use config;
 use session;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
+use CMIP6;
+
+# set up the logger
+use Log::Log4perl;
+Log::Log4perl->init("/usr/local/expdb-2.0.0/conf/expdb-json-log.conf");
+my $logger = Log::Log4perl->get_logger();
 
 my $req = CGI->new;
 
@@ -38,9 +44,9 @@ my $password = uri_unescape($req->param('password'));
 my $data = uri_unescape($req->param('data'));
 my $loginType = 'SVN';
 
-##print STDERR '>>> username = ' . $user . '<<<<\n';
-##print STDERR '>>> password = ' . $password . '<<<<\n';
-##print STDERR '>>> data = ' . $data . '<<<<\n';
+$logger->debug("username = " . $user);
+$logger->debug("password = " . $password);
+$logger->debug("data = " . $data);
 
 # Get the necessary config vars 
 my %config = &getconfig;
@@ -65,8 +71,8 @@ my @comps = qw(atm ice lnd ocn);
 my %fields;
 my $fields;
 my $key = '';
-my @keys = qw(casename caseroot caseuser compiler compset continue_run dout_l_ms 
-              dout_l_msroot dout_s dout_s_root grid job_queue job_time machine model 
+my @keys = qw(casename caseroot caseuser compiler compset continue_run 
+              dout_s dout_s_root grid job_queue job_time machine model 
               model_cost model_throughput model_version mpilib postprocess project 
               rest_n rest_option run_dir run_refcase run_refdate run_startdate 
               run_type stop_n stop_option svn_repo_url title);
@@ -82,8 +88,6 @@ $fields{'caseuser'}         = $dbh->quote($json->{'USER'});
 $fields{'compiler'}         = $dbh->quote($json->{'COMPILER'});
 $fields{'compset'}          = $dbh->quote($json->{'COMPSET'});
 $fields{'continue_run'}     = $dbh->quote($json->{'CONTINUE_RUN'});
-$fields{'dout_l_ms'}        = $dbh->quote($json->{'DOUT_L_MS'});
-$fields{'dout_l_msroot'}    = $dbh->quote($json->{'DOUT_L_MSROOT'});
 $fields{'dout_s'}           = $dbh->quote($json->{'DOUT_S'});
 $fields{'dout_s_root'}      = $dbh->quote($json->{'DOUT_S_ROOT'});
 $fields{'expType'}          = $dbh->quote($json->{'expType'});
@@ -114,7 +118,7 @@ $fields{'title'}            = $dbh->quote($json->{'title'});
 my $svnlogin = $dbh->quote($json->{'svnlogin'});
 
 # get the svnuser id 
-my $sql = qq(select count, user_id from t_svnusers where svnlogin = $fields{'svnlogin'});
+my $sql = qq(select count(user_id), user_id from t_svnusers where svnlogin = $fields{'svnlogin'});
 my $sth = $dbh->prepare($sql);
 $sth->execute() or die $dbh->errstr;
 ($count, $item{'user_id'}) = $sth->fetchrow;
@@ -137,22 +141,20 @@ $sth->finish();
 # NOTE - passing the json string because checkCase adds the quotes
 ($count, $item{'case_id'}, $item{'expType_id'}) = checkCase($dbh, $json->{'CASE'}, $json->{'expType'});
 
-##print STDERR '>>> count = ' . $count . '<<<<\n';
-##print STDERR '>>> case_id = ' . $item{'case_id'} . '<<<<\n';
-##print STDERR '>>> case_id = ' . $item{'expType_id'} . '<<<<\n';
+$logger->debug("count = " . $count);
+$logger->debug("case_id = " . $item{'case_id'});
+$logger->debug("expType_id = " . $item{'expType_id'});
 
 if ($count == 0) {
     # load up an sql insert statement
     $sql = qq(insert into t2_cases
-              (casename, caseroot, caseuser, compiler, compset, continue_run, dout_l_ms, dout_l_msroot, 
-               dout_s, dout_s_root, grid,
+              (casename, caseroot, caseuser, compiler, compset, continue_run, dout_s, dout_s_root, grid,
                job_queue, job_time, machine, model, model_cost, model_throughput,  model_version, mpilib, 
                postprocess, project, expType_id, svnuser_id,
                rest_n, rest_option, run_dir, run_lastdate, run_refcase, run_refdate, run_startdate, 
                run_type, stop_n, stop_option, svn_repo_url, title, archive_date) value
               ($fields{'casename'}, $fields{'caseroot'}, $fields{'caseuser'}, $fields{'compiler'}, 
-               $fields{'compset'}, $fields{'continue_run'}, $fields{'dout_l_ms'}, $fields{'dout_l_msroot'},
-               $fields{'dout_s'}, $fields{'dout_s_root'}, $fields{'grid'},
+               $fields{'compset'}, $fields{'continue_run'}, $fields{'dout_s'}, $fields{'dout_s_root'}, $fields{'grid'},
                $fields{'job_queue'}, $fields{'job_time'}, $fields{'machine'}, $fields{'model'}, 
                $fields{'model_cost'}, $fields{'model_throughput'}, 
                $fields{'model_version'}, $fields{'mpilib'}, $fields{'postprocess'}, $fields{'project'},
@@ -166,7 +168,8 @@ if ($count == 0) {
     $sth->finish();
 
     # load the process statuses into the t2j_status join table
-    my %proc_stat;
+    # START HERE
+    my ($start_date, $last_date, $pname);
     $sql = qq(select id, name from t2_process);
     $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
@@ -174,12 +177,19 @@ if ($count == 0) {
     {
 	if ( exists $json->{$ref->{'name'}} ) 
 	{
+	    $pname = $json->{$ref->{'name'}}; 	    
+	    $logger->debug("process name = " . $pname);
 	    foreach my $statid (keys %status) 
 	    {
-		if ($status{$statid} eq $json->{$ref->{'name'}}) 
+		$logger->debug('status = ' . $status{$statid});
+		if ($status{$statid} eq $pname)
 		{
-		    $sql1 = qq(insert into t2j_status (case_id, status_id, process_id, last_update)
-                              value ($item{'case_id'}, $statid, $ref->{'id'}, NOW()));
+		    $start_date = $dbh->quote($pname->[1]);
+		    $last_date = $dbh->quote($pname->[2]);
+		    $sql1 = qq(insert into t2j_status (case_id, status_id, process_id, 
+                               start_date, last_date, last_update)
+                              value ($item{'case_id'}, $statid, $ref->{'id'}, $start_date, $last_date, NOW()));
+		    $logger->debug('insert sql = ' . $sql1);
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute() or die $dbh->errstr;
 		    $sth1->finish();
