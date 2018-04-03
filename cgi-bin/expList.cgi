@@ -140,6 +140,7 @@ sub showExpList
     my @CMIP6DECKs   = getCMIP6DECKs($dbh);
     my @CMIP6DCPPs   = getCMIP6DCPPs($dbh);
     my @CMIP6Sources = getCMIP6Sources($dbh);
+    my @CMIP6Status  = getCMIP6Status($dbh);
     my @cesm2exps    = getCasesByType($dbh, 2);
     my @projectA     = getCasesByType($dbh, 3);
     my @projectB     = getCasesByType($dbh, 4);
@@ -152,6 +153,7 @@ sub showExpList
 	CMIP6DECKs    => \@CMIP6DECKs,
 	CMIP6DCPPs    => \@CMIP6DCPPs,
 	CMIP6Sources  => \@CMIP6Sources,
+	CMIP6Status   => \@CMIP6Status,
 	cesm2exps     => \@cesm2exps,
 	projectA      => \@projectA,
 	projectB      => \@projectB,
@@ -230,7 +232,6 @@ sub showCaseDetail
 				 });
 
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
-
 }
 
 sub reserveCaseCMIP6
@@ -309,15 +310,15 @@ sub reserveCaseCMIP6
 	my $title = $dbh->quote($item{'case_title'});
 	my $startyear = $dbh->quote($item{'startyear'});
 	$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
-                                        run_type, run_startdate) 
+                  run_type, run_startdate) 
                   value ($case_name, 1, "$item{'ensemble'}", $title,
-                         "$item{'runtype'}", $startyear));
+                  "$item{'runtype'}", $startyear));
 	if ($item{'parentExp'} > 0) {
 	    my $run_refdate = $dbh->quote($item{'run_refdate'});
 	    $sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
-                                            run_type, run_startdate, run_refdate)
+                      run_type, run_startdate, run_refdate)
                       value ($case_name, 1, "$item{'ensemble'}", $title,
-                             "$item{'runtype'}", $startyear, $run_refdate));
+                      "$item{'runtype'}", $startyear, $run_refdate));
 	}
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
@@ -365,8 +366,7 @@ sub reserveCaseCMIP6
 	}
 
 	# insert pending entries in the t2j_status table for this case
-	my %proc_stat;
-	$sql = qq(select id, name from t2_process);
+	$sql = qq(select id from t2_process);
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	while( my $ref = $sth->fetchrow_hashref() ) 
@@ -410,12 +410,16 @@ EOF
 
 		my $ext = sprintf("%03d",$i);
 		my $ens_casename = $dbh->quote($base_name . "." . $ext);
-		$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title)
-                  value ($ens_casename, 1, "$item{'ensemble'}", $title));
+		$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
+                          run_type, run_startdate)
+                          value ($ens_casename, 1, "$item{'ensemble'}", $title,
+                          "$item{'runtype'}", $startyear));
 		if ($item{'parentExp'} > 0) {
 		    my $run_refdate = $dbh->quote($item{'run_refdate'});
-		    $sql = qq(insert into t2_cases (casename, expType_id, is_ens, title, run_refdate)
-                      value ($ens_casename, 1, "$item{'ensemble'}", $title, $run_refdate));
+		    $sql = qq(insert into t2_cases (casename, expType_id, is_ens, title, 
+                              run_type, run_startdate, run_refdate)
+                              value ($ens_casename, 1, "$item{'ensemble'}", $title, 
+                              "$item{'runtype'}", $startyear, $run_refdate));
 		}
 		$sth = $dbh->prepare($sql);
 		$sth->execute();
@@ -444,6 +448,21 @@ EOF
 		    $sth->execute();
 		    $sth->finish();
 		}
+
+		# insert pending entries in the t2j_status table for this case
+		$sql = qq(select id from t2_process);
+		$sth = $dbh->prepare($sql);
+		$sth->execute() or die $dbh->errstr;
+		while( my $ref = $sth->fetchrow_hashref() ) 
+		{
+		    $sql1 = qq(insert into t2j_status (case_id, status_id, process_id, last_update)
+                       value ($ens_case_id, 1, $ref->{'id'}, NOW()));
+		    $sth1 = $dbh->prepare($sql1);
+		    $sth1->execute() or die $dbh->errstr;
+		    $sth1->finish();
+		}
+		$sth->finish();
+
 		$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.);
 
 		$subject = "New CMIP6 DCPP Ensemble with first member $case_name has been reserved in the CESM Experiments 2.0 Database";

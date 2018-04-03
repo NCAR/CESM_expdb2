@@ -17,7 +17,7 @@ use expdb2_0;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCMIP6Sources 
-getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET);
+getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status);
 
 sub getCMIP6Experiments
 {
@@ -93,7 +93,7 @@ sub getCMIP6MIPs
 	$CMIP6MIP{'mip_id'} = $ref->{'id'};
 	$CMIP6MIP{'name'} = $ref->{'name'};
 	$CMIP6MIP{'description'} = $ref->{'description'};
-	$sql1 = qq(select j.case_id, j.exp_id, DATE_FORMAT(j.request_date, '%Y-%m-%d') as req_date
+	$sql1 = qq(select j.case_id, j.exp_id, DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date
                    from t2j_cmip6 as j, t2_cmip6_exps as e
                    where j.exp_id = e.id and
                    e.design_mip = "$ref->{'name'}");
@@ -107,7 +107,7 @@ sub getCMIP6MIPs
 	    if (defined $ref1->{'case_id'} && length($ref1->{'case_id'}) > 0)
 	    {
 		$sql2 = qq(select e.id as exp_id, e.name, e.description, e.uid, e.design_mip,
-                           c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d') as arc_date 
+                           c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d %H:%i') as arc_date 
                            from t2_cmip6_exps as e, t2_cases as c
                            where e.id = $ref1->{'exp_id'}
                            and c.id = $ref1->{'case_id'} 
@@ -164,7 +164,7 @@ sub getCMIP6DECKs
 	$CMIP6DECK{'expid'} = $ref->{'id'};
 	$CMIP6DECK{'name'} = $ref->{'name'};
 	$CMIP6DECK{'description'} = $ref->{'description'};
-	$sql1 = qq(select case_id, exp_id, DATE_FORMAT(request_date, '%Y-%m-%d') as req_date  
+	$sql1 = qq(select case_id, exp_id, DATE_FORMAT(request_date, '%Y-%m-%d %H:%i') as req_date  
                    from t2j_cmip6 where deck_id = $ref->{'id'});
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
@@ -176,7 +176,7 @@ sub getCMIP6DECKs
 	    if (defined $ref1->{'case_id'} && length($ref1->{'case_id'}) > 0)
 	    {
 		$sql2 = qq(select e.id as exp_id, e.name, e.description, e.uid, e.design_mip,
-                           c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d') as arc_date
+                           c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d %H:%i') as arc_date
                            from t2_cmip6_exps as e, t2_cases as c
                            where e.id = $ref1->{'exp_id'}
                            and c.id = $ref1->{'case_id'}
@@ -243,7 +243,7 @@ sub getCMIP6DCPPs
 	$CMIP6DCPP{'description'} = $ref->{'description'};
 	$CMIP6DCPP{'uid'} = $ref->{'uid'};
 	$sql1 = qq(select case_id, exp_id, ensemble_num, ensemble_size, 
-                   DATE_FORMAT(request_date, '%Y-%m-%d') as req_date  
+                   DATE_FORMAT(request_date, '%Y-%m-%d %H:%i') as req_date  
                    from t2j_cmip6 
                    where design_mip_id = $DCPPMIPid
                    and exp_id = $ref->{'id'});
@@ -257,7 +257,7 @@ sub getCMIP6DCPPs
 	    if (defined $ref1->{'case_id'} && length($ref1->{'case_id'}) > 0)
 	    {
 		$sql2 = qq(select e.id as exp_id, e.name, e.description, e.uid, e.design_mip,
-                           c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d') as arc_date
+                           c.id as case_id, c.casename, DATE_FORMAT(c.archive_date, '%Y-%m-%d %H:%i') as arc_date
                            from t2_cmip6_exps as e, t2_cases as c
                            where e.id = $ref1->{'exp_id'}
                            and c.id = $ref1->{'case_id'}
@@ -302,7 +302,8 @@ sub getCMIP6CaseByID
 {
     my $dbh = shift;
     my $id = shift;
-    my (%case, %fields, %status, %project, %user, %globalAtts) = ();
+    my (%case, %status, %project, %user, %globalAtts) = ();
+    my @fields;
     my @notes;
     my @links;
     my @sorted;
@@ -448,43 +449,21 @@ sub getCMIP6CaseByID
 	}
 	$sth->finish();
 
-	# get case notes
-	$sql = qq(select * from t2e_notes where case_id = $case{'case_id'}
-                order by last_update desc);
-	$sth = $dbh->prepare($sql);
-	$sth->execute();
-	while (my $ref = $sth->fetchrow_hashref())
-	{
-	    my %note;
-	    $note{'note_id'} = $ref->{'id'};
-	    $note{'note'} = $ref->{'note'};
-	    $note{'last_update'} = $ref->{'last_update'};
-	    push(@notes, \%note);
-	}
-	$sth->finish();
+	# get case fields
+	@fields = getCaseFields($dbh, $case{'case_id'});
 
-	# get changed fields
-	$sql = qq(select * from t2e_fields where case_id = $case{'case_id'}
-                order by field_name, last_update desc);
-	$sth = $dbh->prepare($sql);
-	$sth->execute();
-	while (my $ref = $sth->fetchrow_hashref())
-	{
-	    $field_name = $ref->{'field_name'};
-	    $fields{$field_name}{'field_id'} = $ref->{'id'};
-	    $fields{$field_name}{'field_value'} = $ref->{'field_value'};
-	    $fields{$field_name}{'last_update'} = $ref->{'last_update'};
-	}
-	$sth->finish();
+	# get case notes
+	@notes = getCaseNotes($dbh, $case{'case_id'});
 
 	# get process status
-	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update 
+	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
+                j.disk_usage, j.disk_path
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
                 j.case_id = $case{'case_id'} and
                 j.process_id = p.id and
                 j.status_id = s.id
-		order by p.name, j.last_update desc);
+		order by p.name, j.last_update asc);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
@@ -494,6 +473,9 @@ sub getCMIP6CaseByID
 	    $status{$process_name}{'code'} = $ref->{'code'};
 	    $status{$process_name}{'color'} = $ref->{'color'};
 	    $status{$process_name}{'last_update'} = $ref->{'last_update'};
+	    $status{$process_name}{'model_date'} = $ref->{'model_date'};
+	    $status{$process_name}{'disk_usage'} = $ref->{'disk_usage'};
+	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
 	}
 	$sth->finish();
 
@@ -554,7 +536,7 @@ sub getCMIP6CaseByID
 	    $globalAtts{'sub_experiment_id'} = qq(s$child_times[0]);
 	}
     }
-    return \%case, \%fields, \%status, \%project, \@notes, \@sorted, \%globalAtts;
+    return \%case, \@fields, \%status, \%project, \@notes, \@sorted, \%globalAtts;
 }
 
 sub getCMIP6Sources
@@ -784,4 +766,109 @@ sub CMIP6publishDSET
 }
 
 
+sub getCMIP6Status
+{
+    my $dbh = shift;
+    my @cases;
+    my ($sql1, $sth1);
+	
+    my $sql = qq(select c.id, c.casename, e.name, e.uid, c.model_cost, c.model_throughput, 
+                 c.run_startdate, j.nyears
+                 from t2_cases as c, t2_cmip6_exps as e, t2j_cmip6 as j
+                 where c.id = j.case_id and
+                 e.id = j.exp_id and
+                 j.exp_id = e.id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while (my $ref = $sth->fetchrow_hashref())
+    {
+	my %case;
+	# load up this case hash
+	$case{'case_id'} = $ref->{'id'};
+	$case{'casename'} = $ref->{'casename'};
+	$case{'expName'} = $ref->{'name'};
+	$case{'cmip6_exp_uid'} = $ref->{'uid'};
+	$case{'run_model_cost'} = $ref->{'model_cost'};
+	$case{'run_model_throughput'} = $ref->{'run_model_throughput'};
+
+	# get the case_run status
+	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+                      s.code, s.color 
+                      from t2j_status as j, t2_status as s where
+                      j.case_id = $ref->{'id'} and
+                      j.process_id = 1 and 
+                      j.status_id = s.id
+                      order by last_update desc
+                      limit 1);
+	$sth1 = $dbh->prepare($sql1);
+	$sth1->execute();
+	($case{'run_disk_usage'}, $case{'run_model_date'}, $case{'run_last_update'},
+	 $case{'run_code'}, $case{'run_color'}) = $sth1->fetchrow();
+	$sth1->finish();
+
+	# compute the run percentage complete
+	$case{'run_percent_complete'} = getPercentComplete($case{'run_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+
+	# get the case_st_archive status
+	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+                      FORMAT(j.process_time,3), s.code, s.color 
+                      from t2j_status as j, t2_status as s where
+                      j.case_id = $ref->{'id'} and
+                      j.process_id = 2 and 
+                      j.status_id = s.id
+                      order by last_update desc
+                      limit 1);
+
+	$sth1 = $dbh->prepare($sql1);
+	$sth1->execute();
+	($case{'sta_disk_usage'}, $case{'sta_model_date'}, $case{'sta_last_update'},
+	 $case{'sta_process_time'}, $case{'sta_code'}, $case{'sta_color'}) = $sth1->fetchrow();
+	$sth1->finish();
+
+	# compute the sta percentage complete
+	$case{'sta_percent_complete'} = getPercentComplete($case{'sta_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+
+	# get the timeseries status
+	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+                      FORMAT(j.process_time,3), s.code, s.color 
+                      from t2j_status as j, t2_status as s where
+                      j.case_id = $ref->{'id'} and
+                      j.process_id = 3 and 
+                      j.status_id = s.id
+                      order by last_update desc
+                      limit 1);
+	$sth1 = $dbh->prepare($sql1);
+	$sth1->execute();
+	($case{'ts_disk_usage'}, $case{'ts_model_date'}, $case{'ts_last_update'},
+	 $case{'ts_process_time'}, $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
+	$sth1->finish();
+
+	# compute the sta percentage complete
+	$case{'ts_percent_complete'} = getPercentComplete($case{'ts_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+
+	# get the conform status
+	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+                      FORMAT(j.process_time,3), s.code, s.color 
+                      from t2j_status as j, t2_status as s where
+                      j.case_id = $ref->{'id'} and
+                      j.process_id = 3 and 
+                      j.status_id = s.id
+                      order by last_update desc
+                      limit 1);
+	$sth1 = $dbh->prepare($sql1);
+	$sth1->execute();
+	($case{'conform_disk_usage'}, $case{'conform_model_date'}, $case{'conform_last_update'},
+	 $case{'conform_process_time'}, $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
+	$sth1->finish();
+
+	# compute the sta percentage complete
+	$case{'conform_percent_complete'} = getPercentComplete($case{'conform_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+
+	$case{'total_disk_usage'} = $case{'run_disk_usage'} + $case{'sta_disk_usage'} + $case{'ts_disk_usage'} + $case{'conform_disk_usage'};
+        
+        push(@cases, \%case);
+    }            
+    $sth->finish();
+    return @cases;
+}
 

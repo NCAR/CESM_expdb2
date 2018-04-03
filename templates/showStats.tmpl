@@ -30,32 +30,31 @@
 
 <body style="text-align: left">
  <div align="center">
-   [% IF validstatus.status == 0 %]
-    <span class="error">Update Case Title Error:</span>
-    <p>
-	[% validstatus.message %]
-    </p>
-    [% END %]
 
-    <h3>Update a case title for [% case.casename %]</h3>
+    <h3>[% caseName %] - Process Stats for [% processName %]</h3>
     <br/>
-    <form id="updateTitleForm" action="/expdb2.0/cgi-bin/caseTitle.cgi" method="POST">
-    <table>
+    <table class="bordered">
+      <thead>
+	<th>Description</th>		
+	<th>Status</th>		
+	<th>Model Date</th>		
+	<th>Disk Usage</th>		
+	<th>Disk Path</th>		
+	<th>Last Update</th>		
+      </thead>
+      [% FOREACH stat IN stats %]
       <tr>
-	<textarea name="title" cols="100" rows="5" required>[% case.title %]</textarea>
+	<td>[% stat.description %]</td>
+	<td style="background-color:[% stat.color %]">[% stat.code %]</td>
+	<td>[% stat.model_date %]</td>
+	<td>[% stat.disk_usage %]</td>
+	<td>[% stat.disk_path %]</td>
+	<td>[% stat.last_update %]</td>
       </tr>
-      <tr>
-	<td>
-	    <input type="hidden" name="action" value="updateTitleProc"/>
-	    <input type="hidden" name="case_id" value="[% case.case_id %]"/>
-            <input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
-	    <input id="submit" class="button" type="submit" value="Update"/>
-	  </form>
-	</td>
-	<td>
-	  <input class="button" type="button" value="Cancel" onclick="window.close(); if (window.opener && !window.opener.closed) { window.opener.location.reload();}"/>
-	</td>
-      </tr>
+      [% END %]
+    </table>
+    <input class="button" type="button" value="Cancel" onclick="window.close(); if (window.opener && !window.opener.closed) { window.opener.location.reload();}">
+
   </div>
 </body>
 </html>

@@ -7,4 +7,5 @@ create table t2e_notes(
        `case_id` INTEGER,
        `note` TEXT,
        `last_update` DATETIME,
+       `svnuser_id` INTEGER,
         PRIMARY KEY (`id`));

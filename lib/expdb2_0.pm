@@ -15,7 +15,8 @@ use config;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers checkCase 
-getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType);
+getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
+getCaseFields getCaseNotes getPercentComplete);
 
 sub getCasesByType
 {
@@ -243,4 +244,122 @@ sub getExpType
    }
    $sth->finish();
    return \%expType;
+}
+
+sub getProcessStats
+{
+   my $dbh = shift;
+   my $case_id = shift;
+   my $processName = shift;
+
+   my @stats;
+
+   # get the casename
+   my $sql = qq(select casename from t2_cases where id = $case_id);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   my $casename = $sth->fetchrow();
+   $sth->finish();
+
+   # get the process id 
+   my $pn = $dbh->quote($processName);
+   $sql = qq(select id from t2_process where name = $pn);
+   $sth = $dbh->prepare($sql);
+   $sth->execute();
+   my $process_id = $sth->fetchrow();
+   $sth->finish();
+
+   $sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date, 
+                j.disk_usage, j.disk_path
+                from t2_process as p, t2_status as s,
+                t2j_status as j where
+                j.case_id = $case_id and
+                j.process_id = p.id and
+                j.status_id = s.id and
+                j.process_id = $process_id
+		order by p.name, j.last_update asc);
+   $sth = $dbh->prepare($sql);
+   $sth->execute();
+   while(my $ref = $sth->fetchrow_hashref())
+   {
+       my %stat;
+       $stat{'process_name'} = $ref->{'name'};
+       $stat{'description'} = $ref->{'description'};
+       $stat{'code'} = $ref->{'code'};
+       $stat{'color'} = $ref->{'color'};
+       $stat{'last_update'} = $ref->{'last_update'};
+       $stat{'model_date'} = $ref->{'model_date'};
+       $stat{'disk_usage'} = $ref->{'disk_usage'};
+       $stat{'disk_path'} = $ref->{'disk_path'};
+       push(@stats, \%stat);
+   }
+   $sth->finish();
+   return ($casename, @stats);
+}
+
+sub getCaseFields
+{
+   my $dbh = shift;
+   my $case_id = shift;
+   my @fields;
+
+   my $sql = qq(select * from t2e_fields where 
+                case_id = $case_id
+                order by field_name, last_update desc);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   while (my $ref = $sth->fetchrow_hashref())
+   {
+       my %field;
+       $field{'field_name'} = $ref->{'field_name'};
+       $field{'field_value'} = $ref->{'field_value'};
+       $field{'last_update'} = $ref->{'last_update'};
+       push(@fields, \%field);
+   }
+   $sth->finish();
+   return(@fields);
+}
+
+sub getCaseNotes
+{
+   my $dbh = shift;
+   my $case_id = shift;
+   my @notes;
+
+   my $sql = qq(select * from t2e_notes where case_id = $case_id
+                order by last_update asc);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   while (my $ref = $sth->fetchrow_hashref())
+   {
+       my %note;
+       my %user;
+       $note{'note_id'} = $ref->{'id'};
+       $note{'note'} = $ref->{'note'};
+       $note{'last_update'} = $ref->{'last_update'};
+       %user = getUserByID($dbh, $ref->{'svnuser_id'});
+       $note{'firstname'} = $user{'firstname'};
+       $note{'lastname'} = $user{'lastname'};
+       $note{'email'} = $user{'email'};
+       push(@notes, \%note);
+   }
+   $sth->finish();
+   return(@notes);
+}
+
+sub getPercentComplete
+{
+    my $model_date = shift;
+    my $nyears = shift;
+    my $start_date = shift;
+
+    my @model_year = split(/-/, $model_date);
+    my @start_year = split(/-/, $start_date);
+
+    my $percent_complete = 0;
+    if ($nyears) {
+	$percent_complete = (($model_year[0] - $start_year[0] + 0.0)/$nyears) * 100.0;
+    }
+
+    return $percent_complete;
 }

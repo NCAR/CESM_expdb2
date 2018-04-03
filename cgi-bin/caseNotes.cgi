@@ -71,6 +71,7 @@ else
     $item{version} = $session->param('version');
     $item{version_id} = $session->param('version_id');
 #DEBUG
+##    $item{luser_id} = 334;
 ##    $item{llastname} = 'Bertini';
 ##    $item{lfirstname} = 'Alice';
 ##    $item{lemail} = 'aliceb@ucar.edu';
@@ -185,8 +186,8 @@ sub addNoteProcess
 	$item{$key} = ( $req->param( $key ) );
     }
     my $note = $dbh->quote($item{'note'});
-    my $sql = qq(insert into t2e_notes (case_id, note, last_update) 
-               value ($case_id, $note, NOW()));
+    my $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id) 
+               value ($case_id, $note, NOW(), $item{luser_id}));
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish();
@@ -263,7 +264,8 @@ sub updateNoteProcess
 	$item{$key} = ( $req->param( $key ) );
     }
     my $note = $dbh->quote($item{'note'});
-    my $sql = qq(update t2e_notes set note = $note, last_update = NOW()
+    my $sql = qq(update t2e_notes set note = $note, last_update = NOW(),
+                 svnuser_id = $item{luser_id}
                  where id = $note_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
