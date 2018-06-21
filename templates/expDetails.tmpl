@@ -53,49 +53,15 @@
     [% END %]
     </table>
 
-    <table style="width: 100%">
-      <tr>
-	<td><a class="show-all-exp-details show-hide">show all</a></td>
-	<td align="right"><a class="show-hide" href="">Publish Experiment to ESG</a><br/><br/>
-	  <a class="show-hide" onclick="return popitup('/expdb2.0/cgi-bin/publishDSET.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]','height=800,width=800,scrollbars=yes')">Publish Experiment to CKAN/DSET</a></td>
-      </tr>
-    </table>
+    <br/>
+    <a class="show-all-exp-details show-hide">show all</a>
     <br/>
     <br/>
 
     <div class="expDetail_accordion expDetail_applying">
       <div id="expDetail_accordion">
 
-	<h3>Case Workflow Process Status</h3>
-	<div id="expDetail_table">
-	  <table class="bordered">
-	    <thead>
-	      <th>Description</th>		
-	      <th>Process Name</th>		
-	      <th>Status</th>		
-	      <th>Model Date</th>		
-	      <th>Disk Usage</th>		
-	      <th>Disk Path</th>		
-	      <th>Last Update</th>		
-	    </thead>
-	    [% FOREACH key IN status.keys.sort %]
-	    <tr>
-	      <td>[% status.$key.description %]</td>
-	      [% IF status.$key.code != 'Unknown' %]
-	      <td><button onclick="return popitup('/expdb2.0/cgi-bin/showStats.cgi?case_id=[% case.case_id %]&processName=[% key %]','height=400,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button> [% key %]</td>
-	      [% ELSE %]
-	      <td>[% key %]</td>
-	      [% END %]
-	      <td style="background-color:[% status.$key.color %]">[% status.$key.code %]</td>
-	      <td>[% status.$key.model_date %]</td>
-	      <td>[% status.$key.disk_usage %]</td>
-	      <td>[% status.$key.disk_path %]</td>
-	      <td>[% status.$key.last_update %]</td>
-	    </tr>
-	    [% END %]
-	  </table>
-	</div>
-
+	[% IF expType.name == 'cmip6' %]
 	<h3>[% case.expType_name %] Project Details</h3>
 	<div id="expDetail_table">
 	  <div class="left">
@@ -133,7 +99,37 @@
 	      [% END %]
 	    </table>
 	  </div>
+	</div>
+	[% END %]
 
+	<h3>Case Workflow Process Status</h3>
+	<div id="expDetail_table">
+	  <table class="bordered">
+	    <thead>
+	      <th>Description</th>		
+	      <th>Process Name</th>		
+	      <th>Status</th>		
+	      <th>Model Date</th>		
+	      <th>Disk Usage</th>		
+	      <th>Disk Path</th>		
+	      <th>Last Update</th>		
+	    </thead>
+	    [% FOREACH key IN status.keys.sort %]
+	    <tr>
+	      <td>[% status.$key.description %]</td>
+	      [% IF status.$key.code != 'Unknown' %]
+	      <td><button onclick="return popitup('/expdb2.0/cgi-bin/showStats.cgi?case_id=[% case.case_id %]&processName=[% key %]','height=400,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button> [% key %]</td>
+	      [% ELSE %]
+	      <td>[% key %]</td>
+	      [% END %]
+	      <td style="background-color:[% status.$key.color %]">[% status.$key.code %]</td>
+	      <td>[% status.$key.model_date %]</td>
+	      <td>[% status.$key.disk_usage %]</td>
+	      <td>[% status.$key.disk_path %]</td>
+	      <td>[% status.$key.last_update %]</td>
+	    </tr>
+	    [% END %]
+	  </table>
 	</div>
 
 	<h3>Caseroot Settings</h3>
@@ -342,8 +338,23 @@
 	  </table>
 	</div>
 
+	<h3>Publication Options</h3>
+	<div id="expDetail_table">
+	  <table class="bordered">
+	    <thead>
+	      <th colspan="2">* You must be the scientific contact for this experiment in order to publish</th>
+	    </thead>
+	    <tr>
+	      <td><a class="show-hide" onclick="">Publish to NCAR ESGF</td>
+	      <td><a class="show-hide" onclick="return popitup('/expdb2.0/cgi-bin/publishDSET.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]','height=800,width=800,scrollbars=yes')">Publish Experiment to CKAN/DSET</a></td>
+	    </tr>
+	  </table>
+	</div>
+
+
       </div>
     </div>
   </div>
 </body>
 </html>
+

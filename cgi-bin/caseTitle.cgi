@@ -134,10 +134,13 @@ sub updateTitle
     my $expType_id = shift;
     my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
 
-    # TODO branch on expType_id
     if ($expType_id == 1) 
     {
 	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
+    else
+    {
+	($case, $fields, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
     my $vars = {

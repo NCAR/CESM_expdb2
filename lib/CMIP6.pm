@@ -330,13 +330,14 @@ sub getCMIP6CaseByID
 	# get the expType Name
 	$case{'expType_name'} = "undefined";
 	$case{'expType_desc'} = "undefined";
+	$case{'expType_template'} = "undefined";
 
 	if ( defined $ref->{'expType_id'} )
 	{
-	    $sql1 = qq(select name, description from t2_expType where id = $ref->{'expType_id'});
+	    $sql1 = qq(select name, description, expDetail_template from t2_expType where id = $ref->{'expType_id'});
 	    $sth1 = $dbh->prepare($sql1);
 	    $sth1->execute();
-	    ($case{'expType_name'}, $case{'expType_desc'}) = $sth1->fetchrow();
+	    ($case{'expType_name'}, $case{'expType_desc'}, $case{'expType_template'}) = $sth1->fetchrow();
 	    $sth1->finish();
 	}
 

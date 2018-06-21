@@ -12,7 +12,7 @@ create table t2_expType(
        primary key (id));	
 
 insert into t2_expType (name, description, exp_module, getCaseByID, expDetail_template)
-values ('cmip6', 'CMIP6 Experiments','CMIP6','getCMIP6CaseByID','expDetailCMIP6.tmpl'),
+values ('cmip6', 'CMIP6 Experiments','CMIP6','getCMIP6CaseByID','CMIP6.tmpl'),
        ('production', 'CESM2.0 Production Experiments','','',''),
        ('projectA', 'CESM2.0 Project A Experiments','','',''),
        ('projectB', 'CESM2.0 Project B Experiments','','',''),

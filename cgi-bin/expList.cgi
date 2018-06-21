@@ -71,9 +71,9 @@ else
     $item{version} = $session->param('version');
     $item{version_id} = $session->param('version_id');
 #DEBUG
-    $item{llastname} = 'Bertini';
-    $item{lfirstname} = 'Alice';
-    $item{lemail} = 'aliceb@ucar.edu';
+#    $item{llastname} = 'Bertini';
+#    $item{lfirstname} = 'Alice';
+#    $item{lemail} = 'aliceb@ucar.edu';
 }
 &doActions();
 
@@ -144,6 +144,7 @@ sub showExpList
     my @cesm2exps    = getCasesByType($dbh, 2);
     my @projectA     = getCasesByType($dbh, 3);
     my @projectB     = getCasesByType($dbh, 4);
+    my @cesm2tune    = getCasesByType($dbh, 5);
     my @allCases     = getAllCases($dbh);
     my @NCARUsers    = getNCARUsers($dbh);
 
@@ -157,6 +158,7 @@ sub showExpList
 	cesm2exps     => \@cesm2exps,
 	projectA      => \@projectA,
 	projectB      => \@projectB,
+	cesm2tune     => \@cesm2tune,
 	allCases      => \@allCases,
 	NCARUsers     => \@NCARUsers,
 	authUser      => \%item,
@@ -187,12 +189,16 @@ sub showCaseDetail
 
     my @allCases = getAllCases($dbh);
 
-    # get expType fields for given case_id
+    # get expType fields for given case_id - include library call and template file
     my $expType = getExpType($dbh, $case_id);
 
     if (lc($expType->{'name'}) eq 'cmip6') 
     {
 	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
+    else
+    {
+	($case, $fields, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
     $validstatus{'status'} = 1;
@@ -211,6 +217,7 @@ sub showCaseDetail
 
     my $vars = {
 	case        => $case,
+	expType     => $expType,
 	fields      => $fields,
 	status      => $status,
 	project     => $project,
@@ -223,7 +230,7 @@ sub showCaseDetail
     };
 
     print $req->header(-cookie=>$cookie);
-    my $tmplFile = qq(../templates/$expType->{'expDetail_template'});
+    my $tmplFile = qq(../templates/expDetails.tmpl);
 
     my $template = Template->new({
 	ENCODING => 'utf8',

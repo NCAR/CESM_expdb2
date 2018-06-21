@@ -16,7 +16,7 @@ use config;
 @ISA = qw(Exporter);
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
-getCaseFields getCaseNotes getPercentComplete);
+getCaseFields getCaseNotes getPercentComplete getDiags getCaseByID);
 
 sub getCasesByType
 {
@@ -47,7 +47,8 @@ sub getNCARUsers
 {
     my $dbh = shift;
     my @users;
-    my $sql = "select user_id, lastname, firstname from t_svnusers where email like '%ucar%' order by lastname";
+    my $sql = "select user_id, lastname, firstname from t_svnusers 
+               where email like '%ucar%' and status = 'active' order by lastname";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -362,4 +363,149 @@ sub getPercentComplete
     }
 
     return $percent_complete;
+}
+
+
+sub getDiags
+{
+   my $dbh = shift;
+   my @diags;
+
+   # get all the casenames and id's for published diags from the t2j_links table
+   return (@diags);
+}
+
+
+sub getCaseByID
+{
+    my $dbh = shift;
+    my $id = shift;
+    my (%case, %status, %user) = ();
+    my @fields;
+    my @notes;
+    my @links;
+    my @sorted;
+    my $count = 0;
+    my ($field_name, $process_name) = '';
+    my ($sql1, $sth1);
+
+    my $sql = qq(select * from t2_cases where id = $id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while (my $ref = $sth->fetchrow_hashref())
+    {
+	$case{'case_id'} = $ref->{'id'};
+	$case{'archive_date'} = $ref->{'archive_date'};
+	$case{'casename'} = $ref->{'casename'};
+	$case{'caseroot'} = $ref->{'caseroot'};
+	$case{'caseuser'} = $ref->{'caseuser'};
+	$case{'compiler'} = $ref->{'compiler'};
+	$case{'compset'} = $ref->{'compset'};
+	$case{'continue_run'} = $ref->{'continue_run'};
+	$case{'dout_s'} = $ref->{'dout_s'};
+	$case{'dout_s_root'} = $ref->{'dout_s_root'};
+
+	# get the expType Name
+	$case{'expType_name'} = "undefined";
+	$case{'expType_desc'} = "undefined";
+	$case{'expType_template'} = "undefined";
+
+	if ( defined $ref->{'expType_id'} )
+	{
+	    $sql1 = qq(select name, description, expDetail_template from t2_expType where id = $ref->{'expType_id'});
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    ($case{'expType_name'}, $case{'expType_desc'}, $case{'expType_template'}) = $sth1->fetchrow();
+	    $sth1->finish();
+	}
+
+	$case{'expType_id'} = $ref->{'expType_id'};	
+	$case{'grid'} = $ref->{'grid'};
+	$case{'is_ens'} = $ref->{'is_ens'};
+	$case{'job_queue'} = $ref->{'job_queue'};
+	$case{'job_time'} = $ref->{'job_time'};
+	$case{'machine'} = $ref->{'machine'};
+	$case{'model'} = $ref->{'model'};
+	$case{'model_cost'} = $ref->{'model_cost'};
+	$case{'model_throughput'} = $ref->{'model_throughput'};
+	$case{'model_version'} = $ref->{'model_version'};
+	$case{'mpilib'} = $ref->{'mpilib'};
+	$case{'postprocess'} = $ref->{'postprocess'};
+	$case{'project'} = $ref->{'project'};
+	$case{'rest_n'} = $ref->{'rest_n'};
+	$case{'rest_option'} = $ref->{'rest_option'};
+	$case{'run_dir'} = $ref->{'run_dir'};
+	$case{'run_lastdate'} = $ref->{'run_lastdate'};
+	$case{'run_refcase'} = $ref->{'run_refcase'};
+	$case{'run_refdate'} = $ref->{'run_refdate'};
+	$case{'run_startdate'} = $ref->{'run_startdate'};
+	$case{'run_type'} = $ref->{'run_type'};
+	$case{'stop_n'} = $ref->{'stop_n'};
+	$case{'stop_option'} = $ref->{'stop_option'};
+	$case{'svn_repo_url'} = $ref->{'svn_repo_url'};
+	$case{'svnuser_id'} = $ref->{'svnuser_id'};
+	$case{'title'} = $ref->{'title'};
+	$count++;
+    }
+    $sth->finish();
+
+    # check the row count
+    if (!$count) 
+    {
+	# no matching rows return case id = 0
+	$case{'case_id'} = 0;
+    }
+    elsif ($count > 1)
+    {
+	# more than one matching row 
+	# indicates a violation of constraints!!
+	$case{'case_id'} = -1;
+    }
+    else 
+    {
+	# get case fields
+	@fields = getCaseFields($dbh, $case{'case_id'});
+
+	# get case notes
+	@notes = getCaseNotes($dbh, $case{'case_id'});
+
+	# get process status
+	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
+                j.disk_usage, j.disk_path
+                from t2_process as p, t2_status as s,
+                t2j_status as j where
+                j.case_id = $case{'case_id'} and
+                j.process_id = p.id and
+                j.status_id = s.id
+		order by p.name, j.last_update asc);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	while (my $ref = $sth->fetchrow_hashref())
+	{
+	    $process_name = $ref->{'name'};
+	    $status{$process_name}{'description'} = $ref->{'description'};
+	    $status{$process_name}{'code'} = $ref->{'code'};
+	    $status{$process_name}{'color'} = $ref->{'color'};
+	    $status{$process_name}{'last_update'} = $ref->{'last_update'};
+	    $status{$process_name}{'model_date'} = $ref->{'model_date'};
+	    $status{$process_name}{'disk_usage'} = $ref->{'disk_usage'};
+	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
+	}
+	$sth->finish();
+
+	# get case links
+	$sql = qq(select id from t2j_links where case_id = $case{'case_id'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	while (my $ref = $sth->fetchrow_hashref())
+	{
+	    my $link = getLinkByID($dbh, $ref->{'id'});
+	    push(@links, $link);
+	}
+	$sth->finish();
+
+	# sort on process_id key
+	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
+    }
+    return \%case, \@fields, \%status, \@notes, \@sorted;
 }

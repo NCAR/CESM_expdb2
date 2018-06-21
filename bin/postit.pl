@@ -45,6 +45,7 @@ chomp($subject);
 if (index($subject, "cylc alert") == -1)
 {
     $logger->logdie("Invalid subject line '" . $subject ."'");
+    exit 1;
 }
 
 # split the Subject line to get the status
@@ -61,6 +62,7 @@ chomp($casename);
 my $expType = '';
 my $process = '';
 my $model_date = '';
+
 while (my $line = shift @body[0])
 {
     chomp($line);
@@ -70,7 +72,7 @@ while (my $line = shift @body[0])
 	my @suite = split(/\./,$line);
 	$expType =  lc($suite[-1]);
     }
-    elsif (index($line, "MESSAGE:") != -1)
+    elsif ( (index($line, "MESSAGE:") != -1) && (index($line, "REQUEST(CLEAN)") == -1) )
     {
 	$line =~ s/MESSAGE: //;
 	my @message = split(/_/,$line);
@@ -85,10 +87,12 @@ my ($count, $case_id, $expType_id) = checkCase($dbh, $casename, $expType);
 if (!$count)
 {
     $logger->logdie("Casename does not exist. Run archive_metadata first or reserve a CMIP6 casename in the expdb2.0 dashboard '" . $casename ."' / '" . $expType . "'");
+    exit 1;
 }
 if ($count > 1)
 {
     $logger->logdie("Casename and expType are not unique '" . $casename ."' " . "'" . $expType . "'");
+    exit 1;
 }
 
 # check the process status for the matching casename
@@ -102,6 +106,7 @@ my $sql = qq(select count(j.case_id), j.status_id, j.process_id, s.code, p.name,
              order by j.last_update DESC
              limit 1);
 my $sth = $dbh->prepare($sql);
+$logger->debug("SQL process status '" . $sql . "'");
 $sth->execute() or $logger->logdie("SQL error: " . $dbh->errstr);
 my ($count, $status_id, $process_id, $current_status, $process, $last_update, $db_model_date) = $sth->fetchrow();
 $sth->finish();
@@ -111,6 +116,7 @@ $new_status = $dbh->quote($new_status);
 $sql = qq(select id from t2_status 
              where lower(code) = $new_status);
 $sth = $dbh->prepare($sql);
+$logger->debug("SQL status code '" . $sql . "'");
 $sth->execute() or $logger->logdie("SQL error: " . $dbh->errstr);
 my ($new_status_id) = $sth->fetchrow();
 $sth->finish();
@@ -127,6 +133,7 @@ if ($date1->cmp($date2) > 0) {
     $sql = qq(insert into t2j_status (case_id, status_id, process_id, last_update, model_date)
               value ($case_id, $new_status_id, $process_id, NOW(), $model_date));
     $sth = $dbh->prepare($sql);
+    $logger->debug("SQL insert '" . $sql . "'");
     $sth->execute() or $logger->logdie("SQL error: " . $dbh->errstr);
     $sth->finish();
 }
