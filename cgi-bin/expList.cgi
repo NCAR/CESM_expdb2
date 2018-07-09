@@ -135,18 +135,23 @@ sub doActions()
 sub showExpList
 {
     my $validstatus = shift;
-    my @CMIP6Exps    = getCMIP6Experiments($dbh);
-    my @CMIP6MIPs    = getCMIP6MIPs($dbh);
-    my @CMIP6DECKs   = getCMIP6DECKs($dbh);
-    my @CMIP6DCPPs   = getCMIP6DCPPs($dbh);
-    my @CMIP6Sources = getCMIP6Sources($dbh);
-    my @CMIP6Status  = getCMIP6Status($dbh);
-    my @cesm2exps    = getCasesByType($dbh, 2);
-    my @projectA     = getCasesByType($dbh, 3);
-    my @projectB     = getCasesByType($dbh, 4);
-    my @cesm2tune    = getCasesByType($dbh, 5);
-    my @allCases     = getAllCases($dbh);
-    my @NCARUsers    = getNCARUsers($dbh);
+
+    my @CMIP6Exps     = getCMIP6Experiments($dbh);
+    my @CMIP6MIPs     = getCMIP6MIPs($dbh);
+    my @CMIP6DECKs    = getCMIP6DECKs($dbh);
+    my @CMIP6DCPPs    = getCMIP6DCPPs($dbh);
+    my @CMIP6Sources  = getCMIP6Sources($dbh);
+    my @CMIP6Status   = getCMIP6Status($dbh);
+    my @CMIP6Inits    = getCMIP6Inits($dbh);
+    my @CMIP6Physics  = getCMIP6Physics($dbh);
+    my @CMIP6Forcings = getCMIP6Forcings($dbh);
+
+    my @cesm2exps     = getCasesByType($dbh, 2);
+    my @projectA      = getCasesByType($dbh, 3);
+    my @projectB      = getCasesByType($dbh, 4);
+    my @cesm2tune     = getCasesByType($dbh, 5);
+    my @allCases      = getAllCases($dbh);
+    my @NCARUsers     = getNCARUsers($dbh);
 
     my $vars = {
 	CMIP6Exps     => \@CMIP6Exps,
@@ -155,6 +160,9 @@ sub showExpList
 	CMIP6DCPPs    => \@CMIP6DCPPs,
 	CMIP6Sources  => \@CMIP6Sources,
 	CMIP6Status   => \@CMIP6Status,
+	CMIP6Inits    => \@CMIP6Inits,
+	CMIP6Physics  => \@CMIP6Physics,
+	CMIP6Forcings => \@CMIP6Forcings,
 	cesm2exps     => \@cesm2exps,
 	projectA      => \@projectA,
 	projectB      => \@projectB,
@@ -310,12 +318,20 @@ sub reserveCaseCMIP6
     my $variant_label = "r" . $real_num . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
 
     # reserve this CMIP6 case
-    if ($validstatus{'status'})
+    if ($validstatus{'status'} == 1)
     {
 	# reserve the case
 	my $case_name = $dbh->quote($item{'case'});
 	my $title = $dbh->quote($item{'case_title'});
-	my $startyear = $dbh->quote($item{'startyear'});
+	my $startyear = '';
+	if ($item{'runtype'} eq 'startup') {
+	    $startyear = $dbh->quote($item{'startup_startyear'}); 
+	} elsif ($item{'runtype'} eq 'branch') {
+	    $startyear = $dbh->quote($item{'branch_startyear'}); 
+	} elsif ($item{'runtype'} eq 'hybrid') {
+	    $startyear = $dbh->quote($item{'hybrid_startyear'}); 
+	}
+
 	$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
                   run_type, run_startdate) 
                   value ($case_name, 1, "$item{'ensemble'}", $title,
@@ -338,7 +354,7 @@ sub reserveCaseCMIP6
 	my $note = $dbh->quote($item{'notes'});
 	if (length($note) > 0)
 	{
-	    $sql = qq(insert into t2e_notes (case_id, note, last_update) value ($case_id, $note, NOW()));
+	    $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id) value ($case_id, $note, NOW(), $item{luser_id}));
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
 	    $sth->finish();
@@ -472,7 +488,7 @@ EOF
 
 		$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.);
 
-		$subject = "New CMIP6 DCPP Ensemble with first member $case_name has been reserved in the CESM Experiments 2.0 Database";
+		$subject = "New CMIP6 Ensemble with first member $case_name has been reserved in the CESM Experiments 2.0 Database";
 		$msgbody = <<EOF;
 $item{lfirstname} $item{llastname} has reserved a CMIP6 DCPP Ensemble in the CESM Experiments 2.0 Database.
 Please follow this link to review the submission.

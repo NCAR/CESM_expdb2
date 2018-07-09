@@ -37,20 +37,20 @@
 		  <td align="left"><input type="number" name="nyears" min="1" max="10000" value="" required/></td>
 		</tr>
 	        <tr>
-		  <td colspan="2"><span class="error">*</span> <b>Run Type and Start Date (YYYY-MM-DD HH:MM):</b><br/>
+		  <td colspan="2"><span class="error">*</span> <b>Run Type and Start Date (YYYY-MM-DD):</b><br/>
 		  (branch_method) and (branch_time_in_child)</td>
 		</tr>
 		<tr>
 		  <td align="right"><input type="radio" name="runtype" value="startup"/> <b>Startup</b></td>
-		  <td><input type="text" name="startyear" maxlength="16" size="18"/></td>
+		  <td><input type="text" name="startup_startyear" maxlength="10" size="10"/></td>
 		</tr>
 		<tr>
 		  <td align="right"><input type="radio" name="runtype" value="branch"/> <b>Branch</b></td>
-		  <td><input type="text" name="startyear" maxlength="16" size="18"/></td>
+		  <td><input type="text" name="branch_startyear" maxlength="10" size="10"/></td>
 		</tr>
 		<tr>
 		  <td align="right"><input type="radio" name="runtype" value="hybrid"/> <b>Hybrid</b></td>
-		  <td><input type="text" name="startyear" maxlength="16" size="18"/></td>
+		  <td><input type="text" name="hybrid_startyear" maxlength="10" size="10"/></td>
 		</tr>
 	      </tbody>
 	    </table>
@@ -61,21 +61,21 @@
 
 	    <table>
 	      <thead>
-		<th colspan="2">Decadal Prediction Experiment Ensembles</th>
+		<th colspan="2">Experiment Ensembles</th>
 	      </thead>
 	      <tbody>
 		<tr>
-		  <td align="right" valign="top"><b>Is this an ensemble experiment?</b></td>
+		  <td valign="top" style="width: 40%"><b>Is this an ensemble experiment?</b></td>
 		  <td align="left"><input type="radio" name="ensemble" value="false" checked required/> No<br/>
 		      <input type="radio" name="ensemble" value="true"/> Yes</td>
 		</tr>
 		<tr>
-		  <td align="right"><b>If "Yes", enter the number of ensemble members:</b></td> 
+		  <td><b>If "Yes", enter the number of ensemble members:</b></td> 
 		  <td align="left"><input type="number" name="ensemble_size" min="1" max="100" value=""/></td>
 		</tr>
 		<tr>
-		  <td align="right"><b>... and number of years for each ensemble member:</b></td>  
-		  <td align="left"><input type="number" name="ensemble_years" min="1" max="100" value=""/></td>
+		  <td><b>... and number of years for each ensemble member:</b></td>  
+		  <td align="left"><input type="number" name="ensemble_years" min="1" max="2000" value=""/></td>
 		</tr>
 	      </tbody>
 	    </table>
@@ -84,7 +84,8 @@
 	      For example, "b.e20.dp.hd-1961.20C.1d.001" is the only case name that needs to be 
 	      entered for the hindcast initialization of the 20th Century run starting
 	      at 1961. Subsequent ensemble member casenames will be automatically added to the database
-	      with the last numeric extension incremented for each ensemble member. </p>
+	      with the last numeric extension incremented for each ensemble member as well as the
+	      realization number. </p>
 	    <br/>
 	      <hr/>
 	    <br/>
@@ -111,16 +112,63 @@
 		    <table>
 		      <tbody>
 			<tr>
-			  <td align="right">realization_index:</td> <td><input type="number" name="real_num" min="1" max="100" required/></td>
+			  <td align="right" valign="top">realization_index:</td> <td><input type="number" name="real_num" min="1" max="100" value="1" required/>
+			  <b>Note: the CESM2 database will automatically assign a realization number for ensemble experiments</b>
+			  <p>realization_index = an integer (>=1) distinguishing among members of an ensemble of simulations that differ 
+			  only in their initial conditions (e.g., initialized from different points in a control run). 
+			  Note that if two different simulations were started from the same initial conditions, the same
+			  realization number should be used for both simulations. For example if a historical run with 
+			  "natural forcing" only and another historical run that includes anthropogenic forcing were both 
+			  spawned at the same point in a control run, both should be assigned the same realization. Also,
+			  each so-called RCP (future scenario) simulation should normally be assigned the same realization 
+			  integer as the historical run from which it was initiated. This will allow users to easily splice 
+			  together the appropriate historical and future runs.</p>
+			  </td>
 			</tr>
 			<tr>
-			  <td align="right">intialization_index:</td> <td><input type="number" name="init_num" min="1" max="100" required/></td>
+			  <td align="right" valign="top">intialization_index:</td>
+			  <td><select required name="init_num">
+			      [% FOREACH init IN CMIP6Inits %]
+			      <option value="[% init.init_id %]">[% init.value %] : [% init.description %]</option>
+			      [% END %]
+			    </select>   
+			  <p>initialization_index = an integer (>=1), which should be assigned a value of 1 except to distinguish simulations performed under the same
+			  conditions but with different initialization procedures. In CMIP6 this index should invariably be assigned the value <b>1</b> except 
+			  for some hindcast and forecast experiments called for by the DCPP activity. The initialization_index can be used either to 
+			  distinguish between different algorithms used to impose initial conditions on a forecast or to distinguish between different 
+			  observational datasets used to initialize a forecast.</p>
+			  </td>
 			</tr>
 			<tr>
-			  <td align="right">physics_index:</td> <td><input type="number" name="phys_num" min="1" max="100" required/></td>
+			  <td align="right">physics_index:</td> 
+			  <td><select required name="phys_num">
+			      [% FOREACH physic IN CMIP6Physics %]
+			      <option value="[% physic.physic_id %]">[% physic.value %] : CESM2-1-[% physic.description %]</option>
+			      [% END %]
+			    </select>
+			    <p>physics_index = an integer (>=1) identifying the physics version used by the model. In the usual case of a single 
+			    physics version of a model, this argument should normally be assigned the value 1, but it is essential that a consistent 
+			    assignment of physics_index be used across all simulations performed by a particular model. Use of "physics_index" is 
+			    reserved for closely-related model versions (e.g., as in a "perturbed physics" ensemble) or for the same model run with 
+			    slightly different parameterizations (e.g., of cloud physics). Model versions that are
+			    substantially different from one another should be given a different source_id (rather than simply assigning a different value of the
+			    physics_index).
+			    </p>
+			  </td>
 			</tr>
 			<tr>
-			  <td align="right">forcing_index:</td> <td><input type="number" name="force_num" min="1" max="100" required/></td>
+			  <td align="right">forcing_index:</td> 
+			  <td><select required name="force_num">
+			      [% FOREACH forcing IN CMIP6Forcings %]
+			      <option value="[% forcing.force_id %]">[% forcing.value %] : [% forcing.description %]</option>
+			      [% END %]
+			    </select>
+			    <p>forcing_index = an integer (>=1) used to distinguish runs conforming to the protocol of a single CMIP6 experiment, 
+			    but with different variants of forcing applied. One can, for example, distinguish between two historical simulations, 
+			    one forced with the CMIP6-recommended forcing data sets and another forced by a different dataset, which might yield 
+			    information about how forcing uncertainty affects the simulation.
+			    </p>
+			  </td>
 			</tr>
 		      </tbody>
 		    </table>
@@ -143,7 +191,7 @@
 		  </td>
 		  <td align="left">
 		    [% FOREACH source IN CMIP6Sources %]	
-		    <input type="checkbox" name="source" value="[% source.id %]" required/> [% source.name %] - [% source.description %]<br/>
+		    <input type="checkbox" name="source" value="[% source.id %]" /> [% source.name %] - [% source.description %]<br/>
 		    [% END %]<br>
 		  </td>
 		</tr>
@@ -159,9 +207,9 @@
 		    </select>
 		  </td>
 		<tr>
-		  <td align="right"><b>Parent Reference Date (YYYY-MM-DD HH:MM):</b><br/>
+		  <td align="right"><b>Parent Reference Date (YYYY-MM-DD):</b><br/>
 		  (branch_time_in_parent)</td>
-		  <td><input type="text" name="run_refdate" maxlength="16" size="18"/></td>
+		  <td><input type="text" name="run_refdate" maxlength="10" size="10"/></td>
 		</tr>
 	      </tbody>	
 	    </table>

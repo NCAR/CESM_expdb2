@@ -25,7 +25,7 @@
    <script src="/jquery-validation/jquery.validate.js" language="javascript" type="text/javascript"></script>
    <script type="text/javascript" language="javascript" src="/scripts/jquery.dataTables.js"></script>
    <script type="text/javascript" src="/scripts/popitup.js"></script>
-   <script type="text/javascript" src="/scripts/exp_dashboard.js"></script>  
+   <script type="text/javascript" src="/expdb2.0/scripts/exp_dashboard.js"></script>  
 </head>
 
 <body>
@@ -298,7 +298,7 @@
 	  </table>
 	</div>
 
-	<h3>Case Diagnostics and ESG Links</h3>
+	<h3>Case Diagnostics and Climate Data Gateway Links</h3>
 	<div id="expDetail_table">
 	  <table class="bordered">
 	    <tr>
@@ -340,15 +340,27 @@
 
 	<h3>Publication Options</h3>
 	<div id="expDetail_table">
-	  <table class="bordered">
-	    <thead>
-	      <th colspan="2">* You must be the scientific contact for this experiment in order to publish</th>
-	    </thead>
-	    <tr>
-	      <td><a class="show-hide" onclick="">Publish to NCAR ESGF</td>
-	      <td><a class="show-hide" onclick="return popitup('/expdb2.0/cgi-bin/publishDSET.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]','height=800,width=800,scrollbars=yes')">Publish Experiment to CKAN/DSET</a></td>
-	    </tr>
-	  </table>
+	  <p>* You must be the scientific lead or archiver for this experiment or a expdb2.0 admin in order to publish. After successful publication, it is up to the user to delete any intermediate files associated with this experiment on disk. <b>These publication steps are coming soon!</b></p>
+
+	  <form action="/expdb2.0/cgi-bin/publishGCD.cgi?case_id=[% case.case_id %]">
+	    <p><input type="checkbox" name="gcd_cb" onclick="if(this.checked){this.form.submit()}"> Publish to NCAR Climate Data Gateway (formally ESG).</input> This publishes the single-variable CESM compressed timeseries netCDF files.</p>
+	  </form>
+
+	  <form action="/expdb2.0/cgi-bin/publishESGF.cgi?case_id=[% case.case_id %]">
+	    <p><input type="checkbox" name="gcd_cb" onclick="if(this.checked){this.form.submit()}"> Publish to ESGF.</input> This publishes the CMOR compressed timeseries netCDF files.</p>
+	  </form>
+
+	  <form action="/expdb2.0/cgi-bin/publishDSET.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]">
+	    <p><input type="checkbox" name="dset_cb" onclick="if(this.checked){this.form.submit()}"> Publish Experiment to CKAN/DSET.</input></p>
+	  </form>
+
+	  <form action="/expdb2.0/cgi-bin/publishScience.cgi?case_id=[% case.case_id %]">
+	    <p><input type="checkbox" name="science_cb" onclick="if(this.checked){this.form.submit()}"> Publish to CESM Scientifically Validated web page.</input></p>
+	  </form>
+
+	  <form action="/expdb2.0/cgi-bin/publishScience.cgi?case_id=[% case.case_id %]">
+	    <p><input type="checkbox" name="timing_cb" onclick="if(this.checked){this.form.submit()}"> Publish to CESM Timing web page.</input></p>
+	  </form>
 	</div>
 
 

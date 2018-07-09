@@ -26,8 +26,8 @@
 
    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-   <script type="text/javascript" src="/expdb2.0/scripts/popitup.js"></script>
-   <script type="text/javascript" src="/expdb2.0/scripts/exp_dashboard.js"></script>  
+   <script type="text/javascript" src="/scripts/popitup.js"></script>
+   <script type="text/javascript" src="/scripts/exp_dashboard.js"></script>  
    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
    <script src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
 
@@ -35,19 +35,90 @@
       #details { 
       background-color: #c5edcb; 
       }
+
       .alert:hover {
       cursor: pointer;
       }
+
       table {
       width: 100%;
       }
+
       .dtr-details {
       width: 100%;
       }
+
       table.dataTable tbody.tbody-timing td {
       padding: 0px;
       }
    </style>
+
+   <script>
+   $(document).ready( function () {
+    $('#statusTable').DataTable( {
+       "iDisplayLength": 100,
+       "aLengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+     } );
+   } );
+   </script>
+
+   <script>
+   $(document).ready( function () {
+    $('#ProjectATable').DataTable( {
+       "iDisplayLength": 100,
+       "aLengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+     } );
+   } );
+   </script>
+
+   <script>
+   $(document).ready( function () {
+    $('#ProjectBTable').DataTable( {
+       "iDisplayLength": 100,
+       "aLengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+     } );
+   } );
+   </script>
+
+   <script>
+   $(document).ready( function () {
+      var table = $('#cmip6ExpTable').DataTable( {
+      "responsive": true,
+      "lengthMenu": [ [25, 50, -1], [25, 50, "All"] ],
+      "order": [ [ 3, 'desc'], [ 0, 'asc'] ]
+      } );
+
+      // Handle click on "Expand All" button
+      $('button#btn-show-all-children').on('click', function(){
+      // Expand row details
+      table.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
+      });
+
+      // Handle click on "Collapse All" button
+      $('button#btn-hide-all-children').on('click', function(){
+      // Collapse row details
+      table.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
+      });
+   } );
+   </script>
+
+   <script>
+   $(document).ready( function () {
+    $('#cesm2tuneTable').DataTable( {
+       "iDisplayLength": 100,
+       "aLengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+     } );
+   } );
+   </script>
+
+   <script>
+   $(document).ready( function () {
+    $('#cesm2expTable').DataTable( {
+       "iDisplayLength": 100,
+       "aLengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+     } );
+   } );
+   </script>
 
 </head>
 
@@ -126,7 +197,7 @@
 	  <br/>
 	  <div class="MIP_accordion MIP_applying">
 	    <div id="MIP_accordion">
-	      [% FOREACH MIPexp IN CMIP6MIPs %]
+	      [% FOREACH MIPexp IN CMIP6MIPs.sort %]
 	      <h3>[% MIPexp.name %] - [% MIPexp.description %]</h3>
 	      <div id="MIP_table">
 		<table id="[% MIPexp.name %]Table">
@@ -138,7 +209,7 @@
 		    <th>Archive Date</th>
 		  </thead>
 		  <tbody>
-		    [% FOREACH exp IN MIPexp.exps.sort('expName') %]
+		    [% FOREACH exp IN MIPexp.exps %]
 		    <tr>
 		      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
 		      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
@@ -195,7 +266,7 @@
 	</div>
 
 	<div id="NAMED">
-	  <table id="cmip6ExpTable" style="width: 100%; border-collapse: separate; border-spacing: 2px;">
+	  <table id="cmip6ExpTable" style="width: 100%">
 	    <thead>
 	      <tr>
 		<th>Case Name</th>
@@ -233,62 +304,200 @@
 	</div>
 
 	<div id=STATUS>
-          <div style="text-align: center;" id="statusTable_buttons">
-            <button id="statusBtn-show-all-children" class="btn btn-primary" type="button">Expand All</button>
-            <button id="statusBtn-hide-all-children" class="btn btn-primary" type="button">Collapse All</button>
-          </div>
-
-	  <table id="statusTable" style="width: 100%">
+	  <table id="statusTable">
 	    <thead>
-	      <tr>
-		<th>Casename</th>
-		<th>Experiment Name</th>
-		<th>Overall Status Summary</th>
-		<th class="none">Run Status</th>
-		<th class="none">Archive Status</th>
-		<th class="none">Timeseries Status</th>
-		<th class="none">Conform Status</th>
-		<th class="none">Overall Status</th>
-	      </tr>
+	      <th>Case/Experiment (clickable)</th>
+	      <th>Run Status</th>
+	      <th>Archive Status</th>
+	      <th>Timeseries Status</th>
+	      <th>Conform Status</th>
+	      <th>Case Status Summary</th>
 	    </thead>
 	    <tbody>
 	      [% FOREACH exp IN CMIP6Status %]
-	      <tr>
-		<td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
-		<td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
-		<td>
+	      <tr bgcolor="#ffffff">
+		<td valign="top">
 		  <table>
-		    <tbody>
-		      <tr>
-			<td>model run:  <span style="background-color:[% exp.run_color %]">[% exp.run_code %]</span></td>
-			<td>st_archive: <span style="background-color:[% exp.sta_color %]">[% exp.sta_code %]</span></td>
-			<td>timeseries: <span style="background-color:[% exp.ts_color %]">[% exp.ts_code %]</span></td>
-			<td>conform:    <span style="background-color:[% exp.conform_color %]">[% exp.conform_code %]</span></td>
-			<td>published:  <span style="background-color:[% exp.pub_color %]">[% exp.pub_code %]</span></td>
-		      </tr>
-		    </tbody>
+		    <tr>
+		      <td valign="top">Casename</td>
+		      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+		    </tr>
+		    <tr>
+		      <td valign="top">Experiment</td>
+		      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
+		    </tr>
 		  </table>
 		</td>
-		<td>Detail run status here...</td>
-		<td>Detail st_archive status here...</td>
-		<td>Detail timeseries status here...</td>
-		<td>Detail conform status here...</td>
-		<td>Detail overall status here...</td>
+		<td valign="top">
+		  <table class="small">
+		    <tr>
+		      <td colspan="2" style="background-color:[% exp.run_color %]">[% exp.run_code %]</td>
+		    </tr>
+		    <tr>
+		      <td>Last Run Date</td>
+		      <td>[% exp.run_model_date %]</td>
+		    </tr>
+		    <tr>
+		      <td>Disk Usage</td>
+		      <td>[% exp.run_disk_usage %]</td>
+		    </tr>
+		    <tr>
+		      <td>Model Cost</td>
+		      <td>[% exp.run_model_cost %]</td>
+		    </tr>
+		    <tr>
+		      <td>Model Throughput</td>
+		      <td>[% exp.run_model_throughput %]</td>
+		    </tr>
+		    <tr>
+		      <td>Percent Complete</td>
+		      [% IF exp.run_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.run_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.run_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td>Last Update</td>
+		      <td>[% exp.run_last_update %]</td>
+		    </tr>
+		  </table>
+		</td>
+		<td valign="top">
+		  <table class="small">
+		    <tr>
+		      <td colspan="2" style="background-color:[% exp.sta_color %]">[% exp.sta_code %]</td>
+		    </tr>
+		    <tr>
+		      <td>Last Archive Date</td>
+		      <td>[% exp.sta_model_date %]</td>
+		    </tr>
+		    <tr>
+		      <td>Disk Usage</td>
+		      <td>[% exp.sta_disk_usage %]</td>
+		    </tr>
+		    <tr>
+		      <td>Process Time</td>
+		      <td>[% exp.sta_process_time %]</td>
+		    </tr>
+		    <tr>
+		      <td>Percent Complete</td>
+		      [% IF exp.sta_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.sta_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.sta_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td>Last Update</td>
+		      <td>[% exp.sta_last_update %]</td>
+		    </tr>
+		  </table>
+		</td>
+		<td valign="top">
+		  <table class="small">
+		    <tr>
+		      <td colspan="2" style="background-color:[% exp.ts_color %]">[% exp.ts_code %]</td>
+		    </tr>
+		    <tr>
+		      <td>Last Timeseries Date</td>
+		      <td>[% exp.ts_model_date %]</td>
+		    </tr>
+		    <tr>
+		      <td>Disk Usage</td>
+		      <td>[% exp.ts_disk_usage %]</td>
+		    </tr>
+		    <tr>
+		      <td>Process Time</td>
+		      <td>[% exp.ts_process_time %]</td>
+		    </tr>
+		    <tr>
+		      <td>Percent Complete</td>
+		      [% IF exp.ts_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.ts_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.ts_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td>Last Update</td>
+		      <td>[% exp.ts_last_update %]</td>
+		    </tr>
+		  </table>
+		</td>
+		<td valign="top">
+		  <table class="small">
+		    <tr>
+		      <td colspan="2" style="background-color:[% exp.conform_color %]">[% exp.conform_code %]</td>
+		    </tr>
+		    <tr>
+		      <td>Last Conform Date</td>
+		      <td>[% exp.conform_model_date %]</td>
+		    </tr>
+		    <tr>
+		      <td>Disk Usage</td>
+		      <td>[% exp.conform_disk_usage %]</td>
+		    </tr>
+		    <tr>
+		      <td>Process Time</td>
+		      <td>[% exp.conform_process_time %]</td>
+		    </tr>
+		    <tr>
+		      <td>Percent Complete</td>
+		      [% IF exp.conform_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.conform_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.conform_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td>Last Update</td>
+		      <td>[% exp.conform_last_update %]</td>
+		    </tr>
+		  </table>
+		</td>
+		<td valign="top">
+		  <table class="small">
+		    <tr>
+		      <td valign="top">Total Disk Usage</td>
+		      <td>[% exp.total_disk_usage %]</td>
+		    </tr>
+		    <tr>
+		      <td valign="top">Run Percent Complete</td>
+		      [% IF exp.run_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.run_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.run_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td valign="top">Archive Percent Complete</td>
+		      [% IF exp.sta_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.sta_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.sta_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td valign="top">Timeseries Percent Complete</td>
+		      [% IF exp.ts_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.ts_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.ts_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td valign="top">Conform Percent Complete</td>
+		      [% IF exp.conform_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.conform_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.conform_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		  </table>
 	      </tr>
 	      [% END %]
 	    </tbody>
-	    <tfoot>
-	      <tr>
-		<th>Casename</th>
-		<th>Experiment Name</th>
-		<th>Overall Status Summary</th>
-		<th class="none">Run Status</th>
-		<th class="none">Archive Status</th>
-		<th class="none">Timeseries Status</th>
-		<th class="none">Conform Status</th>
-		<th class="none">Overall Status</th>
-	      </tr>
-	    </tfoot>
 	  </table>
 	</div>
 

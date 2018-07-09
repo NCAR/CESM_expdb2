@@ -48,7 +48,7 @@ sub getNCARUsers
     my $dbh = shift;
     my @users;
     my $sql = "select user_id, lastname, firstname from t_svnusers 
-               where email like '%ucar%' and status = 'active' order by lastname";
+               where status = 'active' and lastname is not null order by lastname";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())

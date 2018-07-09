@@ -121,75 +121,43 @@ $fields{'title'}            = $dbh->quote($json->{'title'});
 # get all the postprocess data into a quotable format for the SQL calls
 # first key is the process name
 
-$pp_fields{'case_run'}{'status'}          = $json->{'run_status'};      
-$pp_fields{'case_run'}{'size'}            = $json->{'run_size'};
-$pp_fields{'case_run'}{'path'}            = $dbh->quote($json->{'run_path'});
+$pp_fields{'case_run'}{'status'}          = $dbh->quote($json->{'run_status'});      
+$pp_fields{'case_st_archive'}{'status'}   = $dbh->quote($json->{'sta_status'});      
 
-$pp_fields{'case_st_archive'}{'status'}   = $json->{'sta_status'};      
-$pp_fields{'case_st_archive'}{'size'}     = $json->{'sta_size'};
-$pp_fields{'case_st_archive'}{'path'}     = $dbh->quote($json->{'sta_path'});
-
-$pp_fields{'atm_averages'}{'status'}      = $json->{'atm_avg_status'};
+$pp_fields{'atm_averages'}{'status'}      = $dbh->quote($json->{'atm_avg_status'});
 $pp_fields{'atm_averages'}{'size'}        = $json->{'atm_avg_size'};
 $pp_fields{'atm_averages'}{'path'}        = $dbh->quote($json->{'atm_avg_path'});
-$pp_fields{'atm_diagnostics'}{'status'}   = $json->{'atm_diag_status'};
+$pp_fields{'atm_diagnostics'}{'status'}   = $dbh->quote($json->{'atm_diag_status'});
 $pp_fields{'atm_diagnostics'}{'size'}     = $json->{'atm_diag_size'};
 $pp_fields{'atm_diagnostics'}{'path'}     = $dbh->quote($json->{'atm_diag_path'});
 
-$pp_fields{'lnd_averages'}{'status'}      = $json->{'lnd_avg_status'};
+$pp_fields{'lnd_averages'}{'status'}      = $dbh->quote($json->{'lnd_avg_status'});
 $pp_fields{'lnd_averages'}{'size'}        = $json->{'lnd_avg_size'};
 $pp_fields{'lnd_averages'}{'path'}        = $dbh->quote($json->{'lnd_avg_path'});
-$pp_fields{'lnd_diagnostics'}{'status'}   = $json->{'lnd_diag_status'};
+$pp_fields{'lnd_diagnostics'}{'status'}   = $dbh->quote($json->{'lnd_diag_status'});
 $pp_fields{'lnd_diagnostics'}{'size'}     = $json->{'lnd_diag_size'};
 $pp_fields{'lnd_diagnostics'}{'path'}     = $dbh->quote($json->{'lnd_diag_path'});
 
-$pp_fields{'ice_averages'}{'status'}      = $json->{'ice_avg_status'};
+$pp_fields{'ice_averages'}{'status'}      = $dbh->quote($json->{'ice_avg_status'});
 $pp_fields{'ice_averages'}{'size'}        = $json->{'ice_avg_size'};
 $pp_fields{'ice_averages'}{'path'}        = $dbh->quote($json->{'ice_avg_path'});
-$pp_fields{'ice_diagnostics'}{'status'}   = $json->{'ice_diag_status'};
+$pp_fields{'ice_diagnostics'}{'status'}   = $dbh->quote($json->{'ice_diag_status'});
 $pp_fields{'ice_diagnostics'}{'size'}     = $json->{'ice_diag_size'};
 $pp_fields{'ice_diagnostics'}{'path'}     = $dbh->quote($json->{'ice_diag_path'});
 
-$pp_fields{'ocn_averages'}{'status'}      = $json->{'ocn_avg_status'};
+$pp_fields{'ocn_averages'}{'status'}      = $dbh->quote($json->{'ocn_avg_status'});
 $pp_fields{'ocn_averages'}{'size'}        = $json->{'ocn_avg_size'};
 $pp_fields{'ocn_averages'}{'path'}        = $dbh->quote($json->{'ocn_avg_path'});
-$pp_fields{'ocn_diagnostics'}{'status'}   = $json->{'ocn_diag_status'};
+$pp_fields{'ocn_diagnostics'}{'status'}   = $dbh->quote($json->{'ocn_diag_status'});
 $pp_fields{'ocn_diagnostics'}{'size'}     = $json->{'ocn_diag_size'};
 $pp_fields{'ocn_diagnostics'}{'path'}     = $dbh->quote($json->{'ocn_diag_path'});
 
-$pp_fields{'timeseries'}{'status'}        = $json->{'timeseries_status'};
-$pp_fields{'timeseries'}{'path'}          = $dbh->quote($json->{'timeseries_path'});
-$pp_fields{'timeseries'}{'size'}          = $json->{'timeseries_size'};
+$pp_fields{'timeseries'}{'status'}        = $dbh->quote($json->{'tseries_status'});
+$pp_fields{'timeseries'}{'size'}          = $json->{'tseries_size'};
+$pp_fields{'timeseries'}{'path'}          = $dbh->quote($json->{'tseries_path'});
 
-$pp_fields{'atm_timeseries'}{'status'}    = $json->{'atm_timeseries_status'};
-$pp_fields{'atm_timeseries'}{'size'}      = $json->{'atm_timeseries_size'};
-$pp_fields{'atm_timeseries'}{'path'}      = $dbh->quote($json->{'atm_timeseries_path'});
-
-$pp_fields{'glc_timeseries'}{'status'}    = $json->{'glc_timeseries_status'};
-$pp_fields{'glc_timeseries'}{'size'}      = $json->{'glc_timeseries_size'};
-$pp_fields{'glc_timeseries'}{'path'}      = $dbh->quote($json->{'glc_timeseries_path'});
-
-$pp_fields{'ice_timeseries'}{'status'}    = $json->{'ice_timeseries_status'};
-$pp_fields{'ice_timeseries'}{'size'}      = $json->{'ice_timeseries_size'};
-$pp_fields{'ice_timeseries'}{'path'}      = $dbh->quote($json->{'ice_timeseries_path'});
-
-$pp_fields{'lnd_timeseries'}{'status'}    = $json->{'lnd_timeseries_status'};
-$pp_fields{'lnd_timeseries'}{'size'}      = $json->{'lnd_timeseries_size'};
-$pp_fields{'lnd_timeseries'}{'path'}      = $dbh->quote($json->{'lnd_timeseries_path'});
-
-$pp_fields{'ocn_timeseries'}{'status'}    = $json->{'ocn_timeseries_status'};
-$pp_fields{'ocn_timeseries'}{'size'}      = $json->{'ocn_timeseries_size'};
-$pp_fields{'ocn_timeseries'}{'path'}      = $dbh->quote($json->{'ocn_timeseries_path'});
-
-$pp_fields{'rof_timeseries'}{'status'}    = $json->{'rof_timeseries_status'};
-$pp_fields{'rof_timeseries'}{'size'}      = $json->{'rof_timeseries_size'};
-$pp_fields{'rof_timeseries'}{'path'}      = $dbh->quote($json->{'rof_timeseries_path'});
-
-$pp_fields{'iconform'}{'status'}          = $json->{'iconform_status'};
-$pp_fields{'iconform'}{'size'}            = $json->{'iconform_size'};
-$pp_fields{'iconform'}{'path'}            = $dbh->quote($json->{'iconform_path'});
-
-$pp_fields{'xconform'}{'status'}          = $json->{'xconform_status'};
+$pp_fields{'iconform'}{'status'}          = $dbh->quote($json->{'iconform_status'});
+$pp_fields{'xconform'}{'status'}          = $dbh->quote($json->{'xconform_status'});
 $pp_fields{'xconform'}{'size'}            = $json->{'xconform_size'};
 $pp_fields{'xconform'}{'path'}            = $dbh->quote($json->{'xconform_path'});
 
@@ -361,20 +329,16 @@ else {
     foreach $pname (keys %pp_fields) {
 	# get the process_id
 	$pid = $procs{$pname};
-	$logger->debug('process name = ' . $pname);	
-	$logger->debug('pid = ' . $pid);	
-
+	
 	# get the status_id
 	$pstat_id = $status{ $pp_fields{$pname}{'status'} };
-	$logger->debug('process status = ' . $pp_fields{$pname}{'status'});
-	$logger->debug('process status id = ' . $status{ $pp_fields{$pname}{'status'} } );
 	
 	# build the insert statement
-	$sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-                  last_update, disk_usage, disk_path)
-                  value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}));
-	$logger->debug('insert sql = ' . $sql);
+	$sql = qq(update t2j_status set status_id = $pstat_id, last_update=NOW(),
+                  disk_usage = $pp_fields{$pname}{'size'}, 
+                  disk_path = $pp_fields{$pname}{'path'}
+                  where case_id = $item{'case_id'} and process_id = $pid);
+	$logger->debug('insert sql = ' . $sql1);
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	$sth->finish();

@@ -1,0 +1,183 @@
+		  <table class="small">
+		    <tbody>
+		      <tr>
+			<td>Run Status</td>
+			<td style="background-color:[% exp.run_color %]">[% exp.run_code %]</td>
+		      </tr>
+		      <tr>
+			<td>Last Run Date</td>
+			<td>[% exp.run_model_date %]</td>
+		      </tr>
+		      <tr>
+			<td>Disk Usage</td>
+			<td>[% exp.run_disk_usage %]</td>
+		      </tr>
+		      <tr>
+			<td>Model Cost</td>
+			<td>[% exp.run_model_cost %]</td>
+		      </tr>
+		      <tr>
+			<td>Model Throughput</td>
+			<td>[% exp.run_model_throughput %]</td>
+		      </tr>
+		      <tr>
+			<td>Percent Complete</td>
+			[% IF exp.run_percent_complete > 0 %]
+		        <td bgcolor="#00ff00">[% exp.run_percent_complete %]%</td>
+			[% ELSE %]
+		        <td bgcolor="#ffccff">[% exp.run_percent_complete %]%</td>
+			[% END %]
+		      </tr>
+		      <tr>
+			<td>Last Update</td>
+			<td>[% exp.run_last_update %]</td>
+		      </tr>
+		    </tbody>
+		  </table>
+		</td>
+
+		<td>
+		  <table class="small">
+		    <tbody>
+		      <tr>
+			<td>Short term archiver</td>
+			<td style="background-color:[% exp.sta_color %]">[% exp.sta_code %]</td>
+		      </tr>
+		      <tr>
+			<td>Last Archive Date</td>
+			<td>[% exp.sta_model_date %]</td>
+		      </tr>
+		      <tr>
+			<td>Disk Usage</td>
+			<td>[% exp.sta_disk_usage %]</td>
+		      </tr>
+		      <tr>
+			<td>Process Time</td>
+			<td>[% exp.sta_process_time %]</td>
+		      </tr>
+		      <tr>
+			<td>Percent Complete</td>
+			[% IF exp.sta_percent_complete > 0 %]
+		        <td bgcolor="#00ff00">[% exp.sta_percent_complete %]%</td>
+			[% ELSE %]
+		        <td bgcolor="#ffccff">[% exp.sta_percent_complete %]%</td>
+			[% END %]
+		      </tr>
+		      <tr>
+			<td>Last Update</td>
+			<td>[% exp.sta_last_update %]</td>
+		      </tr>
+		    </tbody>
+		  </table>
+		</td>
+
+		<td>
+		  <table class="small">
+		    <tbody>
+		      <tr>
+			<td>Timeseries</td>
+			<td style="background-color:[% exp.ts_color %]">[% exp.ts_code %]</td>
+		      </tr>
+		      <tr>
+			<td>Last Timeseries Date</td>
+			<td>[% exp.ts_model_date %]</td>
+		      </tr>
+		      <tr>
+			<td>Disk Usage</td>
+			<td>[% exp.ts_disk_usage %]</td>
+		      </tr>
+		      <tr>
+			<td>Process Time</td>
+			<td>[% exp.ts_process_time %]</td>
+		      </tr>
+		      <tr>
+			<td>Percent Complete</td>
+			[% IF exp.ts_percent_complete > 0 %]
+		        <td bgcolor="#00ff00">[% exp.ts_percent_complete %]%</td>
+			[% ELSE %]
+		        <td bgcolor="#ffccff">[% exp.ts_percent_complete %]%</td>
+			[% END %]
+		      </tr>
+		      <tr>
+			<td>Last Update</td>
+			<td>[% exp.ts_last_update %]</td>
+		      </tr>
+		    </tbody>
+		  </table>
+		</td>
+
+		<td>
+		  <table class="small">
+		    <tbody>
+		      <tr>
+			<td>Conform</td>
+			<td style="background-color:[% exp.conform_color %]">[% exp.conform_code %]</td>
+		      </tr>
+		      <tr>
+			<td>Last Conform Date</td>
+			<td>[% exp.conform_model_date %]</td>
+		      </tr>
+		      <tr>
+			<td>Disk Usage</td>
+			<td>[% exp.conform_disk_usage %]</td>
+		      </tr>
+		      <tr>
+			<td>Process Time</td>
+			<td>[% exp.conform_process_time %]</td>
+		      </tr>
+		      <tr>
+			<td>Percent Complete</td>
+			[% IF exp.conform_percent_complete > 0 %]
+		        <td bgcolor="#00ff00">[% exp.conform_percent_complete %]%</td>
+			[% ELSE %]
+		        <td bgcolor="#ffccff">[% exp.conform_percent_complete %]%</td>
+			[% END %]
+		      </tr>
+		      <tr>
+			<td>Last Update</td>
+			<td>[% exp.conform_last_update %]</td>
+		      </tr>
+		    </tbody>
+		  </table>
+		</td>
+
+		<td valign="top">
+		  <table class="small">
+		    <tr>
+		      <td valign="top">Total Disk Usage</td>
+		      <td>[% exp.total_disk_usage %]</td>
+		    </tr>
+		    <tr>
+		      <td valign="top">Run Percent Complete</td>
+		      [% IF exp.run_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.run_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.run_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td valign="top">Archive Percent Complete</td>
+		      [% IF exp.sta_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.sta_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.sta_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td valign="top">Timeseries Percent Complete</td>
+		      [% IF exp.ts_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.ts_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.ts_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		    <tr>
+		      <td valign="top">Conform Percent Complete</td>
+		      [% IF exp.conform_percent_complete > 0 %]
+		         <td bgcolor="#00ff00">[% exp.conform_percent_complete %]%</td>
+		      [% ELSE %]
+		         <td bgcolor="#ffccff">[% exp.conform_percent_complete %]%</td>
+		      [% END %]
+		    </tr>
+		  </table>
+	      </tr>

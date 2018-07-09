@@ -14,3 +14,4 @@ Then load the database tables with the CMIP6 info
 >./load_cmip6_exps.py
 >./load_cmip6_mips.py
 >./load_cmip6_join.py
+>./load_cmip6_cesm.py

@@ -17,7 +17,8 @@ use expdb2_0;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCMIP6Sources 
-getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status);
+getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6Inits getCMIP6Physics
+getCMIP6Forcings);
 
 sub getCMIP6Experiments
 {
@@ -161,7 +162,7 @@ sub getCMIP6DECKs
     {
 	my %CMIP6DECK;
 	my @CMIP6Exps = ();
-	$CMIP6DECK{'expid'} = $ref->{'id'};
+	$CMIP6DECK{'id'} = $ref->{'id'};
 	$CMIP6DECK{'name'} = $ref->{'name'};
 	$CMIP6DECK{'description'} = $ref->{'description'};
 	$sql1 = qq(select case_id, exp_id, DATE_FORMAT(request_date, '%Y-%m-%d %H:%i') as req_date  
@@ -414,7 +415,8 @@ sub getCMIP6CaseByID
 		$sql1 = qq(select name, description from t2_cmip6_DECK_types where id = $ref->{'deck_id'});
 		$sth1 = $dbh->prepare($sql1);
 		$sth1->execute();
-		($project{'cmip6_deckName'}, $project{'cmip6_deckDescription'}) = $sth1->fetchrow();
+##		($project{'cmip6_deckName'}, $project{'cmip6_deckDescription'}) = $sth1->fetchrow();
+		($project{'cmip6_expName'}, $project{'cmip6_deckDescription'}) = $sth1->fetchrow();
 		$sth1->finish();
 	    }
 
@@ -498,6 +500,8 @@ sub getCMIP6CaseByID
 	$globalAtts{'branch_time_in_child'} = '';
 	$globalAtts{'branch_time_in_parent'} = '';
 
+	# run_startdate and run_refdate are set in the caseroot and
+	# loaded into the database with archive_metadata
 	my @temp = split(' ',$case{'run_startdate'});
 	my @child_times = split('-',$temp[0]);
 
@@ -812,7 +816,7 @@ sub getCMIP6Status
 
 	# get the case_st_archive status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      FORMAT(j.process_time,3), s.code, s.color 
+                      s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 2 and 
@@ -823,7 +827,7 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'sta_disk_usage'}, $case{'sta_model_date'}, $case{'sta_last_update'},
-	 $case{'sta_process_time'}, $case{'sta_code'}, $case{'sta_color'}) = $sth1->fetchrow();
+	 $case{'sta_code'}, $case{'sta_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
 	# compute the sta percentage complete
@@ -831,7 +835,7 @@ sub getCMIP6Status
 
 	# get the timeseries status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      FORMAT(j.process_time,3), s.code, s.color 
+                      s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 3 and 
@@ -841,7 +845,7 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'ts_disk_usage'}, $case{'ts_model_date'}, $case{'ts_last_update'},
-	 $case{'ts_process_time'}, $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
+	 $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
 	# compute the sta percentage complete
@@ -849,7 +853,7 @@ sub getCMIP6Status
 
 	# get the conform status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      FORMAT(j.process_time,3), s.code, s.color 
+                      s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 3 and 
@@ -859,10 +863,10 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'conform_disk_usage'}, $case{'conform_model_date'}, $case{'conform_last_update'},
-	 $case{'conform_process_time'}, $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
+	 $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
-	# compute the sta percentage complete
+	# compute the conform percentage complete
 	$case{'conform_percent_complete'} = getPercentComplete($case{'conform_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
 	$case{'total_disk_usage'} = $case{'run_disk_usage'} + $case{'sta_disk_usage'} + $case{'ts_disk_usage'} + $case{'conform_disk_usage'};
@@ -873,3 +877,62 @@ sub getCMIP6Status
     return @cases;
 }
 
+sub getCMIP6Inits
+{
+    my $dbh = shift;
+    my @CMIP6Inits;
+
+    my $sql = qq(select * from t2_cmip6_init order by description);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while(my $ref = $sth->fetchrow_hashref())
+    {
+	my %CMIP6Init;
+	$CMIP6Init{'init_id'} = $ref->{'id'};
+	$CMIP6Init{'value'} = $ref->{'value'};
+	$CMIP6Init{'description'} = $ref->{'description'};
+	push(@CMIP6Inits, \%CMIP6Init);
+    }
+    $sth->finish();
+    return @CMIP6Inits;
+}
+
+sub getCMIP6Physics
+{
+    my $dbh = shift;
+    my @CMIP6Physics;
+
+    my $sql = qq(select * from t2_cmip6_physics order by description);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while(my $ref = $sth->fetchrow_hashref())
+    {
+	my %CMIP6Physic;
+	$CMIP6Physic{'physic_id'} = $ref->{'id'};
+	$CMIP6Physic{'value'} = $ref->{'value'};
+	$CMIP6Physic{'description'} = $ref->{'description'};
+	push(@CMIP6Physics, \%CMIP6Physic);
+    }
+    $sth->finish();
+    return @CMIP6Physics;
+}
+
+sub getCMIP6Forcings
+{
+    my $dbh = shift;
+    my @CMIP6Forcings;
+
+    my $sql = "select * from t2_cmip6_forcings order by value";
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while(my $ref = $sth->fetchrow_hashref())
+    {
+	my %CMIP6Forcing;
+	$CMIP6Forcing{'force_id'} = $ref->{'id'};
+	$CMIP6Forcing{'value'} = $ref->{'value'};
+	$CMIP6Forcing{'description'} = $ref->{'description'};
+	push(@CMIP6Forcings, \%CMIP6Forcing);
+    }
+    $sth->finish();
+    return @CMIP6Forcings;
+}
