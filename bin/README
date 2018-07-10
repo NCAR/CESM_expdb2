@@ -5,9 +5,13 @@ Install the dreqpy library in ~/.local
 >pip uninstall dreqpy
 >pip install -i https://pypi.python.org/pypi --user dreqPy==[latest version]
 
+Example:
+>pip install -i https://pypi.python.org/pypi --user dreqPy==1.0.21
+
 Then load the database tables with the CMIP6 info
 
 >cd /piofs/var/www/html/expdb2.0/bin
 >./load_cmip6_exps.py
 >./load_cmip6_mips.py
 >./load_cmip6_join.py
+>./load_cmip6_cesm.py

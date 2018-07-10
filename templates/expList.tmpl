@@ -3,28 +3,52 @@
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 
 <head>
-  <title>CESM2.0 Experiments Database</title>
+  <title>CESM2 Experiments Database</title>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
    <meta http-equiv="cache-control" content="max-age=0" />
    <meta http-equiv="cache-control" content="no-cache" />
    <meta http-equiv="expires" content="0" />
    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
    <meta http-equiv="pragma" content="no-cache" />
-   <meta name="description" content="CESM2.0 Experiments Database"/>
+   <meta name="description" content="CESM2 Experiments Database"/>
    <meta name="keywords"    content="CESM Software Engineering Working Group"/>
+
    <style type="text/css" media="screen">
      @import "/styles/cesm.css"; 
      @import "/styles/teststyles.css";
      @import "/svnuser/css/svnuser.css";
      @import "/jqueryui/development-bundle/demos/demos.css";
      @import "/jqueryui/css/redmond/jquery-ui-1.8.23.custom.css";
-     @import "/jquerydt/DataTables-1.9.3/media/css/jquery.dataTables.css";
    </style>
+
+   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
+   <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.1/css/responsive.dataTables.min.css" />
+
    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-   <script type="text/javascript" language="javascript" src="/scripts/jquery.dataTables.js"></script>
-   <script type="text/javascript" src="/scripts/exp_dashboard.js"></script>  
-   <script type="text/javascript" src="/scripts/popitup.js"></script>
+   <script type="text/javascript" src="/expdb2.0/scripts/popitup.js"></script>
+   <script type="text/javascript" src="/expdb2.0/scripts/exp_dashboard.js"></script>  
+   <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+   <script src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
+
+   <style>
+      #details { 
+      background-color: #c5edcb; 
+      }
+      .alert:hover {
+      cursor: pointer;
+      }
+      table {
+      width: 100%;
+      }
+      .dtr-details {
+      width: 100%;
+      }
+      table.dataTable tbody.tbody-timing td {
+      padding: 0px;
+      }
+   </style>
+
 </head>
 
 <body style="text-align: left">
@@ -33,17 +57,18 @@
   </p>
 
   [% IF validstatus.status == 0 %]
-  <fieldset>
-    <legend class="error">Reserve a CMIP6 Case Name Errors:</legend>
-    <p>
-      [% validstatus.message %]
-    </p>
-  </fieldset>
-  [% END %]
+  <div align="center">
+  <span class="error">Reserve a Casename Errors:</span>
+      <p>
+	[% validstatus.message %]
+      </p>
+  </div>
+ [% END %]
 
   <div id="dashtabs">
     <ul>
       <li><a href="#cmip6exp">CESM 2 / CMIP 6 Experiments</a></li>
+      <li><a href="#cesm2tune">CESM 2 Tuning Experiments</a></li>
       <li><a href="#cesm2exp">CESM 2 Production Experiments</a></li>
       <li><a href="#projectA">CESM 2 Project A Experiments</a></li>
       <li><a href="#projectB">CESM 2 Project B Experiments</a></li>
@@ -56,107 +81,129 @@
 	  <li><a href="#MIP">MIP Experiments</a></li>
 	  <li><a href="#DCPP">Decadal Prediction Experiments</a></li>
 	  <li><a href="#NAMED">Experiments by Name</a></li>
-	  <li><a href="#RESERVE">Reserve a CMIP6 Case Name</a></li>
+	  <li><a href="#RESERVE_CMIP6">Reserve a CMIP6 Case Name</a></li>
+	  <li><a href="#STATUS">Overall Experiment Status</a></li>
 	</ul>
 	
 	<div id="DECK">
-	  <div id="DECK_accordion">
-	    [% FOREACH DECKexp IN CMIP6DECKs %]
-	    <h3>[% DECKexp.name %] - [% DECKexp.description %]</h3>
-	    <div>
-	      <table class="bordered" id="[% DECKexp.name %]Table">
-		<thead>
-		  <th>Case Name</th>
-		  <th>Experiment Name</th>
-		  <th>Designing MIP</th>
-		  <th>Request Date</th>
-		  <th>Archive Date</th>
-		</thead>
-		<tbody>
-		  [% FOREACH exp IN DECKexp.exps %]
-		  <tr>
-		    <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
-		    <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
-		    <td>[% exp.designMIP %]</td>
-		    <td>[% exp.request_date %]</td>
-		    <td>[% exp.archive_date %]</td>
-		  </tr>
-		  [% END %]
-		</tbody>
-	      </table>
+	  <a class="show-all-applying-DECK show-hide">show all</a>
+	  <br/>
+	  <br/>
+	  <div class="DECK_accordion DECK_applying">
+	    <div id="DECK_accordion">
+	      [% FOREACH DECKexp IN CMIP6DECKs %]
+	      <h3>[% DECKexp.name %] - [% DECKexp.description %]</h3>
+	      <div id="DECK_table">
+		<table id="[% DECKexp.cmip6_exp %]Table">
+		  <thead>
+		    <th>Case Name</th>
+		    <th>CESM Experiment Name</th>
+		    <th>Designing MIP</th>
+		    <th>Request Date</th>
+		    <th>Archive Date</th>
+		  </thead>
+		  <tbody>
+		    [% FOREACH exp IN DECKexp.exps %]
+		    <tr>
+		      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+		      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
+		      <td>[% exp.designMIP %]</td>
+		      <td>[% exp.request_date %]</td>
+		      <td>[% exp.archive_date %]</td>
+		    </tr>
+		    [% END %]
+		  </tbody>
+		</table>
+	      </div>
+	      [% END %]
 	    </div>
-	    [% END %]
 	  </div>
 	</div>
 
 	<div id="MIP">
-	  <div id="MIP_accordion">
-	    [% FOREACH MIPexp IN CMIP6MIPs %]
-	    <h3>[% MIPexp.name %] - [% MIPexp.description %]</h3>
-	      <table class="bordered" id="[% MIPexp.name %]Table">
-		<thead>
-		  <th>Case Name</th>
-		  <th>Experiment Name</th>
-		  <th>Designing MIP</th>
-		  <th>Request Date</th>
-		  <th>Archive Date</th>
-		</thead>
-		<tbody>
-		  [% FOREACH exp IN MIPexp.exps %]
-		  <tr>
-		    <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
-		    <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
-		    <td>[% exp.designMIP %]</td>
-		    <td>[% exp.request_date %]</td>
-		    <td>[% exp.archive_date %]</td>
-		  </tr>
-		  [% END %]
-		</tbody>
-	      </table>
-	    [% END %]
+	  <a class="show-all-applying-MIP show-hide">show all</a>
+	  <br/>
+	  <br/>
+	  <div class="MIP_accordion MIP_applying">
+	    <div id="MIP_accordion">
+	      [% FOREACH MIPexp IN CMIP6MIPs %]
+	      <h3>[% MIPexp.name %] - [% MIPexp.description %]</h3>
+	      <div id="MIP_table">
+		<table id="[% MIPexp.name %]Table">
+		  <thead>
+		    <th>Case Name</th>
+		    <th>Experiment Name</th>
+		    <th>Designing MIP</th>
+		    <th>Request Date</th>
+		    <th>Archive Date</th>
+		  </thead>
+		  <tbody>
+		    [% FOREACH exp IN MIPexp.exps.sort('expName') %]
+		    <tr>
+		      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+		      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
+		      <td>[% exp.designMIP %]</td>
+		      <td>[% exp.request_date %]</td>
+		      <td>[% exp.archive_date %]</td>
+		    </tr>
+		    [% END %]
+		  </tbody>
+		</table>
+	      </div>
+	      [% END %]
+	    </div>
 	  </div>
 	</div>
 
 
 	<div id="DCPP">
-	  <div id="DCPP_accordion">
-	    [% FOREACH DCPPexp IN CMIP6DCPPs %]
-	    <h3>[% DCPPexp.name %]</h3>
-	      <table class="bordered" id="[% MIPexp.name %]Table">
-		<thead>
-		  <th colspan="5"><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% DCPPexp.uid %].html" target="_blank">[% DCPPexp.description %]</a></th>
-		</thead>
-		<thead>
-		  <th>Case Name</th>
-		  <th>Experiment Name</th>
-		  <th>Designing MIP</th>
-		  <th>Request Date</th>
-		  <th>Archive Date</th>
-		</thead>
-		<tbody>
-		  [% FOREACH exp IN DCPPexp.exps %]
-		  <tr>
-		    <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
-		    <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% DCPPexp.uid %].html" target="_blank">[% exp.expName %]</a></td>
-		    <td>[% exp.designMIP %]</td>
-		    <td>[% exp.request_date %]</td>
-		    <td>p[% exp.archive_date %]</td>
-		  </tr>
-		  [% END %]
-		</tbody>
-	      </table>
-	    [% END %]
+	  <a class="show-all-applying-DCPP show-hide">show all</a>
+	  <br/>
+	  <br/>
+	  <div class="DCPP_accordion DCPP_applying">
+	    <div id="DCPP_accordion">
+	      [% FOREACH DCPPexp IN CMIP6DCPPs %]
+	      <h3>[% DCPPexp.name %]</h3>
+	      <div id="DCPP_table">
+		<table id="[% MIPexp.name %]Table">
+		  <thead>
+		    <th colspan="5"><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% DCPPexp.uid %].html" target="_blank">[% DCPPexp.description %]</a></th>
+		  </thead>
+		  <thead>
+		    <th>Case Name</th>
+		    <th>Experiment Name</th>
+		    <th>Designing MIP</th>
+		    <th>Request Date</th>
+		    <th>Archive Date</th>
+		  </thead>
+		  <tbody>
+		    [% FOREACH exp IN DCPPexp.exps %]
+		    <tr>
+		      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+		      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% DCPPexp.uid %].html" target="_blank">[% exp.expName %]</a></td>
+		      <td>[% exp.designMIP %]</td>
+		      <td>[% exp.request_date %]</td>
+		      <td>[% exp.archive_date %]</td>
+		    </tr>
+		    [% END %]
+		  </tbody>
+		</table>
+	      </div>
+	      [% END %]
+	    </div>
 	  </div>
 	</div>
 
 	<div id="NAMED">
-	  <table class="bordered" id="expNameTable">
+	  <table id="cmip6ExpTable" style="width: 100%; border-collapse: separate; border-spacing: 2px;">
 	    <thead>
-	      <th>Case Name</th>
-	      <th>Experiment Name</th>
-	      <th>Designing MIP</th>
-	      <th>Request Date</th>
-	      <th>Archive Date</th>
+	      <tr>
+		<th>Case Name</th>
+		<th>Experiment Name</th>
+		<th>Designing MIP</th>
+		<th>Request Date</th>
+		<th>Archive Date</th>
+	      </tr>
 	    </thead>
 	    <tbody>
 	      [% FOREACH exp IN CMIP6Exps %]
@@ -169,121 +216,106 @@
 	      </tr>
 	      [% END %]
 	    </tbody>
+	    <tfoot>
+	      <tr>
+		<th>Case Name</th>
+		<th>Experiment Name</th>
+		<th>Designing MIP</th>
+		<th>Request Date</th>
+		<th>Archive Date</th>
+	      </tr>
+	    </tfoot>
 	  </table>
 	</div>
 
-	<div id=RESERVE>
-
-	  <form id="reserveCaseForm" action="/expdb2.0/cgi-bin/expList.cgi" method="POST">
-	    <input type="hidden" name="action" value="reserveCase">
-	    <p><span class="error">*</span> Indicates a required field.</p>
-
-	    <span class="error">*</span> <b>Unique Case Name:</b>
-	    <input type="text" name="case" maxlength="128" size="64" required/>
-	    <br/>
-	    <br/>
-	    <table>
-	      <thead>
-		<th><span class="error">*</span>Run Type:</th>
-		<th><span class="error">*</span><b>Start Date:</b></th>
-	      </thead>
-	      <tbody>
-		<tr>
-		  <td><input type="radio" name="runtype" value="startup" checked/> Startup</td>
-		  <td><input type="text" name="startyear" maxlength="16" size="18" value="YYYY-MM-DD HH:MM"/></td>
-		</tr>
-		<tr>
-		  <td><input type="radio" name="runtype" value="branch"/> Branch</td>
-		  <td><input type="text" name="branchyear" maxlength="16" size="18" value="YYYY-MM-DD HH:MM"/></td>
-		</tr>
-		<tr>
-		  <td><input type="radio" name="runtype" value="hybrid"/> Hybrid</td>
-		  <td><input type="text" name="hybridyear" maxlength="16" size="18" value="YYYY-MM-DD HH:MM"/></td>
-		</tr>
-	      </tbody>
-	    </table>
-	    <br/>
-	    <br/>
-	    <span class="error">*</span> <b>Realization Identifier "ripf":</b>
-	    <input type="text" name="ripf" maxlength="20" size="20" required/>
-	    <br/>
-	    <a href="https://www.earthsystemcog.org/projects/wip/position_papers" target="_blank">View CMIP6 Global Attributes, DRS, Filenames, Directory Structure, and CVs</a> for details concerning the "ripf" specification.
-	    <br/>
-	    <br/>
-	    <b>Is this an ensemble experiment?</b><br/>
-	    <input type="radio" name="ensemble" value="FALSE" checked/> No<br/>
-	    <input type="radio" name="ensemble" value="TRUE"/> Yes<br/>
-	    If "Yes", enter then number of ensemble members:  <input type="number" name="ensemble_size" min="1" max="3" value=""/>
-	    and number of years for each ensemble member:  <input type="number" name="ensemble_years" min="1" max="3" value=""/>
-	    <p>Note: Ensemble experiments need to only reserve one unique casename 
-	      corresponding to the first ensemble name of the experiment. <br/>
-	      For example, "b.e20.dp.hd-1961.20C.1d.001" is the only case name that needs to be 
-	      entered for the hindcast initialization of the 20th Century run starting
-	      at 1961. Subsequent ensemble case entries in the database will be 
-	      handled by archive_metadata.</p>
-	    <br/>
-	    <br/>
-	    <table> 
-	      <thead>
-		<th><span class="error">*</span> CMIP6 Experiment</th>
-		<th>CMIP6 Parent Experiment</th>
-		<th><span class="error">*</span> Users</th>
-	      </thead>
-	      <tbody>
-		  <tr>
-		    <td valign="top">
-		      <select required name="expName">
-			<option value="">Select Experiment</option>
-			[% FOREACH exp IN CMIP6Exps %]	
-			<option value="[% exp.exp_id %]">[% exp.expName %]</option>
-			[% END %]
-		      </select>
-		    </td>
-		    <td valign="top">
-		      <select name="parentExp">
-			<option value="">Select Experiment</option>
-			[% FOREACH exp IN CMIP6Exps %]	
-			<option value="[% exp.exp_id %]">[% exp.expName %]</option>
-			[% END %]
-		      </select>
-		    </td>
-		    <td valign="top">
-		      Assigned To:
-		      <select required name="assignUser">
-			<option value="">Select User</option>
-			[% FOREACH user IN NCARUsers %]	
-			<option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
-			[% END %]
-		      </select>
-		      <br/><br/>
-		      Scientific Lead:
-		      <select required name="scienceUser">
-			<option value="">Select User</option>
-			[% FOREACH user IN NCARUsers %]	
-			<option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
-			[% END %]
-		      </select>
-		    </td>
-		  </tr>	
-		</tbody>	
-	      </table>
-	      <a href="http://clipc-services.ceda.ac.uk/dreq/index.html" target="_blank">View CMIP6 Data Request Definitions</a>
-	    <br/>
-	    <p>
-	      <b>Case Notes:</b><br/>
-	      <textarea name="notes" cols="100" rows="5"></textarea>
-	    </p>
-
-	    <br/>
-	    <input type="submit" value="Submit"/>
-	    <input type="reset"/>
-	    </form>
-	  </div>
+	<div id=RESERVE_CMIP6>
+	  [% INCLUDE reserveCaseCMIP6.tmpl %]
 	</div>
-      </div>
 
-      <div id="cesm2exp">
-      <table class="bordered" id="cesm2expTable">
+	<div id=STATUS>
+          <div style="text-align: center;" id="statusTable_buttons">
+            <button id="statusBtn-show-all-children" class="btn btn-primary" type="button">Expand All</button>
+            <button id="statusBtn-hide-all-children" class="btn btn-primary" type="button">Collapse All</button>
+          </div>
+
+	  <table id="statusTable" style="width: 100%">
+	    <thead>
+	      <tr>
+		<th>Casename</th>
+		<th>Experiment Name</th>
+		<th>Overall Status Summary</th>
+		<th class="none">Run Status</th>
+		<th class="none">Archive Status</th>
+		<th class="none">Timeseries Status</th>
+		<th class="none">Conform Status</th>
+		<th class="none">Overall Status</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      [% FOREACH exp IN CMIP6Status %]
+	      <tr>
+		<td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+		<td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
+		<td>
+		  <table>
+		    <tbody>
+		      <tr>
+			<td>model run:  <span style="background-color:[% exp.run_color %]">[% exp.run_code %]</span></td>
+			<td>st_archive: <span style="background-color:[% exp.sta_color %]">[% exp.sta_code %]</span></td>
+			<td>timeseries: <span style="background-color:[% exp.ts_color %]">[% exp.ts_code %]</span></td>
+			<td>conform:    <span style="background-color:[% exp.conform_color %]">[% exp.conform_code %]</span></td>
+			<td>published:  <span style="background-color:[% exp.pub_color %]">[% exp.pub_code %]</span></td>
+		      </tr>
+		    </tbody>
+		  </table>
+		</td>
+		<td>Detail run status here...</td>
+		<td>Detail st_archive status here...</td>
+		<td>Detail timeseries status here...</td>
+		<td>Detail conform status here...</td>
+		<td>Detail overall status here...</td>
+	      </tr>
+	      [% END %]
+	    </tbody>
+	    <tfoot>
+	      <tr>
+		<th>Casename</th>
+		<th>Experiment Name</th>
+		<th>Overall Status Summary</th>
+		<th class="none">Run Status</th>
+		<th class="none">Archive Status</th>
+		<th class="none">Timeseries Status</th>
+		<th class="none">Conform Status</th>
+		<th class="none">Overall Status</th>
+	      </tr>
+	    </tfoot>
+	  </table>
+	</div>
+
+      </div>
+    </div>
+
+    <div id="cesm2tune">
+      <table id="cesm2tuneTable">
+	<thead>
+	  <th>Case Name</th>
+	  <th>Title</th>
+	  <th>Archive Date</th>
+	</thead>
+	<tbody>
+	  [% FOREACH exp IN cesm2tune %]
+`	  <tr>
+	    <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+	    <td>[% exp.title %]</td>
+	    <td>[% exp.archive_date %]</td>
+	  </tr>
+	  [% END %]
+	</tbody>
+      </table>
+    </div>
+
+    <div id="cesm2exp">
+      <table id="cesm2expTable">
 	<thead>
 	  <th>Case Name</th>
 	  <th>Title</th>
@@ -302,7 +334,7 @@
     </div>
 
     <div id="projectA">
-      <table class="bordered" id="ProjectATable">
+      <table id="ProjectATable">
 	<thead>
 	  <th>Case Name</th>
 	  <th>Title</th>
@@ -321,7 +353,7 @@
     </div>
 
     <div id="projectB">
-      <table class="bordered" id="ProjectBTable">
+      <table id="ProjectBTable">
 	<thead>
 	  <th>Case Name</th>
 	  <th>Title</th>

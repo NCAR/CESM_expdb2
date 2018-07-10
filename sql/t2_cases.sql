@@ -11,8 +11,6 @@ CREATE TABLE `t2_cases` (
   `compiler` VARCHAR(20) DEFAULT NULL,
   `compset` VARCHAR(100) DEFAULT NULL,
   `continue_run` VARCHAR(5) DEFAULT NULL,
-  `dout_l_ms` VARCHAR(5) DEFAULT NULL,
-  `dout_l_msroot` VARCHAR(200) DEFAULT NULL,
   `dout_s` VARCHAR(5) DEFAULT NULL,
   `dout_s_root` VARCHAR(200) DEFAULT NULL,
   `expType_id` INTEGER DEFAULT NULL,
@@ -40,7 +38,7 @@ CREATE TABLE `t2_cases` (
   `stop_option` VARCHAR(10) DEFAULT NULL,
   `svn_repo_url` VARCHAR(200) DEFAULT NULL,
   `svnuser_id` INTEGER DEFAULT NULL,
-  `title` VARCHAR(200) DEFAULT NULL,
+  `title` VARCHAR(256) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 

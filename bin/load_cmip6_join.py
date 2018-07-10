@@ -55,7 +55,7 @@ def commandline_options():
 
     """
     parser = argparse.ArgumentParser(
-        description='load name and description fields from the CMIP6 data request database into t2_cmip6_mips.')
+        description='create the join records between DECK, MIPS, and CMIP6 exps in t2j_cmip6.')
 
     parser.add_argument('--backtrace', action='store_true', 
                         help='Show exception backtraces as extra debugging output')
@@ -99,7 +99,7 @@ def map_exp_to_request_mip(exp_name, dq=None):
 # ---------------------------------------------------------------------
 # join_DECK_exps
 # ---------------------------------------------------------------------
-def join_DECK_exps(db, cursor):
+def join_DECK_exps(db, cursor, version):
 
     """
     Add the deck_id to exp_id in join table
@@ -107,73 +107,121 @@ def join_DECK_exps(db, cursor):
     Args:
     db: database connection object
     cursor: database cursor object
+    version: dreq version
     """
-    # define a lookup data structures for DECK experiments with design_mip = 'CMIP'
-    deck_exps = { 'Historical' : ['esm-hist-ext','esm-hist','historical','historical-ext'],
-                  'Abrupt_4xCO2' : ['abrupt-4xCO2'],
-                  '1pctCO2' : ['1pctCO2'],
-                  'AMIP' : ['amip'],
-                  'PI_control': ['piControl-spinup','piControl','esm-piControl','esm-piControl-spinup'] }
+    # define a lookup data structures for DECK experiments with design_mip = 'DECK'
+    deck_exps = { 'historical'   : ['historical', 'historical-WACCM'],
+                  'abrupt-4xCO2' : ['4xCO2-CESM2-BGC','4xCO2-CESM2-WACCM'],
+                  '1pctCO2'      : ['1pctCO2-CESM2-BGC','1pctCO2-CESM2-WACCM'],
+                  'amip'         : ['AMIP-CESM2-BGC','AMIP-CESM2-WACCM'],
+                  'piControl'    : ['Control','Control-WACCM','Control-high-res'] }
 
-    # iterate through the deck_exps dictionary and create join entries.
-    for deck, exps in deck_exps.iteritems():
-        # get the deck_id
-        count = 0
-        sql = "select count(id), id from t2_cmip6_DECK_types where name = '{0}'".format(deck)
-        try:
-            print ("Executing sql = {0}".format(sql))
-            cursor.execute(sql)
-            (count, deck_id) = cursor.fetchone()
-        except:
-            print ("Error executing sql = {0}".format(sql))
-            db.rollback()
+    # get the DECK MIP id from the t2_cmip6_MIP_types table
+    count = 0
+    sql = "select count(id), id from t2_cmip6_MIP_types where name = 'DECK'";
+    try:
+        print ("Executing sql = {0}".format(sql))
+        cursor.execute(sql)
+        (count, deck_id) = cursor.fetchone()
+    except:
+        print ("Error executing sql = {0}".format(sql))
+        db.rollback()
 
-        if count == 1:
+    if count == 1:
+        # iterate through the deck_exps dictionary and create join entries.
+        for deck, exps in deck_exps.iteritems():
+
+            # get the deck_type_id 
+            sql = "select id from t2_cmip6_DECK_types where name = '{0}'".format(deck)
+            try:
+                print ("Executing sql = {0}".format(sql))
+                cursor.execute(sql)
+                (deck_type_id) = cursor.fetchone()
+            except:
+                print ("Error executing sql = {0}".format(sql))
+                db.rollback()
+
+            # loop over the exps for this DECK exp
             for exp in exps:
-                count2 = 0
-                sql = "select count(id), id from t2_cmip6_exps where design_mip = 'CMIP' and name = '{0}'".format(exp)
+                # check if this exp is already in the t2_cmip6_exps table
+                exp_id = 0
+                sql = "select count(id), id from t2_cmip6_exps where name = '{0}'".format(exp)
                 try:
                     print ("Executing sql = {0}".format(sql))
                     cursor.execute(sql)
-                    (count2, id) = cursor.fetchone()
+                    (exists, exp_id) = cursor.fetchone()
                 except:
                     print ("Error executing sql = {0}".format(sql))
                     db.rollback()
 
-                if count2 == 1:
-                    # check if record already exists in join table
-                    count3 = 0
-                    sql = "select count(exp_id), exp_id from t2j_cmip6 where exp_id = {0}".format(id)
+                sql = "select id, description from t2_cmip6_DECK_exps where CMIP6_DECK_exp = '{0}' and CESM_exp = '{1}'".format(deck, exp)
+                try:
+                    print ("Executing sql = {0}".format(sql))
+                    cursor.execute(sql)
+                    (deck_exp_id, description) = cursor.fetchone()
+                except:
+                    print ("Error executing sql = {0}".format(sql))
+                    db.rollback()
+
+                if not exists:
+                    # insert a row into the t2_cmip6_exps
+                    sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version, DECK_id) value ('{0}','{1}',NULL,'DECK','{2}',{3})".format(exp, description, version, deck_type_id[0])
                     try:
                         print ("Executing sql = {0}".format(sql))
                         cursor.execute(sql)
-                        (count3, exp_id) = cursor.fetchone()
+                        db.commit()
                     except:
                         print ("Error executing sql = {0}".format(sql))
                         db.rollback()
 
-                    if count3 == 0:
-                        # insert a new join record
-                        sql = "insert into t2j_cmip6 (exp_id, deck_id) value ({0},{1})".format(id, deck_id)
-                        try:
-                            print ("Executing sql = {0}".format(sql))
-                            cursor.execute(sql)
-                            db.commit()
-                        except:
-                            print ("Error executing sql = {0}".format(sql))
-                            db.rollback()
+                    # get the id for the exp just inserted
+                    sql = "select id from t2_cmip6_exps where name = '{0}'".format(exp)
+                    try:
+                        print ("Executing sql = {0}".format(sql))
+                        cursor.execute(sql)
+                        (id) = cursor.fetchone()
+                        db.commit()
+                    except:
+                        print ("Error executing sql = {0}".format(sql))
+                        db.rollback()
 
-                    if count3 == 1:
-                        # update record with deck_id
-                        sql = "update t2j_cmip6 set deck_id = {0} where exp_id = {1}".format(deck_id, id)
-                        try:
-                            print ("Executing sql = {0}".format(sql))
-                            cursor.execute(sql)
-                            db.commit()
-                        except:
-                            print ("Error executing sql = {0}".format(sql))
-                            db.rollback()
+                    # reset the exp_id to this new experiment
+                    exp_id = id[0]
 
+                # check if record already exists in join table
+                count3 = 0
+                sql = "select count(exp_id) from t2j_cmip6 where exp_id = {0}".format(exp_id)
+                try:
+                    print ("Executing sql = {0}".format(sql))
+                    cursor.execute(sql)
+                    (count3) = cursor.fetchone()
+                except:
+                    print ("Error executing sql = {0}".format(sql))
+                    db.rollback()
+                    
+                if count3[0] == 0:
+                    # insert a new join record
+                    sql = "insert into t2j_cmip6 (exp_id, deck_id, design_mip_id, variant_label) value ({0},{1},{2},'r0i0p0f0')".format(exp_id, deck_type_id[0], deck_id)
+                    try:
+                        print ("Executing sql = {0}".format(sql))
+                        cursor.execute(sql)
+                        db.commit()
+                    except:
+                        print ("Error executing sql = {0}".format(sql))
+                        db.rollback()
+
+                if count3[0] == 1:
+                    # update record with deck_id
+                    sql = "update t2j_cmip6 set deck_id = {0}, design_mip_id = {1}, variant_label = 'r0i0p0f0' where exp_id = {2}".format(deck_type_id[0], deck_id, exp_id)
+                    try:
+                        print ("Executing sql = {0}".format(sql))
+                        cursor.execute(sql)
+                        db.commit()
+                    except:
+                        print ("Error executing sql = {0}".format(sql))
+                        db.rollback()
+
+    return
 
 # ---------------------------------------------------------------------
 # main
@@ -194,9 +242,7 @@ def main(options):
 
     # load a data request object
     dq = dreq.loadDreq()
-    
-    # add the CMIP DECK entries to the join table
-    join_DECK_exps(db, cursor)
+    version = dq.version
 
     # loop through the list of experiments and get the associated requesting MIPs
     sql = "select id, name, design_mip from t2_cmip6_exps"
@@ -205,7 +251,7 @@ def main(options):
         cursor.execute(sql)
     except:
         print ("Error executing sql = {0}".format(sql))
-        sys.exit()
+        sys.exit(1)
 
     for row in cursor:
         # get the design_mip_id from the t2_cmip6_MIP_types
@@ -231,7 +277,7 @@ def main(options):
                 db.rollback()
 
             if count2[0] == 0:
-                sql = "insert into t2j_cmip6 (exp_id, design_mip_id) value ({0},{1})".format(row[0], design_mip_id)
+                sql = "insert into t2j_cmip6 (exp_id, design_mip_id, variant_label) value ({0},{1},'r0i0p0f0')".format(row[0], design_mip_id)
                 try:
                     print ("Executing sql = {0}".format(sql))
                     cursor1.execute(sql)
@@ -241,7 +287,7 @@ def main(options):
                     db.rollback()
 
             if count2[0] == 1:
-                sql = "update t2j_cmip6 set design_mip_id = {0} where exp_id = {1}".format(design_mip_id, row[0])
+                sql = "update t2j_cmip6 set design_mip_id = {0}, variant_label = 'r0i0p0f0' where exp_id = {1}".format(design_mip_id, row[0])
                 try:
                     print ("Executing sql = {0}".format(sql))
                     cursor1.execute(sql)
@@ -288,6 +334,9 @@ def main(options):
                 
             else:
                 print("Error there are {0} MIPS matching name {1}".format(count2,rm))
+
+    # add the CMIP DECK entries to the exps and join tables
+    join_DECK_exps(db, cursor, version)
 
     # disconnect from server
     db.close()

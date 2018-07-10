@@ -12,6 +12,7 @@ use session;
 use user;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
+use CMIP6;
 
 my %config = &getconfig;
 my $dbname = $config{'dbname'};

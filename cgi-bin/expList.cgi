@@ -21,6 +21,7 @@ use session;
 use user;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
+use CMIP6;
 
 #------
 # main 
@@ -35,7 +36,7 @@ my $dbuser = $config{'dbuser'};
 my $dbpasswd = $config{'dbpassword'};
 my $dsn = $config{'dsn'};
 
-# initialize item hash that stores all the info
+# initialize item hash that stores all auth info
 my %item = ();
 
 # initialize validstatus hash for form feedback
@@ -48,7 +49,7 @@ my ($loggedin, $session) = &checksession($req);
 my $cookie = $req->cookie(CGISESSID => $session->id);
 my $sid = $req->cookie('CGISESSID');
 # DEBUG
-##my $loggedin = 1;
+$loggedin = 1;
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
 
@@ -70,9 +71,9 @@ else
     $item{version} = $session->param('version');
     $item{version_id} = $session->param('version_id');
 #DEBUG
-##    $item{llastname} = 'Bertini';
-##    $item{lfirstname} = 'Alice';
-##    $item{lemail} = 'aliceb@ucar.edu';
+#    $item{llastname} = 'Bertini';
+#    $item{lfirstname} = 'Alice';
+#    $item{lemail} = 'aliceb@ucar.edu';
 }
 &doActions();
 
@@ -117,13 +118,13 @@ sub doActions()
     {
 	&showCaseDetail($req->param('case_id'));
     }
-    if ($action eq "expUpdate")
-    {
-    	&expUpdate();
-    }
     if ($action eq "reserveCase")
     {
-    	&reserveCase();
+	#call different reservation forms for different experiments
+	if ($req->param('expType_id') == 1)
+	{
+	    &reserveCaseCMIP6();
+	}
     }
 }
 
@@ -134,28 +135,42 @@ sub doActions()
 sub showExpList
 {
     my $validstatus = shift;
-    my @CMIP6Exps  = getCMIP6Experiments($dbh);
-    my @CMIP6MIPs  = getCMIP6MIPs($dbh);
-    my @CMIP6DECKs = getCMIP6DECKs($dbh);
-    my @CMIP6DCPPs = getCMIP6DCPPs($dbh);
-    my @cesm2exps  = getCasesByType($dbh, 2);
-    my @projectA   = getCasesByType($dbh, 3);
-    my @projectB   = getCasesByType($dbh, 4);
-    my @allCases   = getAllCases($dbh);
-    my @NCARUsers  = getNCARUsers($dbh);
+
+    my @CMIP6Exps     = getCMIP6Experiments($dbh);
+    my @CMIP6MIPs     = getCMIP6MIPs($dbh);
+    my @CMIP6DECKs    = getCMIP6DECKs($dbh);
+    my @CMIP6DCPPs    = getCMIP6DCPPs($dbh);
+    my @CMIP6Sources  = getCMIP6Sources($dbh);
+    my @CMIP6Status   = getCMIP6Status($dbh);
+    my @CMIP6Inits    = getCMIP6Inits($dbh);
+    my @CMIP6Physics  = getCMIP6Physics($dbh);
+    my @CMIP6Forcings = getCMIP6Forcings($dbh);
+
+    my @cesm2exps     = getCasesByType($dbh, 2);
+    my @projectA      = getCasesByType($dbh, 3);
+    my @projectB      = getCasesByType($dbh, 4);
+    my @cesm2tune     = getCasesByType($dbh, 5);
+    my @allCases      = getAllCases($dbh);
+    my @NCARUsers     = getNCARUsers($dbh);
 
     my $vars = {
-	CMIP6Exps   => \@CMIP6Exps,
-	CMIP6MIPs   => \@CMIP6MIPs,
-	CMIP6DECKs  => \@CMIP6DECKs,
-	CMIP6DCPPs  => \@CMIP6DCPPs,
-	cesm2exps   => \@cesm2exps,
-	projectA    => \@projectA,
-	projectB    => \@projectB,
-	allCases    => \@allCases,
-	NCARUsers   => \@NCARUsers,
-	authUser    => \%item,
-	validstatus => $validstatus,
+	CMIP6Exps     => \@CMIP6Exps,
+	CMIP6MIPs     => \@CMIP6MIPs,
+	CMIP6DECKs    => \@CMIP6DECKs,
+	CMIP6DCPPs    => \@CMIP6DCPPs,
+	CMIP6Sources  => \@CMIP6Sources,
+	CMIP6Status   => \@CMIP6Status,
+	CMIP6Inits    => \@CMIP6Inits,
+	CMIP6Physics  => \@CMIP6Physics,
+	CMIP6Forcings => \@CMIP6Forcings,
+	cesm2exps     => \@cesm2exps,
+	projectA      => \@projectA,
+	projectB      => \@projectB,
+	cesm2tune     => \@cesm2tune,
+	allCases      => \@allCases,
+	NCARUsers     => \@NCARUsers,
+	authUser      => \%item,
+	validstatus   => $validstatus,
     };
 	
     print $req->header(-cookie=>$cookie);
@@ -172,14 +187,27 @@ sub showExpList
 }
 
 #------------------
-# showExpDetail
+# showCaseDetail
 #------------------
 
 sub showCaseDetail
 {
     my $case_id = shift;
-    my ($case, $fields, $status, @projects) = getCaseByID($dbh, $case_id);
+    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
+
     my @allCases = getAllCases($dbh);
+
+    # get expType fields for given case_id - include library call and template file
+    my $expType = getExpType($dbh, $case_id);
+
+    if (lc($expType->{'name'}) eq 'cmip6') 
+    {
+	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
+    else
+    {
+	($case, $fields, $status, $notes, $links) = getCaseByID($dbh, $case_id);
+    }
 
     $validstatus{'status'} = 1;
     $validstatus{'message'} = '';
@@ -197,16 +225,20 @@ sub showCaseDetail
 
     my $vars = {
 	case        => $case,
+	expType     => $expType,
 	fields      => $fields,
 	status      => $status,
-	projects    => \@projects,
+	project     => $project,
+	notes       => $notes,
+	links       => $links,
+	globalAtts  => $globalAtts,
 	allCases    => \@allCases,
 	authUser    => \%item,
 	validstatus => \%validstatus,
     };
 
     print $req->header(-cookie=>$cookie);
-    my $tmplFile = '../templates/expDetail.tmpl';
+    my $tmplFile = qq(../templates/expDetails.tmpl);
 
     my $template = Template->new({
 	ENCODING => 'utf8',
@@ -215,17 +247,9 @@ sub showCaseDetail
 				 });
 
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
-
 }
 
-sub expUpdate
-{
-    # TODO update experiment details first check the security against svnuser_id, assign_id, and science_id
-    # updates experiment values and returns by displaying expDetail
-    # remember this is a POST so exp_id needs to be a hidden input!!
-}
-
-sub reserveCase
+sub reserveCaseCMIP6
 {
     my ($sql, $sth) = '';
     my ($sql1, $sth1) = '';
@@ -240,12 +264,12 @@ sub reserveCase
     }
         
     # check if the casename already exists
-    my ($exists, $case_id) = checkCase($dbh, $item{'case'});
+    my ($exists, $case_id, $expType_id) = checkCase($dbh, $item{'case'}, 'cmip6');
     if ($exists) 
     {
 	# Error - a casename already exists
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(Error - a case name already exists in the database for case name = $item{'case'}.\n);
+	$validstatus{'message'} .= qq(Error - a CMIP6 case name already exists in the database for case name = $item{'case'}.\n);
     }
 
     # get the user assignments from the pulldown
@@ -274,63 +298,98 @@ sub reserveCase
 	$validstatus{'message'} .= qq(Error - A valid CMIP6 experiment name must be associated with this case.\n);
     }
 
-    # reserve this CMIP6 casename
-    if ($validstatus{'status'})
+    # check source types
+    my @sources = $req->param( 'source' );
+    my ($valid, $source_type) = checkCMIP6Sources($dbh, \@sources);
+    if (length $source_type == 0) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} .= qq(Error - One or more source associations must be checked.\n);
+    }
+    if (!$valid) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} .= qq(Error - One or more source associations are not allowed.\n);
+    }
+
+    # construct the "ripf" variant_label
+    my $real_num = $item{'real_num'};
+    my $init_num = $item{'init_num'};
+    my $phys_num = $item{'phys_num'};
+    my $force_num = $item{'force_num'};
+    my $variant_label = "r" . $real_num . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
+
+    # reserve this CMIP6 case
+    if ($validstatus{'status'} == 1)
     {
 	# reserve the case
 	my $case_name = $dbh->quote($item{'case'});
-	$sql = qq(insert into t2_cases (casename, expType_id, is_ens) value ($case_name, 1, '$item{'ensemble'}'));
+	my $title = $dbh->quote($item{'case_title'});
+	my $startyear = '';
+	if ($item{'runtype'} eq 'startup') {
+	    $startyear = $dbh->quote($item{'startup_startyear'}); 
+	} elsif ($item{'runtype'} eq 'branch') {
+	    $startyear = $dbh->quote($item{'branch_startyear'}); 
+	} elsif ($item{'runtype'} eq 'hybrid') {
+	    $startyear = $dbh->quote($item{'hybrid_startyear'}); 
+	}
+
+	$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
+                  run_type, run_startdate) 
+                  value ($case_name, 1, "$item{'ensemble'}", $title,
+                  "$item{'runtype'}", $startyear));
+	if ($item{'parentExp'} > 0) {
+	    my $run_refdate = $dbh->quote($item{'run_refdate'});
+	    $sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
+                      run_type, run_startdate, run_refdate)
+                      value ($case_name, 1, "$item{'ensemble'}", $title,
+                      "$item{'runtype'}", $startyear, $run_refdate));
+	}
 	$sth = $dbh->prepare($sql);
-	print STDERR '>>> insert t2_cases sql = ' . $sql . '<<<<\n';
 	$sth->execute();
 	$sth->finish();
 
-	# get the case id
-	$sql = qq(select id from t2_cases where casename = $case_name);
-	$sth = $dbh->prepare($sql);
-	$sth->execute();
-	my $case_id = $sth->fetchrow();
-	$sth->finish();
+	# get the case id 
+	my ($exists, $case_id, $expType_id) = checkCase($dbh, $item{'case'}, 'cmip6');
 
 	# insert notes
 	my $note = $dbh->quote($item{'notes'});
 	if (length($note) > 0)
 	{
-	    $sql = qq(insert into t2e_notes (case_id, note, last_update) value ($case_id, $note, NOW()));
+	    $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id) value ($case_id, $note, NOW(), $item{luser_id}));
 	    $sth = $dbh->prepare($sql);
-	    print STDERR '>>> insert t2e_notes sql = ' . $sql . '<<<<\n';
 	    $sth->execute();
 	    $sth->finish();
 	}
 
 	# update values in the t2j_cmip6 table based on the experiment association
-	my $real_num = $dbh->quote($item{'ripf'});
+	my $variant_label = $dbh->quote($variant_label);
+
 	my $ensemble_size = 0;
 	if(($item{'ensemble'} eq 'true') && defined ($item{'ensemble_size'}))
 	{
 	    $ensemble_size = $item{'ensemble_size'}
 	}
 	$sql = qq(update t2j_cmip6 set case_id = $case_id,
-                  real_num = $real_num, assign_id = $item{'assignUser'},
+                  variant_label = $variant_label, assign_id = $item{'assignUser'},
                   science_id = $item{'scienceUser'}, ensemble_size = $ensemble_size,
-                  request_date = NOW()
+                  ensemble_num = 1, nyears = $item{'nyears'},
+                  source_type = $source_type, request_date = NOW()
                   where exp_id = $item{'expName'});
-	if ($item{'parentExp'} > 0)
-	{
-	    $sql = qq(update t2j_cmip6 set case_id = $case_id,
-                      real_num = $real_num, assign_id = $item{'assignUser'},
-                      science_id = $item{'scienceUser'}, ensemble_size = $ensemble_size,
-                      parentExp_id = $item{'parentExp'}, request_date = NOW()
-                      where exp_id = $item{'expName'});
-	}
-	print STDERR '>>> update t2j_cmip6 sql = ' . $sql . '<<<<\n';
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	$sth->finish();
+	if ($item{'parentExp'} > 0)
+	{
+	    $sql = qq(update t2j_cmip6 set 
+                      parentExp_id = $item{'parentExp'}
+                      where exp_id = $item{'expName'});
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $sth->finish();
+
+	}
 
 	# insert pending entries in the t2j_status table for this case
-	my %proc_stat;
-	$sql = qq(select id, name from t2_process);
+	$sql = qq(select id from t2_process);
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	while( my $ref = $sth->fetchrow_hashref() ) 
@@ -344,8 +403,8 @@ sub reserveCase
 	$sth->finish();
 
 	$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.);
-	
-	# send emails to svnuser login, assign_id and science_id
+
+	my $subject = "New CMIP6 experiment $case_name has been reserved in the CESM Experiments 2.0 Database";
 	my $msgbody = <<EOF;
 $item{lfirstname} $item{llastname} has reserved a CMIP6 casename in the CESM Experiments 2.0 Database.
 Please follow this link to review the submission.
@@ -359,12 +418,99 @@ This email is generated automatically by the Experiment Database.
 Replying to this email will go to $item{lfirstname} $item{llastname}.
 EOF
 
+	# insert ensemble cases
+	if ($ensemble_size)
+	{
+	    my %base;
+	    my ($base_name, $base_ext) = split(/\.([^\.]+)$/, $item{'case'});
+	    ## $base_name =~ s/^.//;
+	    $base_ext = substr $base_ext, 0, -1;
+
+	    # build up the casenames and add entries into the correct tables
+	    for (my $i = 2; $i <= $item{'ensemble_size'}; $i++) {
+		$variant_label = "r" . $i . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
+		$variant_label = $dbh->quote($variant_label);
+
+		my $ext = sprintf("%03d",$i);
+		my $ens_casename = $dbh->quote($base_name . "." . $ext);
+		$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
+                          run_type, run_startdate)
+                          value ($ens_casename, 1, "$item{'ensemble'}", $title,
+                          "$item{'runtype'}", $startyear));
+		if ($item{'parentExp'} > 0) {
+		    my $run_refdate = $dbh->quote($item{'run_refdate'});
+		    $sql = qq(insert into t2_cases (casename, expType_id, is_ens, title, 
+                              run_type, run_startdate, run_refdate)
+                              value ($ens_casename, 1, "$item{'ensemble'}", $title, 
+                              "$item{'runtype'}", $startyear, $run_refdate));
+		}
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+
+		# get the case id
+		my ($count, $ens_case_id, $expType_id) = checkCase($dbh, $base_name . "." . $ext, 'cmip6');
+
+		# insert values in the t2j_cmip6 table based on the first ensemble experiment
+		$sql = qq(insert into t2j_cmip6 (case_id, exp_id, deck_id, design_mip_id,
+                          parentExp_id, variant_label, ensemble_num, ensemble_size, assign_id,
+                          science_id, request_date, source_type, nyears) select
+                          $ens_case_id, exp_id, deck_id, design_mip_id,
+                          parentExp_id, $variant_label, $i, ensemble_size, assign_id,
+                          science_id, request_date, source_type, nyears from t2j_cmip6
+                          where case_id = $case_id);
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+
+		# insert notes
+		if (length($note) > 0)
+		{
+		    $sql = qq(insert into t2e_notes (case_id, note, last_update) value ($ens_case_id, $note, NOW()));
+		    $sth = $dbh->prepare($sql);
+		    $sth->execute();
+		    $sth->finish();
+		}
+
+		# insert pending entries in the t2j_status table for this case
+		$sql = qq(select id from t2_process);
+		$sth = $dbh->prepare($sql);
+		$sth->execute() or die $dbh->errstr;
+		while( my $ref = $sth->fetchrow_hashref() ) 
+		{
+		    $sql1 = qq(insert into t2j_status (case_id, status_id, process_id, last_update)
+                       value ($ens_case_id, 1, $ref->{'id'}, NOW()));
+		    $sth1 = $dbh->prepare($sql1);
+		    $sth1->execute() or die $dbh->errstr;
+		    $sth1->finish();
+		}
+		$sth->finish();
+
+		$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.);
+
+		$subject = "New CMIP6 Ensemble with first member $case_name has been reserved in the CESM Experiments 2.0 Database";
+		$msgbody = <<EOF;
+$item{lfirstname} $item{llastname} has reserved a CMIP6 DCPP Ensemble in the CESM Experiments 2.0 Database.
+Please follow this link to review the submission.
+
+http://csegweb.cgd.ucar.edu/expdb2.0 
+
+1. Login using your CESM SVN developer login OR your UCAS login 
+2. Select or click on the unique case names, starting with the first ensemble member $case_name, to review. 
+
+This email is generated automatically by the Experiment Database. 
+Replying to this email will go to $item{lfirstname} $item{llastname}.
+EOF
+	    }
+	}
+	
+	# send emails to svnuser login, assign_id and science_id
         my $email = Email::Simple->create(
 	    header => [
 		From => $item{lemail},
 ##		To   => "$item{lemail} $assignUser{'email'} $scienceUser{'email'}",
 		To   => "aliceb\@ucar.edu",
-		Subject => "New CMIP6 experiment $case_name has been reserved in the CESM Experiments 2.0 Database",
+		Subject => $subject,
 	    ],
 	    body => $msgbody,
 	);
@@ -374,30 +520,8 @@ EOF
 		   transport => Email::Sender::Transport::Sendmail->new}
 	    ) or die "can't send email!";
 
-	my ($case, $fields, $status, $project) = getCaseByID($dbh, $case_id);
-	
-	# all is good - jump to the experiment detail screen
-	my @allCases = getAllCases($dbh);
-	my $vars = {
-	    case        => $case,
-	    fields      => $fields,
-	    status      => $status,
-	    project     => $project,
-	    allCases    => \@allCases,
-	    authUser    => \%item,
-	    validstatus => \%validstatus,
-	};
-
-	print $req->header(-cookie=>$cookie);
-	my $tmplFile = '../templates/expDetail.tmpl';
-
-	my $template = Template->new({
-	    ENCODING => 'utf8',
-	    RELATIVE => 1,
-	    INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
-				     });
-
-	$template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
+	# redirect to case details
+	&showCaseDetail($case_id);
     }
     else {
 	# redirect back to the expList

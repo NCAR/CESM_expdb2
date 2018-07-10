@@ -10,4 +10,5 @@ create table t2_cmip6_exps(
        `design_mip` VARCHAR(20),
        `request_date` DATETIME DEFAULT NULL,
        `dreq_version` VARCHAR(20),
+       `DECK_id` integer DEFAULT NULL,
        primary key (id));	

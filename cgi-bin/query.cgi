@@ -10,7 +10,7 @@ use CGI::Session qw/-ip-match/;
 use CGI::Carp qw( set_die_handler );
 use DBI;
 use DBD::mysql;
-use JSON qw( decode_json );
+use JSON qw( decode_json to_json );
 use URI::Escape;
 
 use lib qw(.);
@@ -19,14 +19,13 @@ use config;
 use session;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
+use CMIP6;
 
 my $req = CGI->new;
 
-my %item;
-
 # get the username, password and JSON data that has been posted to the form
-my $user = $req->param('username');
-my $password = $req->param('password');
+my $user = uri_unescape($req->param('username'));
+my $password = uri_unescape($req->param('password'));
 my $data = uri_unescape($req->param('data'));
 my $loginType = 'SVN';
 
@@ -57,21 +56,39 @@ my $jsonObj = JSON->new->allow_nonref;
 my $json = $jsonObj->decode($data);
 
 my $queryType = $json->{'queryType'};
+my $expType = $json->{'expType'};
+my $returnCode = ''; 
+
+my ($count, $case_id, $expType_id) = checkCase($dbh, $json->{'casename'}, $expType);
 
 # look at the queryType to determine what needs to be returned
 if ($queryType eq 'checkCaseExists') {
-    my ($count, $case_id) = checkCase($dbh, $json->{'casename'});
 
     # return the count value as True or False
-    my $returnCode = 'True'; 
+    $returnCode = 'True'; 
     if ($count == 0) {
 	$returnCode = 'False';
+	print $req->header('text/html', '500 Case does not exist!');
+	print $req->h1($returnCode);
     }
-
-    print $req->header('text/html', '200');
+    else {
+	print $req->header('text/html', '200');
+	print $req->h1($returnCode);
+    }
+}
+elsif ($queryType eq 'CMIP6GlobalAtts') {
+    my $json = JSON->new->allow_nonref;
+    my ($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    
+    my $json_text = 
+    print $req->header('application/json');
+    print to_json($globalAtts);
+}
+else {
+    $returnCode = 'False';
+    print $req->header('text/html', '501 invalid query type');
     print $req->h1($returnCode);
 }
-
 exit 0;
 
 

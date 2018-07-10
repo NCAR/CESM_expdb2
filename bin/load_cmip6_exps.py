@@ -50,6 +50,9 @@ import json
 import pprint
 import traceback
 
+# these experiments are not required in the database because they will not be run by CESM
+_exclude_exps = []
+
 # -------------------------------------------------------------------------------
 # commandline_options - parse any command line options
 # -------------------------------------------------------------------------------
@@ -138,40 +141,42 @@ def main(options):
 
     # loop through the exps dictionary and load them into the database keying off the name
     for key, value in exps.iteritems():
-        count = 0
-        sql = "select count(id), id, name, description, uid, design_mip, dreq_version from t2_cmip6_exps where name = '"+key+"'"
-        dreq_description = db.escape_string(value[0])
-        dreq_uid = db.escape_string(value[1])
-        dreq_design_mip = db.escape_string(value[2])
-        try:
-            print ("Executing sql = {0}".format(sql))
-            cursor.execute(sql)
-            (count, id, name, description, uid, design_mip, dreq_version) = cursor.fetchone()
-        except:
-            print ("Error executing sql = {0}".format(sql))
-            db.rollback()
-        
-        if count == 1:
-            sql = "update t2_cmip6_exps set description = '{0}', uid = '{1}', design_mip = '{2}', dreq_version = '{3}' where id = {4}".format(dreq_description, dreq_uid, dreq_design_mip, version, str(id))
+        # check that the key (experiment name) isn't included in the _exclude_exps list
+        if key not in _exclude_exps:
+            count = 0
+            sql = "select count(id), id, name, description, uid, design_mip, dreq_version from t2_cmip6_exps where name = '"+key+"'"
+            dreq_description = db.escape_string(value[0])
+            dreq_uid = db.escape_string(value[1])
+            dreq_design_mip = db.escape_string(value[2])
             try:
                 print ("Executing sql = {0}".format(sql))
                 cursor.execute(sql)
-                db.commit()
-            except:
-                print("Error executing sql = {0}".format(sql))
-                db.rollback()
-
-        elif count == 0:
-            sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version) value ('{0}','{1}','{2}','{3}','{4}')".format(key, dreq_description, dreq_uid, dreq_design_mip, version)
-            try:
-                print ("Executing sql = {0}".format(sql))
-                cursor.execute(sql)
-                db.commit()
+                (count, id, name, description, uid, design_mip, dreq_version) = cursor.fetchone()
             except:
                 print ("Error executing sql = {0}".format(sql))
                 db.rollback()
-        else:
-            print("Error in database {0} rows found matching experiment name '{1}'".format(count, name))
+        
+            if count == 1:
+                sql = "update t2_cmip6_exps set description = '{0}', uid = '{1}', design_mip = '{2}', dreq_version = '{3}' where id = {4}".format(dreq_description, dreq_uid, dreq_design_mip, version, str(id))
+                try:
+                    print ("Executing sql = {0}".format(sql))
+                    cursor.execute(sql)
+                    db.commit()
+                except:
+                    print("Error executing sql = {0}".format(sql))
+                    db.rollback()
+
+            elif count == 0:
+                sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version) value ('{0}','{1}','{2}','{3}','{4}')".format(key, dreq_description, dreq_uid, dreq_design_mip, version)
+                try:
+                    print ("Executing sql = {0}".format(sql))
+                    cursor.execute(sql)
+                    db.commit()
+                except:
+                    print ("Error executing sql = {0}".format(sql))
+                    db.rollback()
+            else:
+                print("Error in database {0} rows found matching experiment name '{1}'".format(count, name))
 
     # disconnect from server
     db.close()

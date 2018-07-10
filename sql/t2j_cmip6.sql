@@ -8,11 +8,16 @@ create table t2j_cmip6(
        `deck_id` INTEGER,
        `design_mip_id` INTEGER,
        `parentExp_id` INTEGER,
-       `real_num` VARCHAR(20),
-       `ensemble_num` VARCHAR(10),
+       `variant_label` VARCHAR(20),
+       `ensemble_num` INTEGER,
        `ensemble_size` INTEGER,
        `assign_id` INTEGER,
        `science_id` INTEGER,
-       `request_date` DATETIME)
+       `request_date` DATETIME,
+       `source_type` VARCHAR(100),
+       `nyears` INTEGER,
+       primary key (exp_id, variant_label));
+
+
 
 

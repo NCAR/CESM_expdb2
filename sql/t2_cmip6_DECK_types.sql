@@ -9,8 +9,11 @@ create table t2_cmip6_DECK_types(
        primary key (id));	
 
 insert into t2_cmip6_DECK_types (name, description)
-values ('Historical'  ,'Historical simulation using CMIP6 forcings (1850-2014)'),
-       ('Abrupt_4xCO2','Abrupt 4xCO2 run'),
-       ('1pctCO2'     ,'1%/yr CO2 increase'),
-       ('AMIP'        ,'AMIP simulation (~1979-2014)'),
-       ('PI_control'  ,'Pre-industrial control simulation');
+values 
+('piControl','Pre-industrial control simulations'),
+('1pctCO2','1%/yr CO2 increase up to 4x'),
+('historical','Historical simulations using CMIP6 forcings (1850-2014)'),
+('abrupt-4xCO2','Abrupt 4xCO2 simulations'),
+('amip','AMIP simulations (~1979-2014)');
+
+

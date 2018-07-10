@@ -1,0 +1,28 @@
+Delivered-To: aliceb@ucar.edu
+Received: by 10.159.33.5 with SMTP id 5csp524324uab;
+        Fri, 9 Mar 2018 21:43:37 -0700 (PDT)
+X-Received: by 10.107.201.196 with SMTP id z187mr35914639iof.172.1491453817504;
+        Fri, 05 Mar 2018 21:43:37 -0700 (PDT)
+Return-Path: <aliceb@cheyenne.ucar.edu>
+Received: from vscani1.ucar.edu (vscani1.ucar.edu. [192.43.244.84])
+        by mx.google.com with ESMTPS id 23si684104iou.206.2017.04.05.21.43.37
+        for <aliceb@ucar.edu>
+        (version=TLS1 cipher=AES128-SHA bits=128/128);
+        Fri, 05 Mar 2018 21:43:37 -0700 (PDT)
+Received-SPF: pass (google.com: best guess record for domain of aliceb@cheyenne.ucar.edu designates 128.117.181.139 as permitted sender) client-ip=128.117.181.139;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: best guess record for domain of aliceb@cheyenne.ucar.edu designates 128.117.181.139 as permitted sender) smtp.mailfrom=aliceb@cheyenne.ucar.edu
+Received: from cheyenne.ucar.edu (yslogin6.ucar.edu [128.117.181.139]) by vscani1.ucar.edu (Postfix) with ESMTP id 3176EC14F for <aliceb@ucar.edu>; Wed, 5 Apr 2017 22:43:37 -0600 (MDT)
+Received: by cheyenne.ucar.edu (Postfix, from userid 15512) id 1B0251408DD; Wed, 5 Apr 2017 22:43:37 -0600 (MDT)
+Date: Sun, 18 Mar 2018 23:43:37 -0600
+To: aliceb@ucar.edu
+Subject: !!cylc alert!! suite b.e20.B1850.f09_g17.test.01.cylc.suite succeeded
+User-Agent: Heirloom mailx 12.4 7/29/08
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-Id: <20170406044337.1B0251408DD@cheyenne.ucar.edu>
+From: Alice Bertini <aliceb@cheyenne.ucar.edu>
+
+SUITE: b.e20.B1850.f09_g17.test.01.cylc.suite.cmip6
+MESSAGE: case_run_0005-01-01.1

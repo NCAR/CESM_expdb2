@@ -48,6 +48,7 @@ import pprint
 import traceback
 
 # these mips are not required in the database
+_exclude_mips = []
 
 # -------------------------------------------------------------------------------
 # commandline_options - parse any command line options
@@ -111,38 +112,39 @@ def main(options):
 
     # loop through the mips list and load them into the database
     for key, value in mips.iteritems():
-        count = 0
-        sql = "select count(id), id, name, description, dreq_version from t2_cmip6_MIP_types where name = '{0}'".format(key)
-        mip_description = db.escape_string(value)
-        try:
-            print ("Executing sql = {0}".format(sql))
-            cursor.execute(sql)
-            (count, id, name, description, dreq_version) = cursor.fetchone()
-        except:
-            print ("Error executing sql = {0}".format(sql))
-            db.rollback()
-        
-        if count == 1:
-            sql = "update t2_cmip6_MIP_types set name = '{0}', description = '{1}', dreq_version = '{2}' where id = {3}".format(key, mip_description, version, id)
+        if key not in _exclude_mips:
+            count = 0
+            sql = "select count(id), id, name, description, dreq_version from t2_cmip6_MIP_types where name = '{0}'".format(key)
+            mip_description = db.escape_string(value)
             try:
                 print ("Executing sql = {0}".format(sql))
                 cursor.execute(sql)
-                db.commit()
-            except:
-                print("Error executing sql = {0}".format(sql))
-                db.rollback()
-
-        elif count == 0:
-            sql = "insert into t2_cmip6_MIP_types (name, description, dreq_version) value ('{0}','{1}','{2}')".format(key, mip_description, version)
-            try:
-                print ("Executing sql = {0}".format(sql))
-                cursor.execute(sql)
-                db.commit()
+                (count, id, name, description, dreq_version) = cursor.fetchone()
             except:
                 print ("Error executing sql = {0}".format(sql))
                 db.rollback()
-        else:
-            print("Error in database {0} rows found matching MIP name '{1}'".format(count, name))
+        
+            if count == 1:
+                sql = "update t2_cmip6_MIP_types set name = '{0}', description = '{1}', dreq_version = '{2}' where id = {3}".format(key, mip_description, version, id)
+                try:
+                    print ("Executing sql = {0}".format(sql))
+                    cursor.execute(sql)
+                    db.commit()
+                except:
+                    print("Error executing sql = {0}".format(sql))
+                    db.rollback()
+
+            elif count == 0:
+                sql = "insert into t2_cmip6_MIP_types (name, description, dreq_version) value ('{0}','{1}','{2}')".format(key, mip_description, version)
+                try:
+                    print ("Executing sql = {0}".format(sql))
+                    cursor.execute(sql)
+                    db.commit()
+                except:
+                    print ("Error executing sql = {0}".format(sql))
+                    db.rollback()
+            else:
+                print("Error in database {0} rows found matching MIP name '{1}'".format(count, name))
 
     # disconnect from server
     db.close()
