@@ -118,7 +118,7 @@
 	    <tr>
 	      <td>[% status.$key.description %]</td>
 	      [% IF status.$key.code != 'Unknown' %]
-	      <td><button onclick="return popitup('/expdb2.0/cgi-bin/showStats.cgi?case_id=[% case.case_id %]&processName=[% key %]','height=400,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button> [% key %]</td>
+	      <td><button onclick="return popitup('/expdb2.0/cgi-bin/showStats.cgi?case_id=[% case.case_id %]&processName=[% key %]','height=400,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> [% key %]</td>
 	      [% ELSE %]
 	      <td>[% key %]</td>
 	      [% END %]
