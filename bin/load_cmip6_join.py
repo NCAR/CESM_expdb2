@@ -141,6 +141,16 @@ def join_DECK_exps(db, cursor, version):
                 print ("Error executing sql = {0}".format(sql))
                 db.rollback()
 
+            # get the uid for this deck
+            sql = "select uid from t2_cmip6_exps where name = '{0}'".format(deck)
+            try:
+                print ("Executing sql = {0}".format(sql))
+                cursor.execute(sql)
+                (uid) = cursor.fetchone()
+            except:
+                print ("Error executing sql = {0}".format(sql))
+                db.rollback()
+
             # loop over the exps for this DECK exp
             for exp in exps:
                 # check if this exp is already in the t2_cmip6_exps table
@@ -165,7 +175,7 @@ def join_DECK_exps(db, cursor, version):
 
                 if not exists:
                     # insert a row into the t2_cmip6_exps
-                    sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version, DECK_id) value ('{0}','{1}',NULL,'DECK','{2}',{3})".format(exp, description, version, deck_type_id[0])
+                    sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version, DECK_id) value ('{0}','{1}','{2}','DECK','{3}',{4})".format(exp, description, uid[0], version, deck_type_id[0])
                     try:
                         print ("Executing sql = {0}".format(sql))
                         cursor.execute(sql)
