@@ -6,7 +6,7 @@ Install the dreqpy library in ~/.local
 >pip install -i https://pypi.python.org/pypi --user dreqPy==[latest version]
 
 Example:
->pip install -i https://pypi.python.org/pypi --user dreqPy==1.0.21
+>pip install -i https://pypi.python.org/pypi --user dreqPy==1.0.26
 
 Then load the database tables with the CMIP6 info
 
