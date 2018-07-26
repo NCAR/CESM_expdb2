@@ -415,7 +415,6 @@ sub getCMIP6CaseByID
 		$sql1 = qq(select name, description from t2_cmip6_DECK_types where id = $ref->{'deck_id'});
 		$sth1 = $dbh->prepare($sql1);
 		$sth1->execute();
-##		($project{'cmip6_deckName'}, $project{'cmip6_deckDescription'}) = $sth1->fetchrow();
 		($project{'cmip6_expName'}, $project{'cmip6_deckDescription'}) = $sth1->fetchrow();
 		$sth1->finish();
 	    }

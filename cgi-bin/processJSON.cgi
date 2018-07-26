@@ -45,7 +45,7 @@ my $data = uri_unescape($req->param('data'));
 my $loginType = 'SVN';
 
 $logger->debug("username = " . $user);
-##$logger->debug("password = " . $password);
+$logger->debug("password = " . $password);
 $logger->debug("data = " . $data);
 
 # Get the necessary config vars 
