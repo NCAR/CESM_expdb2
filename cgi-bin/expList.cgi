@@ -70,10 +70,6 @@ else
     $item{lemail} = $session->param('email');
     $item{version} = $session->param('version');
     $item{version_id} = $session->param('version_id');
-#DEBUG
-#    $item{llastname} = 'Bertini';
-#    $item{lfirstname} = 'Alice';
-#    $item{lemail} = 'aliceb@ucar.edu';
 }
 &doActions();
 
@@ -508,8 +504,7 @@ EOF
         my $email = Email::Simple->create(
 	    header => [
 		From => $item{lemail},
-##		To   => "$item{lemail} $assignUser{'email'} $scienceUser{'email'}",
-		To   => "aliceb\@ucar.edu",
+		To   => "$item{lemail} $assignUser{'email'} $scienceUser{'email'}",
 		Subject => $subject,
 	    ],
 	    body => $msgbody,
