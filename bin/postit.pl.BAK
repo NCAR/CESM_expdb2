@@ -10,7 +10,6 @@ use DBD::mysql;
 use lib qw(.);
 use Mail::Internet;
 use Date::Manip;
-use Scalar::Util qw(looks_like_number);
 
 # set up the logger
 use Log::Log4perl;
@@ -54,32 +53,15 @@ my @subjects = split(/ /,$subject);
 my $new_status = $subjects[-1]; 
 chomp($new_status);
 
-# get the casename 
+# get the casename
 my @names = split(/\./,$subjects[-2]);
 my $casename = join('.',@names[0..$#names-2]);
 chomp($casename);
-
-# check if casename includes an ensemble designation
-my $is_ens = 0;
-my $first_ens = 0;
-my $base_casename = '';
-my @ens = split(/-/,$subjects[-3]);
-if (0+@ens) {
-    if (looks_like_number($ens[0])) {
-	$base_casename = join('.',@names[0..$#names-3]);	
-	chomp($base_casename);
-	$is_ens = 1;
-    }
-}
 
 # loop through the body to get the SUITE and MESSAGE strings
 my $expType = '';
 my $process = '';
 my $model_date = '';
-my @message;
-my @ens_parts;
-my $ens_num = 0;
-my $iteration = 0;
 
 while (my $line = shift @body[0])
 {
@@ -93,21 +75,9 @@ while (my $line = shift @body[0])
     elsif ( (index($line, "MESSAGE:") != -1) && (index($line, "REQUEST(CLEAN)") == -1) )
     {
 	$line =~ s/MESSAGE: //;
-	@ens = split(/__/,$line);
-	if (0+@ens && $is_ens) {
-	    @message = $ens[0];
-	    @ens_parts = split(/\./,$ens[-1]);
-	    $ens_num = sprintf("%03d",$ens_parts[0]);
-	    $casename = join('.',$base_casename, $ens_num);
-	    $iteration = $ens_parts[-1];
-	}
-	else {
-	    @message = split(/_/,$line);
-	}
+	my @message = split(/_/,$line);
 	$model_date = $dbh->quote($message[-1]);
 	$process = $dbh->quote(join('_',@message[0..($#message-1)]));
-	$logger->debug("line " . $line);
-	$logger->debug("process " . $process);
 	last;
     }
 }
