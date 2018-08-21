@@ -230,7 +230,7 @@
 		    <span class="error">*</span> <b>Assigned To:</b>
 		    <select required name="assignUser">
 		      <option value="">Select User</option>
-		      [% FOREACH user IN NCARUsers %]	
+		      [% FOREACH user IN CMIP6Users %]	
 		      <option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
 		      [% END %]
 		    </select>
@@ -239,7 +239,7 @@
 		    <span class="error">*</span> <b>Scientific Lead:</b>
 		    <select required name="scienceUser">
 		      <option value="">Select User</option>
-		      [% FOREACH user IN NCARUsers %]	
+		      [% FOREACH user IN CMIP6Users %]	
 		      <option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
 		      [% END %]
 		    </select>

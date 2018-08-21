@@ -141,6 +141,7 @@ sub showExpList
     my @CMIP6Inits    = getCMIP6Inits($dbh);
     my @CMIP6Physics  = getCMIP6Physics($dbh);
     my @CMIP6Forcings = getCMIP6Forcings($dbh);
+    my @CMIP6Diags    = getCMIP6Diags($dbh);
 
     my @cesm2exps     = getCasesByType($dbh, 2);
     my @projectA      = getCasesByType($dbh, 3);
@@ -148,6 +149,7 @@ sub showExpList
     my @cesm2tune     = getCasesByType($dbh, 5);
     my @allCases      = getAllCases($dbh);
     my @NCARUsers     = getNCARUsers($dbh);
+    my @CMIP6Users    = getCMIP6Users($dbh);
 
     my $vars = {
 	CMIP6Exps     => \@CMIP6Exps,
@@ -159,6 +161,8 @@ sub showExpList
 	CMIP6Inits    => \@CMIP6Inits,
 	CMIP6Physics  => \@CMIP6Physics,
 	CMIP6Forcings => \@CMIP6Forcings,
+	CMIP6Diags    => \@CMIP6Diags,
+	CMIP6Users    => \@CMIP6Users,
 	cesm2exps     => \@cesm2exps,
 	projectA      => \@projectA,
 	projectB      => \@projectB,

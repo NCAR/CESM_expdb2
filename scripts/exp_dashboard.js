@@ -124,6 +124,23 @@ $(document).ready(function() {
 	statusTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
     });
 
+    var diagsTable = $('#diagsTable').DataTable( {
+	"responsive": true,
+	"lengthMenu": [ [25, 50, -1], [25, 50, "All"] ],
+	"order": [ [ 0, 'asc'] ]
+    } );
+
+    // Handle click on "Expand All" button
+    $('button#diagsBtn-show-all-children').on('click', function(){
+	// Expand row details
+	diagsTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
+    });
+
+    // Handle click on "Collapse All" button
+    $('button#diagsBtn-hide-all-children').on('click', function(){
+	// Collapse row details
+	diagsTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
+    });
 
     $('#cesm2tuneTable').DataTable( {
        "iDisplayLength": 100,

@@ -33,4 +33,8 @@ values ('case_run','model run'),
        ('ice_timeseries', 'sea-ice timeseries'),
        ('lnd_timeseries', 'land timeseries'),
        ('ocn_timeseries', 'ocean timeseries'),
-       ('rof_timeseries', 'river-runoff timeseries');
+       ('rof_timeseries', 'river-runoff timeseries'),
+       ('cvdp_diagnostics', 'climate variability diagnostics'),
+       ('cmat_diagnostics', 'climate model analysis tool diagnostics'),
+       ('ccr_diagnostics', 'climate change research diagnostics'),
+       ('atmv_diagnostics', 'atmosphere variability diagnostics');

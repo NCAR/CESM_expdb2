@@ -18,7 +18,7 @@ use expdb2_0;
 @ISA = qw(Exporter);
 @EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCMIP6Sources 
 getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6Inits getCMIP6Physics
-getCMIP6Forcings);
+getCMIP6Forcings getCMIP6Diags);
 
 sub getCMIP6Experiments
 {
@@ -874,6 +874,54 @@ sub getCMIP6Status
     }            
     $sth->finish();
     return @cases;
+}
+
+sub getCMIP6Diags
+{
+    my $dbh = shift;
+    my @diags;
+    my ($sql1, $sth1);
+	
+    my $sql = qq(select c.id, c.casename, e.name, e.uid, c.title
+                 from t2_cases as c, t2_cmip6_exps as e, t2j_cmip6 as j
+                 where c.id = j.case_id and
+                 e.id = j.exp_id and
+                 j.exp_id = e.id order by c.casename);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while (my $ref = $sth->fetchrow_hashref())
+    {
+	my %diag;
+
+	# load up this diag hash
+	$diag{'case_id'} = $ref->{'id'};
+	$diag{'casename'} = $ref->{'casename'};
+	$diag{'expName'} = $ref->{'name'};
+	$diag{'cmip6_exp_uid'} = $ref->{'uid'};
+	$diag{'title'} = $ref->{'title'};
+
+	$sql1 = qq(select j.id, p.description as process, j.link, j.description,
+                   DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i') as last_update
+                   from t2_process as p, t2j_links as j where
+                   j.case_id = $ref->{'id'} and
+                   j.process_id = p.id order by p.description);
+	$sth1 = $dbh->prepare($sql1);
+	$sth1->execute();
+	my %diagDetail;
+	while(my $ref1 = $sth1->fetchrow_hashref())
+	{
+	    my $link_id = $ref1->{'id'};
+	    $diagDetail{$link_id}{'process'} = $ref1->{'process'};
+	    $diagDetail{$link_id}{'link'} = $ref1->{'link'};
+	    $diagDetail{$link_id}{'description'} = $ref1->{'description'};
+	    $diagDetail{$link_id}{'last_update'} = $ref1->{'last_update'};
+	}
+	$sth1->finish();
+	$diag{'diagDetails'} = \%diagDetail;
+        push(@diags, \%diag);
+    }            
+    $sth->finish();
+    return @diags;
 }
 
 sub getCMIP6Inits

@@ -14,7 +14,7 @@ use lib "/home/www/html/csegdb/lib";
 use config;
 
 @ISA = qw(Exporter);
-@EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers checkCase 
+@EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers getCMIP6Users checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
 getCaseFields getCaseNotes getPercentComplete getDiags getCaseByID);
 
@@ -49,6 +49,27 @@ sub getNCARUsers
     my @users;
     my $sql = "select user_id, lastname, firstname from t_svnusers 
                where status = 'active' and lastname is not null order by lastname";
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while(my $ref = $sth->fetchrow_hashref())
+    {
+	my %user;
+	$user{'user_id'} = $ref->{'user_id'};
+	$user{'lastname'} = $ref->{'lastname'};
+	$user{'firstname'} = $ref->{'firstname'};
+	push(@users, \%user);
+    }
+    $sth->finish();
+    return @users;
+}
+
+sub getCMIP6Users
+{
+    my $dbh = shift;
+    my @users;
+    my $sql = "select user_id, lastname, firstname from t_svnusers 
+               where status = 'active' and lastname is not null 
+               and is_cmip6 = 1 order by lastname";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -189,7 +210,7 @@ sub getProcess
    my $dbh = shift;
    my @processes;
 
-   my $sql = qq(select * from t2_process);
+   my $sql = qq(select * from t2_process order by description);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
    while(my $ref = $sth->fetchrow_hashref())
