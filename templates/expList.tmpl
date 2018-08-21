@@ -68,10 +68,10 @@
   <div id="dashtabs">
     <ul>
       <li><a href="#cmip6exp">CESM2 / CMIP 6 Experiments</a></li>
-      <li><a href="#cesm2tune">CESM2 Tuning Experiments</a></li>
+      <li><a href="#cesm2tune">CESM2.0 Release Experiments</a></li>
       <li><a href="#cesm2exp">CESM2 Production Experiments</a></li>
-      <li><a href="#projectA">CESM2 Project A Experiments</a></li>
-      <li><a href="#projectB">CESM2 Project B Experiments</a></li>
+      <li><a href="#projectA">CESM2 Project A Experiments (TBD)</a></li>
+      <li><a href="#projectB">CESM2 Project B Experiments (TBD)</a></li>
     </ul>
 
     <div id="cmip6exp">
@@ -83,6 +83,7 @@
 	  <li><a href="#NAMED">Experiments by Name</a></li>
 	  <li><a href="#RESERVE_CMIP6">Reserve a CMIP6 Case Name</a></li>
 	  <li><a href="#STATUS">Overall Experiment Status</a></li>
+	  <li><a href="#DIAGS">Overall Experiment Diagnostics</a></li>
 	</ul>
 	
 	<div id="DECK">
@@ -416,6 +417,65 @@
 		<th>Experiment Name</th>
 		<th>Overall Status Summary</th>
 		<th class="none">Details</th>
+	      </tr>
+	    </tfoot>
+	  </table>
+	</div>
+
+	<div id="DIAGS">
+          <div style="text-align: center;" id="diagsTable_buttons">
+            <button id="diagsBtn-show-all-children" class="btn btn-primary" type="button">Expand All</button>
+            <button id="diagsBtn-hide-all-children" class="btn btn-primary" type="button">Collapse All</button>
+          </div>
+
+	  <table id="diagsTable" style="width: 100%">
+	    <thead>
+	      <tr>
+		<th></th>
+		<th>Casename</th>
+		<th>Experiment Name</th>
+		<th class="none">Title</th>
+		<th class="none">Diagnostics Sets</th>
+	      </tr>
+	    </thead>
+	    
+	    <tbody>
+	      [% FOREACH exp IN CMIP6Diags %]
+	      <tr>
+		<td></td>
+		<td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+		<td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
+		<td style="white-space:normal;">[% exp.title %]</td>
+		<td>
+		  <table class="small">
+		    <tbody>
+		      [% FOREACH link_id IN exp.diagDetails.keys %]
+		      <tr>
+			<td id="details" style="text-align:right;"><strong>[% exp.diagDetails.$link_id.process %]</strong></td>
+			<td id="details">Last Update: [% exp.diagDetails.$link_id.last_update %] </td>
+		      </tr>
+		      <tr>
+			<td id="details" style="text-align:right;">Description</td>
+			<td>[% exp.diagDetails.$link_id.description %]</td>
+		      </tr>
+		      <tr>
+			<td id="details" style="text-align:right;">Link</td>
+			<td><a target="_blank" href="[% exp.diagDetails.$link_id.link %]">[% exp.diagDetails.$link_id.link %]</td>
+		      </tr>
+		      [% END %]
+		    </tbody>
+		  </table>
+		</td>
+	      </tr>
+	      [% END %]
+	    </tbody>
+	    <tfoot>
+	      <tr>
+		<th></th>
+		<th>Case Name</th>
+		<th>Experiment Name</th>
+		<th class="none">Title</th>
+		<th class="none">Diagnostics Sets</th>
 	      </tr>
 	    </tfoot>
 	  </table>
