@@ -63,7 +63,7 @@ chomp($casename);
 my $is_ens = 0;
 my $first_ens = 0;
 my $base_casename = '';
-my @ens = split(/-/,$subjects[-3]);
+my @ens = split(/-/,$names[-3]);
 if (0+@ens) {
     if (looks_like_number($ens[0])) {
 	$base_casename = join('.',@names[0..$#names-3]);	
@@ -78,33 +78,39 @@ my $process = '';
 my $model_date = '';
 my @message;
 my @ens_parts;
+my @iter_parts;
 my $ens_num = 0;
 my $iteration = 0;
 
 while (my $line = shift @body[0])
 {
     chomp($line);
+    $line =~ s/(\cM)//;
     if (index($line, "SUITE:") != -1)
     {
 	$line =~ s/SUITE: //;
 	my @suite = split(/\./,$line);
 	$expType =  lc($suite[-1]);
+	chomp($expType);
     }
     elsif ( (index($line, "MESSAGE:") != -1) && (index($line, "REQUEST(CLEAN)") == -1) )
     {
 	$line =~ s/MESSAGE: //;
 	@ens = split(/__/,$line);
 	if (0+@ens && $is_ens) {
-	    @message = $ens[0];
+	    @message = split(/_/,$ens[0]);
 	    @ens_parts = split(/\./,$ens[-1]);
 	    $ens_num = sprintf("%03d",$ens_parts[0]);
 	    $casename = join('.',$base_casename, $ens_num);
 	    $iteration = $ens_parts[-1];
+	    chomp($iteration);
+	    $model_date = $dbh->quote($message[-1]);
 	}
 	else {
 	    @message = split(/_/,$line);
+	    @iter_parts = split(/\./,$message[-1]);
+	    $model_date = $dbh->quote($iter_parts[0]);
 	}
-	$model_date = $dbh->quote($message[-1]);
 	$process = $dbh->quote(join('_',@message[0..($#message-1)]));
 	$logger->debug("line " . $line);
 	$logger->debug("process " . $process);
