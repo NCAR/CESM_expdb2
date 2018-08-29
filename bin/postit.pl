@@ -14,8 +14,10 @@ use Scalar::Util qw(looks_like_number);
 
 # set up the logger
 use Log::Log4perl;
+use Log::Log4perl::DataDumper;
 Log::Log4perl->init("/usr/local/expdb-2.0.0/conf/expdb-mail-log.conf");
 my $logger = Log::Log4perl->get_logger();
+Log::Log4perl::DataDumper::override($logger);
 
 use lib "/home/www/html/csegdb/lib";
 use config;
@@ -41,6 +43,11 @@ my $subject = $mail->head->get("Subject");
 my $date = $mail->head->get("Date");
 my @body = $mail->tidy_body();
 
+$logger->debug("<<<< start email >>>");
+$logger->debug("subject = " . $subject);
+$logger->debug("date = " . $date);
+$logger->debug(\@body);
+
 # check for string !!cylc alert!! in the subject
 chomp($subject);
 if (index($subject, "cylc alert") == -1)
@@ -63,8 +70,9 @@ chomp($casename);
 my $is_ens = 0;
 my $first_ens = 0;
 my $base_casename = '';
-my @ens = split(/-/,$names[-3]);
-if (0+@ens) {
+my @ens;
+if (index($names[-3],'-') != -1) {
+    @ens = split(/-/,$names[-3]);
     if (looks_like_number($ens[0])) {
 	$base_casename = join('.',@names[0..$#names-3]);	
 	chomp($base_casename);
@@ -112,8 +120,8 @@ while (my $line = shift @body[0])
 	    $model_date = $dbh->quote($iter_parts[0]);
 	}
 	$process = $dbh->quote(join('_',@message[0..($#message-1)]));
-	$logger->debug("line " . $line);
-	$logger->debug("process " . $process);
+	$logger->debug("line =  " . $line);
+	$logger->debug("process =  " . $process);
 	last;
     }
 }
@@ -142,7 +150,7 @@ my $sql = qq(select count(j.case_id), j.status_id, j.process_id, s.code, p.name,
              order by j.last_update DESC
              limit 1);
 my $sth = $dbh->prepare($sql);
-$logger->debug("SQL process status '" . $sql . "'");
+$logger->debug("SQL process status = '" . $sql . "'");
 $sth->execute() or $logger->logdie("SQL error: " . $dbh->errstr);
 my ($count, $status_id, $process_id, $current_status, $process, $last_update, $db_model_date) = $sth->fetchrow();
 $sth->finish();
@@ -152,7 +160,7 @@ $new_status = $dbh->quote($new_status);
 $sql = qq(select id from t2_status 
              where lower(code) = $new_status);
 $sth = $dbh->prepare($sql);
-$logger->debug("SQL status code '" . $sql . "'");
+$logger->debug("SQL status code = '" . $sql . "'");
 $sth->execute() or $logger->logdie("SQL error: " . $dbh->errstr);
 my ($new_status_id) = $sth->fetchrow();
 $sth->finish();
@@ -169,9 +177,10 @@ if ($date1->cmp($date2) > 0) {
     $sql = qq(insert into t2j_status (case_id, status_id, process_id, last_update, model_date)
               value ($case_id, $new_status_id, $process_id, NOW(), $model_date));
     $sth = $dbh->prepare($sql);
-    $logger->debug("SQL insert '" . $sql . "'");
+    $logger->debug("SQL insert = '" . $sql . "'");
     $sth->execute() or $logger->logdie("SQL error: " . $dbh->errstr);
     $sth->finish();
 }
+$logger->debug("<<<< end email >>>");
 $dbh->disconnect;
 

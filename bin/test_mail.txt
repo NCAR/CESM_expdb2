@@ -1,7 +1,7 @@
 MIME-Version: 1.0
 Date: Tue, 21 Aug 2018 12:49:00 -0600
 Message-ID: <CA+adaiDEaYpKdGCdkabSLt=LKgvexVEoWUqyXSv2k=UOwvNdEQ@mail.gmail.com>
-Subject: !!cylc alert!! suite b.e20.B1850.f09_g17.test.suite.cmip6 succeeded
+Subject: !!cylc alert!! suite b.e21.BW1850.f09_g17.CMIP6-piControl.001.suite.cmip6 succeeded
 From: Alice Bertini <aliceb@ucar.edu>
 To: Alice Bertini <aliceb@ucar.edu>
 Content-Type: multipart/alternative; boundary="000000000000a69b230573f67ac2"
@@ -9,8 +9,8 @@ Content-Type: multipart/alternative; boundary="000000000000a69b230573f67ac2"
 --000000000000a69b230573f67ac2
 Content-Type: text/plain; charset="UTF-8"
 
-SUITE: b.e20.B1850.f09_g17.test.suite.cmip6
-MESSAGE: case_run_0055-01-01.3
+SUITE: b.e21.BW1850.f09_g17.CMIP6-piControl.001.suite.cmip6
+MESSAGE: case_run_0055-01-01.1
 
 --000000000000a69b230573f67ac2
 Content-Type: text/html; charset="UTF-8"
