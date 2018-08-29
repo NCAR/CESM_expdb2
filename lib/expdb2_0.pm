@@ -333,9 +333,10 @@ sub getCaseFields
    while (my $ref = $sth->fetchrow_hashref())
    {
        my %field;
-       $field{'field_name'} = $ref->{'field_name'};
-       $field{'field_value'} = $ref->{'field_value'};
-       $field{'last_update'} = $ref->{'last_update'};
+       my $field_name = $ref->{'field_name'};
+       $field{$field_name}{'field_name'} = $field_name;
+       $field{$field_name}{'field_value'} = $ref->{'field_value'};
+       $field{$field_name}{'last_update'} = $ref->{'last_update'};
        push(@fields, \%field);
    }
    $sth->finish();

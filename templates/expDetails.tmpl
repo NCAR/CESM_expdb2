@@ -261,11 +261,13 @@
 		<th>Last Update</th>		
 	      </thead>
 	      [% FOREACH fn IN fields %]
+	      [% FOREACH key IN fn.keys.sort %]
 	      <tr>
-		<td>[% fn.field_name %]</td>
-		<td>[% fn.field_value %]</td>
-		<td>[% fn.last_update %]</td>
+		<td>[% fn.$key.field_name %]</td>
+		<td>[% fn.$key.field_value %]</td>
+		<td>[% fn.$key.last_update %]</td>
 	      </tr>
+	      [% END %]
 	      [% END %]
 	    </table>
 	  </div>
