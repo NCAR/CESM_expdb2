@@ -146,7 +146,7 @@ my $sql = qq(select count(j.case_id), j.status_id, j.process_id, s.code, p.name,
              where j.case_id = $case_id
              and j.status_id = s.id
              and j.process_id = p.id
-             and p.name = $process
+             and p.name like $process
              order by j.last_update DESC
              limit 1);
 my $sth = $dbh->prepare($sql);
@@ -174,8 +174,8 @@ $date1->parse($date);
 $date2->parse($last_update);
 if ($date1->cmp($date2) > 0) {
     # insert the new status
-    $sql = qq(insert into t2j_status (case_id, status_id, process_id, last_update, model_date)
-              value ($case_id, $new_status_id, $process_id, NOW(), $model_date));
+    $sql = qq(insert into t2j_status (case_id, status_id, process_id, last_update, model_date, archive_method)
+              value ($case_id, $new_status_id, $process_id, NOW(), $model_date, 'cylc'));
     $sth = $dbh->prepare($sql);
     $logger->debug("SQL insert = '" . $sql . "'");
     $sth->execute() or $logger->logdie("SQL error: " . $dbh->errstr);

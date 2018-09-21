@@ -10,3 +10,6 @@ create table t2j_status(
        `model_date` VARCHAR(100) NOT NULL DEFAULT '0000-01-01',
        `disk_usage` VARCHAR(20),
        `disk_path` VARCHAR(4096))
+       `disk_path` VARCHAR(4096),
+       `archive_method` enum('cylc','archive_metadata') DEFAULT NULL)
+

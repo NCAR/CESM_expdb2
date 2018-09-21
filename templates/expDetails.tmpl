@@ -113,6 +113,7 @@
 	      <th>Disk Usage</th>		
 	      <th>Disk Path</th>		
 	      <th>Last Update</th>		
+	      <th>Archive Method</th>
 	    </thead>
 	    [% FOREACH key IN status.keys.sort %]
 	    <tr>
@@ -127,6 +128,7 @@
 	      <td>[% status.$key.disk_usage %]</td>
 	      <td>[% status.$key.disk_path %]</td>
 	      <td>[% status.$key.last_update %]</td>
+	      <td>[% status.$key.archive_method %]</td>
 	    </tr>
 	    [% END %]
 	  </table>

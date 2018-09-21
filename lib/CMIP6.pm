@@ -459,7 +459,7 @@ sub getCMIP6CaseByID
 
 	# get process status
 	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
-                j.disk_usage, j.disk_path
+                j.disk_usage, j.disk_path, j.archive_method
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
                 j.case_id = $case{'case_id'} and
@@ -478,6 +478,7 @@ sub getCMIP6CaseByID
 	    $status{$process_name}{'model_date'} = $ref->{'model_date'};
 	    $status{$process_name}{'disk_usage'} = $ref->{'disk_usage'};
 	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
+	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
 	}
 	$sth->finish();
 
@@ -522,10 +523,14 @@ sub getCMIP6CaseByID
 	    my $temp_time = $child_times[0] * 365;
 	    $globalAtts{'branch_time_in_child'} = $temp_time . ".0DO";
 	}       
+	$globalAtts{'case_id'} = $case{'case_id'};
 	$globalAtts{'branch_method'} = $case{'run_type'};
 	$globalAtts{'experiment_id'} = $project{'cmip6_expName'};
 	$globalAtts{'parent_activity_id'} = $project{'cmip6_mipName'};
-	$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_casename'};
+	if ($project{'cmip6_mipName'} eq 'DECK') {
+	    $globalAtts{'parent_activity_id'} = 'CMIP6';
+	}
+	$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_expname'};
 	$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
 	$globalAtts{'source_type'} = $project{'cmip6_source_type'};
 	$globalAtts{'variant_info'} = $project{'cmip6_variant_info'};
