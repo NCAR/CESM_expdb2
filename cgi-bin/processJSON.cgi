@@ -343,9 +343,9 @@ else {
 $pid = $procs{'case_run'};
 $pstat_id = $status{ $fields{'run_status'} };
 $sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-          last_update, disk_usage, disk_path)
+          last_update, disk_usage, disk_path, archive_method)
           value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-          $fields{'run_size'}, $fields{'run_dir'}));
+          $fields{'run_size'}, $fields{'run_dir'}, 'archive_metadata'));
 $logger->debug('insert run status sql = ' . $sql);
 $sth = $dbh->prepare($sql);
 $sth->execute() or die $dbh->errstr;
@@ -356,9 +356,9 @@ if (lc($fields{'dout_s'}) eq 'true') {
     $pid = $procs{'case_st_archive'};
     $pstat_id = $status{ $fields{'sta_status'} };
     $sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-              last_update, disk_usage, disk_path)
+              last_update, disk_usage, disk_path, archive_method)
               value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-              $fields{'sta_size'}, $fields{'dout_s_root'}));
+              $fields{'sta_size'}, $fields{'dout_s_root'}, 'archive_metadata'));
     $logger->debug('insert sta status sql = ' . $sql);
     $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
@@ -371,9 +371,9 @@ if (lc($fields{'postprocess'}) eq 'true') {
 	$pid = $procs{$pname};
 	$pstat_id = $status{ $pp_fields{$pname}{'status'} };
 	$sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-                  last_update, disk_usage, disk_path)
+                  last_update, disk_usage, disk_path, archive_method)
                   value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}));
+                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}, 'archive_metadata'));
 	$logger->debug('insert t2j_status sql = ' . $sql);
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
