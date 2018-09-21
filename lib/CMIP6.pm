@@ -793,7 +793,7 @@ sub getCMIP6Status
 	$case{'expName'} = $ref->{'name'};
 	$case{'cmip6_exp_uid'} = $ref->{'uid'};
 	$case{'run_model_cost'} = $ref->{'model_cost'};
-	$case{'run_model_throughput'} = $ref->{'run_model_throughput'};
+	$case{'run_model_throughput'} = $ref->{'model_throughput'};
 
 	# get the case_run status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
