@@ -41,11 +41,19 @@ my ($sql1, $sth1);
 # get the username, password and JSON data that has been posted to the form
 my $user = uri_unescape($req->param('username'));
 my $password = uri_unescape($req->param('password'));
+my $datafile = ($req->param('data'));
 my $data = uri_unescape($req->param('data'));
-my $loginType = 'SVN';
+##my $data;
+##open(my $fh, '<', $datafile) or die "cannot open file $datafile";
+##{
+##    local $/;
+##    $data = <$fh>;
+##}
+##close($fh);
 
+my $loginType = 'SVN';
 $logger->debug("username = " . $user);
-$logger->debug("password = " . $password);
+##$logger->debug("password = " . $password);
 $logger->debug("data = " . $data);
 
 # Get the necessary config vars 
@@ -77,8 +85,8 @@ my ($pname, $pid, $pstat_id);
 my @keys = qw(casename caseroot caseuser compiler compset continue_run 
               dout_s dout_s_root grid job_queue job_time machine model 
               model_cost model_throughput model_version mpilib postprocess project 
-              rest_n rest_option run_dir run_refcase run_refdate run_startdate 
-              run_type stop_n stop_option svn_repo_url title);
+              rest_n rest_option run_dir run_lastdate run_refcase run_refdate 
+              run_startdate run_type stop_n stop_option svn_repo_url title);
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
 my $jsonObj = JSON->new->allow_nonref;
@@ -103,7 +111,6 @@ $fields{'model_cost'}       = $dbh->quote($json->{'model_cost'});
 $fields{'model_throughput'} = $dbh->quote($json->{'model_throughput'});
 $fields{'model_version'}    = $dbh->quote($json->{'MODEL_VERSION'});
 $fields{'mpilib'}           = $dbh->quote($json->{'MPILIB'});
-$fields{'postprocess'}      = $dbh->quote($json->{'postprocess'});
 $fields{'project'}          = $dbh->quote($json->{'PROJECT'});
 $fields{'rest_n'}           = $dbh->quote($json->{'REST_N'});
 $fields{'rest_option'}      = $dbh->quote($json->{'REST_OPTION'});
@@ -120,79 +127,100 @@ $fields{'svnlogin'}         = $dbh->quote($json->{'svnlogin'});
 $fields{'title'}            = $dbh->quote($json->{'title'});
 
 $fields{'run_status'}       = $json->{'run_status'};      
-$fields{'run_size'}         = $json->{'run_size'};
+$fields{'run_size'}         = $dbh->quote($json->{'run_size'});
+$fields{'run_last_date'}    = $dbh->quote($json->{'run_last_date'});
 
 $fields{'sta_status'}       = $json->{'sta_status'};      
-$fields{'sta_size'}         = $json->{'sta_size'};
+$fields{'sta_size'}         = $dbh->quote($json->{'sta_size'});
+$fields{'sta_last_date'}    = $dbh->quote($json->{'sta_last_date'});
+
+$fields{'postprocess'}      = $dbh->quote($json->{'postprocess'});
 
 # get all the postprocess data into a quotable format for the SQL calls
 # first key is the process name
 
-if (lc($fields{'postprocess'}) eq 'true') {
+if ($json->{'postprocess'}) {
 
     $pp_fields{'atm_averages'}{'status'}      = $json->{'atm_avg_status'};
-    $pp_fields{'atm_averages'}{'size'}        = $json->{'atm_avg_size'};
+    $pp_fields{'atm_averages'}{'size'}        = $dbh->quote($json->{'atm_avg_size'});
     $pp_fields{'atm_averages'}{'path'}        = $dbh->quote($json->{'atm_avg_path'});
+    $pp_fields{'atm_averages'}{'dates'}       = $dbh->quote($json->{'atm_avg_dates'});
     $pp_fields{'atm_diagnostics'}{'status'}   = $json->{'atm_diag_status'};
-    $pp_fields{'atm_diagnostics'}{'size'}     = $json->{'atm_diag_size'};
+    $pp_fields{'atm_diagnostics'}{'size'}     = $dbh->quote($json->{'atm_diag_size'});
     $pp_fields{'atm_diagnostics'}{'path'}     = $dbh->quote($json->{'atm_diag_path'});
+    $pp_fields{'atm_diagnostics'}{'dates'}    = $dbh->quote($json->{'atm_diag_dates'});
 
     $pp_fields{'lnd_averages'}{'status'}      = $json->{'lnd_avg_status'};
-    $pp_fields{'lnd_averages'}{'size'}        = $json->{'lnd_avg_size'};
+    $pp_fields{'lnd_averages'}{'size'}        = $dbh->quote($json->{'lnd_avg_size'});
     $pp_fields{'lnd_averages'}{'path'}        = $dbh->quote($json->{'lnd_avg_path'});
+    $pp_fields{'lnd_averages'}{'dates'}       = $dbh->quote($json->{'lnd_avg_dates'});
     $pp_fields{'lnd_diagnostics'}{'status'}   = $json->{'lnd_diag_status'};
-    $pp_fields{'lnd_diagnostics'}{'size'}     = $json->{'lnd_diag_size'};
+    $pp_fields{'lnd_diagnostics'}{'size'}     = $dbh->quote($json->{'lnd_diag_size'});
     $pp_fields{'lnd_diagnostics'}{'path'}     = $dbh->quote($json->{'lnd_diag_path'});
+    $pp_fields{'lnd_diagnostics'}{'dates'}    = $dbh->quote($json->{'lnd_diag_dates'});
 
     $pp_fields{'ice_averages'}{'status'}      = $json->{'ice_avg_status'};
-    $pp_fields{'ice_averages'}{'size'}        = $json->{'ice_avg_size'};
+    $pp_fields{'ice_averages'}{'size'}        = $dbh->quote($json->{'ice_avg_size'});
     $pp_fields{'ice_averages'}{'path'}        = $dbh->quote($json->{'ice_avg_path'});
+    $pp_fields{'ice_averages'}{'dates'}       = $dbh->quote($json->{'ice_avg_dates'});
     $pp_fields{'ice_diagnostics'}{'status'}   = $json->{'ice_diag_status'};
-    $pp_fields{'ice_diagnostics'}{'size'}     = $json->{'ice_diag_size'};
+    $pp_fields{'ice_diagnostics'}{'size'}     = $dbh->quote($json->{'ice_diag_size'});
     $pp_fields{'ice_diagnostics'}{'path'}     = $dbh->quote($json->{'ice_diag_path'});
+    $pp_fields{'ice_diagnostics'}{'dates'}    = $dbh->quote($json->{'ice_diag_dates'});
 
     $pp_fields{'ocn_averages'}{'status'}      = $json->{'ocn_avg_status'};
-    $pp_fields{'ocn_averages'}{'size'}        = $json->{'ocn_avg_size'};
+    $pp_fields{'ocn_averages'}{'size'}        = $dbh->quote($json->{'ocn_avg_size'});
     $pp_fields{'ocn_averages'}{'path'}        = $dbh->quote($json->{'ocn_avg_path'});
+    $pp_fields{'ocn_averages'}{'dates'}       = $dbh->quote($json->{'ocn_avg_dates'});
     $pp_fields{'ocn_diagnostics'}{'status'}   = $json->{'ocn_diag_status'};
-    $pp_fields{'ocn_diagnostics'}{'size'}     = $json->{'ocn_diag_size'};
+    $pp_fields{'ocn_diagnostics'}{'size'}     = $dbh->quote($json->{'ocn_diag_size'});
     $pp_fields{'ocn_diagnostics'}{'path'}     = $dbh->quote($json->{'ocn_diag_path'});
+    $pp_fields{'ocn_diagnostics'}{'dates'}    = $dbh->quote($json->{'ocn_diag_dates'});
 
     $pp_fields{'timeseries'}{'status'}        = $json->{'timeseries_status'};
+    $pp_fields{'timeseries'}{'size'}          = $dbh->quote($json->{'timeseries_size'});
     $pp_fields{'timeseries'}{'path'}          = $dbh->quote($json->{'timeseries_path'});
-    $pp_fields{'timeseries'}{'size'}          = $json->{'timeseries_size'};
+    $pp_fields{'timeseries'}{'dates'}         = $dbh->quote($json->{'timeseries_dates'});
 
     $pp_fields{'atm_timeseries'}{'status'}    = $json->{'atm_timeseries_status'};
-    $pp_fields{'atm_timeseries'}{'size'}      = $json->{'atm_timeseries_size'};
+    $pp_fields{'atm_timeseries'}{'size'}      = $dbh->quote($json->{'atm_timeseries_size'});
     $pp_fields{'atm_timeseries'}{'path'}      = $dbh->quote($json->{'atm_timeseries_path'});
+    $pp_fields{'atm_timeseries'}{'dates'}     = $dbh->quote($json->{'atm_timeseries_dates'});
     
     $pp_fields{'glc_timeseries'}{'status'}    = $json->{'glc_timeseries_status'};
-    $pp_fields{'glc_timeseries'}{'size'}      = $json->{'glc_timeseries_size'};
+    $pp_fields{'glc_timeseries'}{'size'}      = $dbh->quote($json->{'glc_timeseries_size'});
     $pp_fields{'glc_timeseries'}{'path'}      = $dbh->quote($json->{'glc_timeseries_path'});
+    $pp_fields{'glc_timeseries'}{'dates'}     = $dbh->quote($json->{'glc_timeseries_dates'});
     
     $pp_fields{'ice_timeseries'}{'status'}    = $json->{'ice_timeseries_status'};
-    $pp_fields{'ice_timeseries'}{'size'}      = $json->{'ice_timeseries_size'};
+    $pp_fields{'ice_timeseries'}{'size'}      = $dbh->quote($json->{'ice_timeseries_size'});
     $pp_fields{'ice_timeseries'}{'path'}      = $dbh->quote($json->{'ice_timeseries_path'});
+    $pp_fields{'ice_timeseries'}{'dates'}     = $dbh->quote($json->{'ice_timeseries_dates'});
 
     $pp_fields{'lnd_timeseries'}{'status'}    = $json->{'lnd_timeseries_status'};
-    $pp_fields{'lnd_timeseries'}{'size'}      = $json->{'lnd_timeseries_size'};
+    $pp_fields{'lnd_timeseries'}{'size'}      = $dbh->quote($json->{'lnd_timeseries_size'});
     $pp_fields{'lnd_timeseries'}{'path'}      = $dbh->quote($json->{'lnd_timeseries_path'});
+    $pp_fields{'lnd_timeseries'}{'dates'}     = $dbh->quote($json->{'lnd_timeseries_dates'});
 
     $pp_fields{'ocn_timeseries'}{'status'}    = $json->{'ocn_timeseries_status'};
-    $pp_fields{'ocn_timeseries'}{'size'}      = $json->{'ocn_timeseries_size'};
+    $pp_fields{'ocn_timeseries'}{'size'}      = $dbh->quote($json->{'ocn_timeseries_size'});
     $pp_fields{'ocn_timeseries'}{'path'}      = $dbh->quote($json->{'ocn_timeseries_path'});
+    $pp_fields{'ocn_timeseries'}{'dates'}     = $dbh->quote($json->{'ocn_timeseries_dates'});
     
     $pp_fields{'rof_timeseries'}{'status'}    = $json->{'rof_timeseries_status'};
-    $pp_fields{'rof_timeseries'}{'size'}      = $json->{'rof_timeseries_size'};
+    $pp_fields{'rof_timeseries'}{'size'}      = $dbh->quote($json->{'rof_timeseries_size'});
     $pp_fields{'rof_timeseries'}{'path'}      = $dbh->quote($json->{'rof_timeseries_path'});
+    $pp_fields{'rof_timeseries'}{'dates'}     = $dbh->quote($json->{'rof_timeseries_dates'});
 
     $pp_fields{'iconform'}{'status'}          = $json->{'iconform_status'};
-    $pp_fields{'iconform'}{'size'}            = $json->{'iconform_size'};
+    $pp_fields{'iconform'}{'size'}            = $dbh->quote($json->{'iconform_size'});
     $pp_fields{'iconform'}{'path'}            = $dbh->quote($json->{'iconform_path'});
+    $pp_fields{'iconform'}{'dates'}           = $dbh->quote($json->{'iconform_dates'});
 
     $pp_fields{'xconform'}{'status'}          = $json->{'xconform_status'};
-    $pp_fields{'xconform'}{'size'}            = $json->{'xconform_size'};
+    $pp_fields{'xconform'}{'size'}            = $dbh->quote($json->{'xconform_size'});
     $pp_fields{'xconform'}{'path'}            = $dbh->quote($json->{'xconform_path'});
+    $pp_fields{'xconform'}{'dates'}           = $dbh->quote($json->{'xconform_dates'});
 }
 
 my $svnlogin = $dbh->quote($json->{'svnlogin'});
@@ -339,48 +367,88 @@ else {
     }
 }
 
+
 # load the run status into the t2j_status join table
+# only insert if the model_date has changed since the last time archive_metadata was run
 $pid = $procs{'case_run'};
 $pstat_id = $status{ $fields{'run_status'} };
-$sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-          last_update, disk_usage, disk_path)
-          value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-          $fields{'run_size'}, $fields{'run_dir'}));
-$logger->debug('insert run status sql = ' . $sql);
+$sql = qq(select count(*) from t2j_status where
+          case_id = $item{'case_id'} and
+          status_id = $pstat_id and
+          process_id = $pid and
+          model_date = $fields{'run_last_date'});
 $sth = $dbh->prepare($sql);
 $sth->execute() or die $dbh->errstr;
+($count) = $sth->fetchrow;
 $sth->finish();
-
-# load the sta status into the t2j_status join table
-if (lc($fields{'dout_s'}) eq 'true') {
-    $pid = $procs{'case_st_archive'};
-    $pstat_id = $status{ $fields{'sta_status'} };
+          
+if (!$count) {
     $sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-              last_update, disk_usage, disk_path)
+              last_update, model_date, disk_usage, disk_path, archive_method)
               value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-              $fields{'sta_size'}, $fields{'dout_s_root'}));
-    $logger->debug('insert sta status sql = ' . $sql);
+              $fields{'run_last_date'}, $fields{'run_size'}, $fields{'run_dir'}, 'archive_metadata'));
+    $logger->debug('insert run status sql = ' . $sql);
     $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
     $sth->finish();
 }
 
-# load the post process statuses into the t2j_status join table if postprocessing is turned on
-if (lc($fields{'postprocess'}) eq 'true') {
-    foreach $pname (keys %pp_fields) {
-	$pid = $procs{$pname};
-	$pstat_id = $status{ $pp_fields{$pname}{'status'} };
+# load the sta status into the t2j_status join table
+# only insert if the model_date has changed since the last time archive_metadata was run
+if ($json->{'DOUT_S'}) {
+    $pid = $procs{'case_st_archive'};
+    $pstat_id = $status{ $fields{'sta_status'} };
+    $sql = qq(select count(*) from t2j_status where
+              case_id = $item{'case_id'} and
+              status_id = $pstat_id and
+              process_id = $pid and
+              model_date = $fields{'sta_last_date'});
+    $sth = $dbh->prepare($sql);
+    $sth->execute() or die $dbh->errstr;
+    ($count) = $sth->fetchrow;
+    $sth->finish();
+          
+    if (!$count) {
 	$sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-                  last_update, disk_usage, disk_path)
-                  value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}));
-	$logger->debug('insert t2j_status sql = ' . $sql);
+                  last_update, model_date, disk_usage, disk_path, archive_method)
+                  value ($item{'case_id'}, $pstat_id, $pid, NOW(), $fields{'sta_last_date'},
+                  $fields{'sta_size'}, $fields{'dout_s_root'}, 'archive_metadata'));
+	$logger->debug('insert sta status sql = ' . $sql);
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	$sth->finish();
     }
 }
 
+# load the post process statuses into the t2j_status join table if postprocessing is turned on
+# only insert if the model_date has changed since the last time archive_metadata was run
+if ($json->{'postprocess'}) {
+    foreach $pname (keys %pp_fields) {
+	$pid = $procs{$pname};
+	$pstat_id = $status{ $pp_fields{$pname}{'status'} };
+
+	$sql = qq(select count(*) from t2j_status where
+                  case_id = $item{'case_id'} and
+                  status_id = $pstat_id and
+                  process_id = $pid and
+                  model_date = $pp_fields{$pname}{'dates'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute() or die $dbh->errstr;
+	($count) = $sth->fetchrow;
+	$sth->finish();
+          
+	if (!$count) {
+	    $sql = qq(insert into t2j_status (case_id, status_id, process_id, 
+                  last_update, model_date, disk_usage, disk_path, archive_method)
+                  value ($item{'case_id'}, $pstat_id, $pid, NOW(), $pp_fields{$pname}{'dates'},
+                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}, 'archive_metadata'));
+	    $logger->debug('insert t2j_status sql = ' . $sql);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute() or die $dbh->errstr;
+	    $sth->finish();
+	}
+    }
+}
 
 print $req->header;
 exit 0;

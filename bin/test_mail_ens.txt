@@ -1,30 +1,27 @@
 MIME-Version: 1.0
-Date: Tue, 21 Aug 2018 12:49:00 -0600
-Message-ID: <CA+adaiDEaYpKdGCdkabSLt=LKgvexVEoWUqyXSv2k=UOwvNdEQ@mail.gmail.com>
-Subject: !!cylc alert!! suite test_new_cheyenne_ensemble_amip.1-3.suite.cmip6 succeeded
+Date: Fri, 21 Sep 2018 14:46:12 -0600
+Message-ID: <CA+adaiBLD8i0Q3chzJzYUUHSU-3ExRyf9j52FRjGXgFikRhfeA@mail.gmail.com>
+Subject: !!cylc alert!! suite b.e21.BWHIST.f09_g17.CMIP6-historical-WACCM.1-3.suite.cmip6 succeeded
 From: Alice Bertini <aliceb@ucar.edu>
 To: Alice Bertini <aliceb@ucar.edu>
-Content-Type: multipart/alternative; boundary="000000000000a69b230573f67ac2"
+Content-Type: multipart/alternative; boundary="000000000000e6fe20057667ba12"
 
---000000000000a69b230573f67ac2
+--000000000000e6fe20057667ba12
 Content-Type: text/plain; charset="UTF-8"
 
-SUITE: test_new_cheyenne_ensemble_amip.1-3.suite.cmip6
-MESSAGE: case_run_1854-01-01__3.1
+SUITE: b.e21.BWHIST.f09_g17.CMIP6-historical-WACCM.1-3.suite.cmip6
+MESSAGE: timeseriesL_2015-01-01__1.1
 
---000000000000a69b230573f67ac2
+--000000000000e6fe20057667ba12
 Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-<div dir=3D"ltr"><div class=3D"gmail_default" style=3D"font-family:tahoma,s=
-ans-serif;font-size:small"><span style=3D"color:rgb(0,0,0);font-family:Aria=
-l,Helvetica,sans-serif">SUITE: test_new_cheyenne_ensemble_amip</span><span =
-style=3D"color:rgb(0,0,0);font-family:Arial,Helvetica,sans-serif">.1-3.suit=
-e.</span><span style=3D"color:rgb(0,0,0);font-family:Arial,Helvetica,sans-s=
-erif">cmip6</span><br style=3D"color:rgb(0,0,0);font-family:Arial,Helvetica=
-,sans-serif"><span style=3D"color:rgb(0,0,0);font-family:Arial,Helvetica,sa=
-ns-serif">MESSAGE: case_run_1854-01-01__1.1</span><br></div><div dir=3D"ltr=
-" class=3D"gmail_signature" data-smartmail=3D"gmail_signature"><div dir=3D"=
-ltr"><br></div></div></div>
+<div dir=3D"ltr"><div dir=3D"ltr"><div class=3D"gmail_default" style=3D"fon=
+t-family:tahoma,sans-serif;font-size:small"><br clear=3D"all"></div><div cl=
+ass=3D"gmail_default" style=3D"font-family:tahoma,sans-serif;font-size:smal=
+l"><div class=3D"gmail_default">SUITE: b.e21.BWHIST.f09_g17.CMIP6-historica=
+l-WACCM.1-3.suite.cmip6</div><div class=3D"gmail_default">MESSAGE: timeseri=
+esL_2015-01-01__1.1</div></div><span class=3D"gmail_default" style=3D"font-=
+family:tahoma,sans-serif;font-size:small"></span></div></div>
 
---000000000000a69b230573f67ac2--
+--000000000000e6fe20057667ba12--

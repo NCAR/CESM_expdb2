@@ -304,94 +304,84 @@ sub getCMIP6CaseByID
     my $dbh = shift;
     my $id = shift;
     my (%case, %status, %project, %user, %globalAtts) = ();
-    my @fields;
     my @notes;
     my @links;
     my @sorted;
     my $count = 0;
     my ($field_name, $process_name) = '';
     my ($sql1, $sth1);
+    my @fields = qw(archive_date casename caseroot caseuser compiler compset continue_run 
+                    dout_s dout_s_root grid is_ens job_queue job_time machine model 
+                    model_cost model_throughput model_version mpilib postprocess project 
+                    rest_n rest_option run_dir run_lastdate run_refcase run_refdate 
+                    run_startdate run_type stop_n stop_option svnuser_id svn_repo_url title);
 
-    my $sql = qq(select * from t2_cases where id = $id);
+    # make sure the case exists
+    my $sql = qq(select count(*) from t2_cases where id = $id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
-    while (my $ref = $sth->fetchrow_hashref())
-    {
-	$case{'case_id'} = $ref->{'id'};
-	$case{'archive_date'} = $ref->{'archive_date'};
-	$case{'casename'} = $ref->{'casename'};
-	$case{'caseroot'} = $ref->{'caseroot'};
-	$case{'caseuser'} = $ref->{'caseuser'};
-	$case{'compiler'} = $ref->{'compiler'};
-	$case{'compset'} = $ref->{'compset'};
-	$case{'continue_run'} = $ref->{'continue_run'};
-	$case{'dout_s'} = $ref->{'dout_s'};
-	$case{'dout_s_root'} = $ref->{'dout_s_root'};
-
-	# get the expType Name
-	$case{'expType_name'} = "undefined";
-	$case{'expType_desc'} = "undefined";
-	$case{'expType_template'} = "undefined";
-
-	if ( defined $ref->{'expType_id'} )
-	{
-	    $sql1 = qq(select name, description, expDetail_template from t2_expType where id = $ref->{'expType_id'});
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    ($case{'expType_name'}, $case{'expType_desc'}, $case{'expType_template'}) = $sth1->fetchrow();
-	    $sth1->finish();
-	}
-
-	$case{'expType_id'} = $ref->{'expType_id'};	
-	$case{'grid'} = $ref->{'grid'};
-	$case{'is_ens'} = $ref->{'is_ens'};
-	$case{'job_queue'} = $ref->{'job_queue'};
-	$case{'job_time'} = $ref->{'job_time'};
-	$case{'machine'} = $ref->{'machine'};
-	$case{'model'} = $ref->{'model'};
-	$case{'model_cost'} = $ref->{'model_cost'};
-	$case{'model_throughput'} = $ref->{'model_throughput'};
-	$case{'model_version'} = $ref->{'model_version'};
-	$case{'mpilib'} = $ref->{'mpilib'};
-	$case{'postprocess'} = $ref->{'postprocess'};
-	$case{'project'} = $ref->{'project'};
-	$case{'rest_n'} = $ref->{'rest_n'};
-	$case{'rest_option'} = $ref->{'rest_option'};
-	$case{'run_dir'} = $ref->{'run_dir'};
-	$case{'run_lastdate'} = $ref->{'run_lastdate'};
-	$case{'run_refcase'} = $ref->{'run_refcase'};
-	$case{'run_refdate'} = $ref->{'run_refdate'};
-	$case{'run_startdate'} = $ref->{'run_startdate'};
-	$case{'run_type'} = $ref->{'run_type'};
-	$case{'stop_n'} = $ref->{'stop_n'};
-	$case{'stop_option'} = $ref->{'stop_option'};
-	$case{'svn_repo_url'} = $ref->{'svn_repo_url'};
-	$case{'svnuser_id'} = $ref->{'svnuser_id'};
-	$case{'title'} = $ref->{'title'};
-	$count++;
-    }
+    ($count) = $sth->fetchrow;
     $sth->finish();
 
     # check the row count
     if (!$count) 
     {
 	# no matching rows return case id = 0
-	$case{'case_id'} = 0;
+	$case{'case_id'}{'value'} = 0;
     }
     elsif ($count > 1)
     {
 	# more than one matching row 
 	# indicates a violation of constraints!!
-	$case{'case_id'} = -1;
+	$case{'case_id'}{'value'} = -1;
     }
     else 
     {
+	# set the case_id seperately
+	$case{'case_id'}{'value'} = $id;
+	$case{'case_id'}{'history'} = qw();
+
+	# get all the fields and their history values
+	foreach my $field (@fields) {
+	    $sql = qq(select $field from t2_cases where id = $id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $case{$field}{'value'} = $sth->fetchrow;
+	    $sth->finish();
+
+	    my @field_history = getCaseFieldByName($dbh, $id, $field);
+	    $case{$field}{'history'} = \@field_history;
+	}
+
+	# get the expType name seperately
+	$sql = qq(select count(expType_id), expType_id from t2_cases where id = $id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	my ($count, $expType_id) = $sth->fetchrow;
+	$sth->finish();
+
+	if ($count) {
+	    $sql = qq(select name, description, expDetail_template from t2_expType where id = $expType_id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    ($case{'expType_name'}{'value'}, $case{'expType_desc'}{'value'}, $case{'expType_template'}{'value'}) = $sth->fetchrow();
+	    $sth->finish();
+	}
+	else {
+	    $case{'expType_name'}{'value'} = "undefined";
+	    $case{'expType_desc'}{'value'} = "undefined";
+	    $case{'expType_template'}{'value'} = "undefined";
+	}
+	$case{'expType_name'}{'history'} = qw();
+	$case{'expType_desc'}{'history'} = qw();
+	$case{'expType_template'}{'history'} = qw();
+
 	# get CMIP6 fields 
 	$sql = qq(select e.name as expName, e.description as expDesc, m.name as mipName, m.description as mipDesc, j.variant_label, 
                   j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
 	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, j.parentExp_id
 		  from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m
-		  where j.case_id = $case{'case_id'} and j.exp_id = e.id and j.design_mip_id = m.id);
+		  where j.case_id = $id and j.exp_id = e.id and j.design_mip_id = m.id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
@@ -401,7 +391,7 @@ sub getCMIP6CaseByID
 	    $project{'cmip6_mipName'} = $ref->{'mipName'};
 	    $project{'cmip6_mipDescription'} = $ref->{'mipDesc'};
 	    $project{'cmip6_variant_label'} = $ref->{'variant_label'};
-	    $project{'cmip6_variant_info'} = $case{'title'};
+	    $project{'cmip6_variant_info'} = $case{'title'}{'value'};
 	    $project{'cmip6_ensemble_num'} = $ref->{'ensemble_num'};
 	    $project{'cmip6_ensemble_size'} = $ref->{'ensemble_size'};
 	    $project{'cmip6_nyears'} = $ref->{'nyears'};
@@ -451,18 +441,15 @@ sub getCMIP6CaseByID
 	}
 	$sth->finish();
 
-	# get case fields
-	@fields = getCaseFields($dbh, $case{'case_id'});
-
 	# get case notes
-	@notes = getCaseNotes($dbh, $case{'case_id'});
+	@notes = getCaseNotes($dbh, $id);
 
 	# get process status
 	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
-                j.disk_usage, j.disk_path
+                j.disk_usage, j.disk_path, j.archive_method
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
-                j.case_id = $case{'case_id'} and
+                j.case_id = $id and
                 j.process_id = p.id and
                 j.status_id = s.id
 		order by p.name, j.last_update asc);
@@ -478,11 +465,14 @@ sub getCMIP6CaseByID
 	    $status{$process_name}{'model_date'} = $ref->{'model_date'};
 	    $status{$process_name}{'disk_usage'} = $ref->{'disk_usage'};
 	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
+	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
+	    my @fullstats = getProcessStats($dbh, $id, $process_name);
+	    $status{$process_name}{'history'} = \@fullstats;
 	}
 	$sth->finish();
 
 	# get case links
-	$sql = qq(select id from t2j_links where case_id = $case{'case_id'});
+	$sql = qq(select id from t2j_links where case_id = $id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
@@ -501,10 +491,10 @@ sub getCMIP6CaseByID
 
 	# run_startdate and run_refdate are set in the caseroot and
 	# loaded into the database with archive_metadata
-	my @temp = split(' ',$case{'run_startdate'});
+	my @temp = split(' ',$case{'run_startdate'}{'value'});
 	my @child_times = split('-',$temp[0]);
 
-	@temp = split(' ',$case{'run_refdate'});
+	@temp = split(' ',$case{'run_refdate'}{'value'});
 	my @parent_times = split('-',$temp[0]);
 
 	my $child_times = @child_times;
@@ -522,10 +512,14 @@ sub getCMIP6CaseByID
 	    my $temp_time = $child_times[0] * 365;
 	    $globalAtts{'branch_time_in_child'} = $temp_time . ".0DO";
 	}       
-	$globalAtts{'branch_method'} = $case{'run_type'};
+	$globalAtts{'case_id'} = $id;
+	$globalAtts{'branch_method'} = $case{'run_type'}{'value'};
 	$globalAtts{'experiment_id'} = $project{'cmip6_expName'};
 	$globalAtts{'parent_activity_id'} = $project{'cmip6_mipName'};
-	$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_casename'};
+	if ($project{'cmip6_mipName'} eq 'DECK') {
+	    $globalAtts{'parent_activity_id'} = 'CMIP6';
+	}
+	$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_expname'};
 	$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
 	$globalAtts{'source_type'} = $project{'cmip6_source_type'};
 	$globalAtts{'variant_info'} = $project{'cmip6_variant_info'};
@@ -534,13 +528,13 @@ sub getCMIP6CaseByID
 	# construct the sub_experiment and sub_experiment_id
 	$globalAtts{'sub_experiment'} = '';
 	$globalAtts{'sub_experiment_id'} = '';
-	if ($case{'is_ens'} eq "true") 
+	if ($case{'is_ens'}{'value'} eq "true") 
 	{
 	    $globalAtts{'sub_experiment'} = qq(s$child_times[0]-$project{'cmip6_variant_label'}) ;
 	    $globalAtts{'sub_experiment_id'} = qq(s$child_times[0]);
 	}
     }
-    return \%case, \@fields, \%status, \%project, \@notes, \@sorted, \%globalAtts;
+    return \%case, \%status, \%project, \@notes, \@sorted, \%globalAtts;
 }
 
 sub getCMIP6Sources
@@ -793,7 +787,7 @@ sub getCMIP6Status
 	$case{'expName'} = $ref->{'name'};
 	$case{'cmip6_exp_uid'} = $ref->{'uid'};
 	$case{'run_model_cost'} = $ref->{'model_cost'};
-	$case{'run_model_throughput'} = $ref->{'run_model_throughput'};
+	$case{'run_model_throughput'} = $ref->{'model_throughput'};
 
 	# get the case_run status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
