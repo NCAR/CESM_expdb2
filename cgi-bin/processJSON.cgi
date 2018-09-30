@@ -43,6 +43,13 @@ my $user = uri_unescape($req->param('username'));
 my $password = uri_unescape($req->param('password'));
 my $datafile = ($req->param('data'));
 my $data = uri_unescape($req->param('data'));
+##my $data;
+##open(my $fh, '<', $datafile) or die "cannot open file $datafile";
+##{
+##    local $/;
+##    $data = <$fh>;
+##}
+##close($fh);
 
 my $loginType = 'SVN';
 $logger->debug("username = " . $user);
@@ -78,8 +85,8 @@ my ($pname, $pid, $pstat_id);
 my @keys = qw(casename caseroot caseuser compiler compset continue_run 
               dout_s dout_s_root grid job_queue job_time machine model 
               model_cost model_throughput model_version mpilib postprocess project 
-              rest_n rest_option run_dir run_refcase run_refdate run_startdate 
-              run_type stop_n stop_option svn_repo_url title);
+              rest_n rest_option run_dir run_lastdate run_refcase run_refdate 
+              run_startdate run_type stop_n stop_option svn_repo_url title);
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
 my $jsonObj = JSON->new->allow_nonref;
@@ -104,7 +111,6 @@ $fields{'model_cost'}       = $dbh->quote($json->{'model_cost'});
 $fields{'model_throughput'} = $dbh->quote($json->{'model_throughput'});
 $fields{'model_version'}    = $dbh->quote($json->{'MODEL_VERSION'});
 $fields{'mpilib'}           = $dbh->quote($json->{'MPILIB'});
-$fields{'postprocess'}      = $json->{'postprocess'} ? "True" : "False";
 $fields{'project'}          = $dbh->quote($json->{'PROJECT'});
 $fields{'rest_n'}           = $dbh->quote($json->{'REST_N'});
 $fields{'rest_option'}      = $dbh->quote($json->{'REST_OPTION'});
@@ -127,6 +133,8 @@ $fields{'run_last_date'}    = $dbh->quote($json->{'run_last_date'});
 $fields{'sta_status'}       = $json->{'sta_status'};      
 $fields{'sta_size'}         = $dbh->quote($json->{'sta_size'});
 $fields{'sta_last_date'}    = $dbh->quote($json->{'sta_last_date'});
+
+$fields{'postprocess'}      = $dbh->quote($json->{'postprocess'});
 
 # get all the postprocess data into a quotable format for the SQL calls
 # first key is the process name
@@ -364,28 +372,52 @@ else {
 # only insert if the model_date has changed since the last time archive_metadata was run
 $pid = $procs{'case_run'};
 $pstat_id = $status{ $fields{'run_status'} };
-$sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-          last_update, disk_usage, disk_path, archive_method)
-          value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-          $fields{'run_size'}, $fields{'run_dir'}, 'archive_metadata'));
-$logger->debug('insert run status sql = ' . $sql);
+$sql = qq(select count(*) from t2j_status where
+          case_id = $item{'case_id'} and
+          status_id = $pstat_id and
+          process_id = $pid and
+          model_date = $fields{'run_last_date'});
 $sth = $dbh->prepare($sql);
 $sth->execute() or die $dbh->errstr;
+($count) = $sth->fetchrow;
 $sth->finish();
+          
+if (!$count) {
+    $sql = qq(insert into t2j_status (case_id, status_id, process_id, 
+              last_update, model_date, disk_usage, disk_path, archive_method)
+              value ($item{'case_id'}, $pstat_id, $pid, NOW(),
+              $fields{'run_last_date'}, $fields{'run_size'}, $fields{'run_dir'}, 'archive_metadata'));
+    $logger->debug('insert run status sql = ' . $sql);
+    $sth = $dbh->prepare($sql);
+    $sth->execute() or die $dbh->errstr;
+    $sth->finish();
+}
 
 # load the sta status into the t2j_status join table
 # only insert if the model_date has changed since the last time archive_metadata was run
 if ($json->{'DOUT_S'}) {
     $pid = $procs{'case_st_archive'};
     $pstat_id = $status{ $fields{'sta_status'} };
-    $sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-              last_update, disk_usage, disk_path, archive_method)
-              value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-              $fields{'sta_size'}, $fields{'dout_s_root'}, 'archive_metadata'));
-    $logger->debug('insert sta status sql = ' . $sql);
+    $sql = qq(select count(*) from t2j_status where
+              case_id = $item{'case_id'} and
+              status_id = $pstat_id and
+              process_id = $pid and
+              model_date = $fields{'sta_last_date'});
     $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
+    ($count) = $sth->fetchrow;
     $sth->finish();
+          
+    if (!$count) {
+	$sql = qq(insert into t2j_status (case_id, status_id, process_id, 
+                  last_update, model_date, disk_usage, disk_path, archive_method)
+                  value ($item{'case_id'}, $pstat_id, $pid, NOW(), $fields{'sta_last_date'},
+                  $fields{'sta_size'}, $fields{'dout_s_root'}, 'archive_metadata'));
+	$logger->debug('insert sta status sql = ' . $sql);
+	$sth = $dbh->prepare($sql);
+	$sth->execute() or die $dbh->errstr;
+	$sth->finish();
+    }
 }
 
 # load the post process statuses into the t2j_status join table if postprocessing is turned on
@@ -394,14 +426,27 @@ if ($json->{'postprocess'}) {
     foreach $pname (keys %pp_fields) {
 	$pid = $procs{$pname};
 	$pstat_id = $status{ $pp_fields{$pname}{'status'} };
-	$sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-                  last_update, disk_usage, disk_path, archive_method)
-                  value ($item{'case_id'}, $pstat_id, $pid, NOW(),
-                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}, 'archive_metadata'));
-	$logger->debug('insert t2j_status sql = ' . $sql);
+
+	$sql = qq(select count(*) from t2j_status where
+                  case_id = $item{'case_id'} and
+                  status_id = $pstat_id and
+                  process_id = $pid and
+                  model_date = $pp_fields{$pname}{'dates'});
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
+	($count) = $sth->fetchrow;
 	$sth->finish();
+          
+	if (!$count) {
+	    $sql = qq(insert into t2j_status (case_id, status_id, process_id, 
+                  last_update, model_date, disk_usage, disk_path, archive_method)
+                  value ($item{'case_id'}, $pstat_id, $pid, NOW(), $pp_fields{$pname}{'dates'},
+                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}, 'archive_metadata'));
+	    $logger->debug('insert t2j_status sql = ' . $sql);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute() or die $dbh->errstr;
+	    $sth->finish();
+	}
     }
 }
 

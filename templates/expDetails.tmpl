@@ -12,6 +12,7 @@
    <meta http-equiv="pragma" content="no-cache" />
    <meta name="description" content="CESM2 Experiments Database"/>
    <meta name="keywords"    content="CESM Software Engineering Working Group"/>
+
    <style type="text/css" media="screen">
      @import "/styles/cesm.css"; 
      @import "/styles/teststyles.css";
@@ -20,12 +21,36 @@
      @import "/jqueryui/css/redmond/jquery-ui-1.8.23.custom.css";
      @import "/jquerydt/DataTables-1.9.3/media/css/jquery.dataTables.css";
    </style>
+
+   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
+   <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.1/css/responsive.dataTables.min.css" />
+
    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-   <script src="/jquery-validation/jquery.validate.js" language="javascript" type="text/javascript"></script>
-   <script type="text/javascript" language="javascript" src="/scripts/jquery.dataTables.js"></script>
    <script type="text/javascript" src="/scripts/popitup.js"></script>
    <script type="text/javascript" src="/expdb2.0/scripts/exp_dashboard.js"></script>  
+   <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+   <script src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
+
+   <style>
+      #details { 
+      background-color: #c5edcb; 
+      }
+      .alert:hover {
+      cursor: pointer;
+      }
+      table {
+      width: 90%;
+      }
+      .dtr-details {
+      width: 90%;
+      }
+      table.dataTable tbody.tbody-status td {
+      padding: 0px;
+      font-size: .9em
+      }
+   </style>
+
 </head>
 
 <body>
@@ -34,13 +59,13 @@
   </p>
 
   <div class="body">
-    <h1>[% case.casename %] - Experiment Detail</h1>
+    <h1>[% case.casename.value %] - Experiment Detail</h1>
 
     <h2>CESM Case Working Title:</h2>
     <table>
       <tr>
-	<td valign="top"><button onclick="return popitup('/expdb2.0/cgi-bin/caseTitle.cgi?case_id=[% case.case_id %]&action=update&expType_id=[% case.expType_id %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
-	<td>[% case.title %]</td>
+	<td valign="top"><button onclick="return popitup('/expdb2.0/cgi-bin/caseTitle.cgi?case_id=[% case.case_id.value %]&action=update&expType_id=[% case.expType_id.value %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+	<td>[% case.title.value %]</td>
       </tr>
       <tr>
 	<td colspan="2">
@@ -62,7 +87,7 @@
       <div id="expDetail_accordion">
 
 	[% IF expType.name == 'cmip6' %]
-	<h3>[% case.expType_name %] Project Details</h3>
+	<h3>[% case.expType_name.value %] Project Details</h3>
 	<div id="expDetail_table">
 	  <div class="left">
 	    <table class="bordered">
@@ -104,175 +129,130 @@
 
 	<h3>Case Workflow Process Status</h3>
 	<div id="expDetail_table">
-	  <table class="bordered">
+          <div style="text-align: center;" id="statusTable_buttons">
+            <button id="statusBtn-show-all-children" class="btn btn-primary" type="button">Expand All</button>
+            <button id="statusBtn-hide-all-children" class="btn btn-primary" type="button">Collapse All</button>
+          </div>
+
+	  <table id="statusTable" style="width: 100%">
 	    <thead>
-	      <th>Description</th>		
-	      <th>Process Name</th>		
-	      <th>Status</th>		
-	      <th>Model Date</th>		
-	      <th>Disk Usage</th>		
-	      <th>Disk Path</th>		
-	      <th>Last Update</th>		
-	      <th>Archive Method</th>
+	      <tr>
+		<th>Description</th>		
+		<th>Process Name</th>		
+		<th>Status</th>		
+		<th>Model Date</th>		
+		<th>Disk Path</th>		
+		<th>Disk Usage</th>		
+		<th>Last Update</th>		
+		<th>Archive Method</th>
+		<th class="none">Status History</th>
+	      </tr>
 	    </thead>
-	    [% FOREACH key IN status.keys.sort %]
-	    <tr>
-	      <td>[% status.$key.description %]</td>
-	      [% IF status.$key.code != 'Unknown' %]
-	      <td><button onclick="return popitup('/expdb2.0/cgi-bin/showStats.cgi?case_id=[% case.case_id %]&processName=[% key %]','height=400,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> [% key %]</td>
-	      [% ELSE %]
-	      <td>[% key %]</td>
+	    <tbody>
+	      [% FOREACH key IN status.keys.sort %]
+	      <tr>
+		<td>[% status.$key.description %]</td>
+		<td>[% key %]</td>
+		<td style="background-color:[% status.$key.color %]">[% status.$key.code %]</td>
+		<td><pre>[% status.$key.model_date %]</pre></td>
+		<td>[% status.$key.disk_path %]</td>
+		<td>[% status.$key.disk_usage %]</td>
+		<td>[% status.$key.last_update %]</td>
+		<td>[% status.$key.archive_method %]</td>
+		<td>
+		  <table>
+		    <thead>
+		      <tr id="details">
+			<th>Status</th>		
+			<th>Model Date</th>		
+			<th>Disk Path</th>		
+			<th>Disk Usage</th>		
+			<th>Last Update</th>		
+			<th>Archive Method</th>
+		      </tr>
+		    </thead>
+		    <tbody class="tbody-status">
+		      [% FOREACH stat IN status.$key.history %]
+		      <tr class="tr-status">
+			<td style="background-color:[% stat.color %]">[% stat.code %]</td>
+			<td><pre>[% stat.model_date %]</pre></td>
+			<td>[% stat.disk_path %]</td>
+			<td>[% stat.disk_usage %]</td>
+			<td>[% stat.last_update %]</td>
+			<td>[% stat.archive_method %]</td>
+		      </tr>
+		      [% END %]
+		    </tbody>
+		  </table>
+		</td>
+	      </tr>
 	      [% END %]
-	      <td style="background-color:[% status.$key.color %]">[% status.$key.code %]</td>
-	      <td>[% status.$key.model_date %]</td>
-	      <td>[% status.$key.disk_usage %]</td>
-	      <td>[% status.$key.disk_path %]</td>
-	      <td>[% status.$key.last_update %]</td>
-	      <td>[% status.$key.archive_method %]</td>
-	    </tr>
-	    [% END %]
+	    </tbody>
+	    <tfoot>
+	      <tr>
+		<th>Description</th>		
+		<th>Process Name</th>		
+		<th>Status</th>		
+		<th>Model Date</th>		
+		<th>Disk Path</th>		
+		<th>Disk Usage</th>		
+		<th>Last Update</th>		
+		<th>Archive Method</th>
+		<th class="none">Status History</th>
+	      </tr>
+	    </tfoot>
 	  </table>
 	</div>
 
 	<h3>Caseroot Settings</h3>
 	<div id="expDetail_table">
-	  <div class="left">
-	    <table class="bordered">
-	      <thead>
-		<th colspan="2">Current Settings</th>
-	      </thead>
-	      <thead>
-		<th>Variable Name</th>		
-		<th>Current Value</th>		
-	      </thead>
-	      <tr>
-		<td>Case Name (CASE):</td>
-		<td>[% case.casename %]</td>
-	      </tr>
-	      <tr>
-		<td>Caseroot (CASEROOT):</td>
-		<td>[% case.caseroot %]</td>
-	      </tr>
-	      <tr>
-		<td>SVN Caseroot Repository Link:</td>
-		<td><a href="[% case.svn_repo_url %]" target="_blank">[% case.svn_repo_url %]</a></td>
-	      </tr>
-	      <tr>
-		<td>Compiler (COMPILER):</td>
-		<td>[% case.compiler %]</td>
-	      </tr>
-	      <tr>
-		<td>Component Set (COMPSET):</td>
-		<td>[% case.compset %]</td>
-	      </tr>
-	      <tr>
-		<td>Short Term Archive Location (DOUT_S_ROOT):</td>
-		<td>[% case.dout_s_root %]</td>
-	      </tr>
-	      <tr>
-		<td>Project or Experiment Type:</td>
-		<td>[% case.expType_name %] - [% case.expType_desc %]</td>
-	      </tr>
-	      <tr>
-		<td>Grid (GRID):</td>
-		<td>[% case.grid %]</td>
-	      </tr>
-	      <tr>
-		<td>Job Queue (JOB_QUEUE):</td>
-		<td>[% case.job_queue %]</td>
-	      </tr>
-	      <tr>
-		<td>Job Wallclock Time (JOB_WALLCLOCK):</td>
-		<td>[% case.job_time %]</td>
-	      </tr>
-	      <tr>
-		<td>Machine (MACH):</td>
-		<td>[% case.machine %]</td>
-	      </tr>
-	      <tr>
-		<td>Model (MODEL):</td>
-		<td>[% case.model %]</td>
-	      </tr>
-	      <tr>
-		<td>Model Version (MODEL_VERSION):</td>
-		<td>[% case.model_version %]</td>
-	      </tr>
-	      <tr>
-		<td>MPI Library (MPILIB):</td>
-		<td>[% case.mpilib %]</td>
-	      </tr>
-	      <tr>
-		<td>Project (PROJECT):</td>
-		<td>[% case.project %]</td>
-	      </tr>
-	      <tr>
-		<td>Initial Archive Date:</td>
-		<td>[% case.archive_date %]</td>
-	      </tr>
-	      <tr>
-		<td>Restart Frequency (REST_N):</td>
-		<td>[% case.rest_n %]</td>
-	      </tr>
-	      <tr>
-		<td>Restart Option (REST_OPTION):</td>
-		<td>[% case.rest_option %]</td>
-	      </tr>
-	      <tr>
-		<td>Run Directory (RUNDIR):</td>
-		<td>[% case.run_dir %]</td>
-	      </tr>
-	      <tr>
-		<td>Run Reference Case (RUN_REFCASE):</td>
-		<td>[% case.run_refcase %]</td>
-	      </tr>
-	      <tr>
-		<td>Run Reference Date (RUN_REFDATE):</td>
-		<td>[% case.run_refdate %]</td>
-	      </tr>
-	      <tr>
-		<td>Run Start Date (RUN_STARTDATE):</td>
-		<td>[% case.run_startdate %]</td>
-	      </tr>
-	      <tr>
-		<td>Run Type (RUNTYPE):</td>
-		<td>[% case.run_type %]</td>
-	      </tr>
-	      <tr>
-		<td>Case User Name (USER):</td>
-		<td>[% case.caseuser %]</td>
-	      </tr>
-	      <tr>
-		<td>Stop Frequency (STOP_N):</td>
-		<td>[% case.stop_n %]</td>
-	      </tr>
-	      <tr>
-		<td>Stop Option (STOP_OPTION):</td>
-		<td>[% case.stop_option %]</td>
-	      </tr>
-	    </table>
-	  </div>
+          <div style="text-align: center;" id="caseTable_buttons">
+            <button id="caseBtn-show-all-children" class="btn btn-primary" type="button">Expand All</button>
+            <button id="caseBtn-hide-all-children" class="btn btn-primary" type="button">Collapse All</button>
+          </div>
 
-	  <div class="right">
-	    <table>
-	      <thead>
-		<th colspan="3" align="center">Settings Change History</th>
-	      </thead>
-	      <thead>
-		<th>Variable Name</th>		
-		<th>Value History</th>		
-		<th>Last Update</th>		
-	      </thead>
-	      [% FOREACH fn IN fields %]
-	      [% FOREACH key IN fn.keys.sort %]
+	  <table id="caseTable" style="width: 100%">
+	    <thead>
 	      <tr>
-		<td>[% fn.$key.field_name %]</td>
-		<td>[% fn.$key.field_value %]</td>
-		<td>[% fn.$key.last_update %]</td>
+		<th>Case Field Name</th>		
+		<th>Field Value</th>		
+		<th class="none">Change History</th>		
+	      </tr>
+	    </thead>
+	    <tbody>
+	      [% FOREACH key IN case.keys.sort %]
+	      <tr>
+		<td>[% key %]</td>
+		<td>[% case.$key.value %]</td>
+		<td>
+		  <table>
+		    <thead>
+		      <tr id="details">
+			<th>Field Value</th>
+			<th>Last Update</th>
+		      </tr>
+		    </thead>
+		    <tbody>
+		      [% FOREACH change IN case.$key.history %]
+		      <tr>
+			<td>[% change.field_value %]</td>
+			<td>[% change.last_update %]</td>
+		      </tr>
+		      [% END %]
+		    </tbody>
+		  </table>
+		</td>
 	      </tr>
 	      [% END %]
-	      [% END %]
-	    </table>
-	  </div>
+	    </tbody>
+	    <tfoot>
+	      <tr>
+		<th>Case Field Name</th>		
+		<th>Field Value</th>		
+		<th class="none">Change History</th>		
+	      </tr>
+	    </tfoot>
+	  </table>
 	</div>
 
 	<h3>Case Notes</h3>
@@ -355,7 +335,7 @@
 	  </form>
 
 	  <form action="/expdb2.0/cgi-bin/publishDSET.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]">
-	    <p><input type="checkbox" name="dset_cb" onclick="if(this.checked){this.form.submit()}"> Publish Experiment to CKAN/DSET.</input></p>
+	    <p><input type="checkbox" name="dset_cb" onclick="if(this.checked){this.form.submit()}"> Publish Experiment to DASH.</input></p>
 	  </form>
 
 	  <form action="/expdb2.0/cgi-bin/publishScience.cgi?case_id=[% case.case_id %]">

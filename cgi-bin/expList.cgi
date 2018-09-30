@@ -202,10 +202,11 @@ sub showCaseDetail
 
     if (lc($expType->{'name'}) eq 'cmip6') 
     {
-	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     }
     else
     {
+	# START HERE by removing $fields
 	($case, $fields, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
@@ -226,7 +227,6 @@ sub showCaseDetail
     my $vars = {
 	case        => $case,
 	expType     => $expType,
-	fields      => $fields,
 	status      => $status,
 	project     => $project,
 	notes       => $notes,

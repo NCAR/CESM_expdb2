@@ -16,7 +16,7 @@ use config;
 @ISA = qw(Exporter);
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers getCMIP6Users checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
-getCaseFields getCaseNotes getPercentComplete getDiags getCaseByID);
+getCaseFields getCaseFieldByName getCaseNotes getPercentComplete getDiags getCaseByID);
 
 sub getCasesByType
 {
@@ -292,13 +292,14 @@ sub getProcessStats
    $sth->finish();
 
    $sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date, 
-                j.disk_usage, j.disk_path
+                j.disk_usage, j.disk_path, j.archive_method
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
                 j.case_id = $case_id and
                 j.process_id = p.id and
                 j.status_id = s.id and
                 j.process_id = $process_id
+                group by j.status_id, j.model_date
 		order by p.name, j.last_update asc);
    $sth = $dbh->prepare($sql);
    $sth->execute();
@@ -313,6 +314,7 @@ sub getProcessStats
        $stat{'model_date'} = $ref->{'model_date'};
        $stat{'disk_usage'} = $ref->{'disk_usage'};
        $stat{'disk_path'} = $ref->{'disk_path'};
+       $stat{'archive_method'} = $ref->{'archive_method'};
        push(@stats, \%stat);
    }
    $sth->finish();
@@ -337,6 +339,30 @@ sub getCaseFields
        $field{$field_name}{'field_name'} = $field_name;
        $field{$field_name}{'field_value'} = $ref->{'field_value'};
        $field{$field_name}{'last_update'} = $ref->{'last_update'};
+       push(@fields, \%field);
+   }
+   $sth->finish();
+   return(@fields);
+}
+
+sub getCaseFieldByName
+{
+   my $dbh = shift;
+   my $case_id = shift;
+   my $field_name = shift;
+   my @fields;
+   
+   my $sql = qq(select * from t2e_fields where 
+                case_id = $case_id and
+                field_name = '$field_name'
+                order by last_update desc);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   while (my $ref = $sth->fetchrow_hashref())
+   {
+       my %field;
+       $field{'field_value'} = $ref->{'field_value'};
+       $field{'last_update'} = $ref->{'last_update'};
        push(@fields, \%field);
    }
    $sth->finish();
@@ -380,7 +406,7 @@ sub getPercentComplete
     my @start_year = split(/-/, $start_date);
 
     my $percent_complete = 0;
-    if ($nyears) {
+    if ($nyears && $model_year[0] && $start_year[0]) {
 	$percent_complete = (($model_year[0] - $start_year[0] + 0.0)/$nyears) * 100.0;
     }
 

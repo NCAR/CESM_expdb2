@@ -41,6 +41,7 @@
 	<th>Disk Usage</th>		
 	<th>Disk Path</th>		
 	<th>Last Update</th>		
+	<th>Archive Method</th>		
       </thead>
       [% FOREACH stat IN stats %]
       <tr>
@@ -50,6 +51,7 @@
 	<td>[% stat.disk_usage %]</td>
 	<td>[% stat.disk_path %]</td>
 	<td>[% stat.last_update %]</td>
+	<td>[% stat.archive_method %]</td>
       </tr>
       [% END %]
     </table>
