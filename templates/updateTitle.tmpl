@@ -3,7 +3,7 @@
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 
 <head>
-  <title>CESM2.0 Experiments Database</title>
+  <title>CESM2 Experiments Database</title>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
    <meta http-equiv="cache-control" content="max-age=0" />
    <meta http-equiv="cache-control" content="no-cache" />
@@ -37,18 +37,18 @@
     </p>
     [% END %]
 
-    <h3>Update a case title for [% case.casename %]</h3>
+    <h3>Update a case title for [% case.casename.value %]</h3>
     <br/>
     <form id="updateTitleForm" action="/expdb2.0/cgi-bin/caseTitle.cgi" method="POST">
     <table>
       <tr>
-	<textarea name="title" cols="100" rows="5" required>[% case.title %]</textarea>
+	<textarea name="title" cols="100" rows="5" required>[% case.title.value %]</textarea>
       </tr>
       <tr>
 	<td>
 	    <input type="hidden" name="action" value="updateTitleProc"/>
-	    <input type="hidden" name="case_id" value="[% case.case_id %]"/>
-            <input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
+	    <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+            <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
 	    <input id="submit" class="button" type="submit" value="Update"/>
 	  </form>
 	</td>

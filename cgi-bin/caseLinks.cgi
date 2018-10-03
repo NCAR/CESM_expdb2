@@ -145,12 +145,12 @@ sub addLink
 {
     my $case_id = shift;
     my $expType_id = shift;
-    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
+    my ($case, $status, $project, $notes, $links, $globalAtts);
 
     # TODO add all the experiment types
     if ($expType_id == 1) 
     {
-	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     }
     my @processes = getProcess($dbh);
     my @linkTypes = getLinkTypes($dbh);
@@ -224,12 +224,12 @@ sub updateLink
     my $case_id = shift;
     my $expType_id = shift;
     my $link_id = shift;
-    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
+    my ($case, $status, $project, $notes, $links, $globalAtts);
 
     # TODO add all the experiment types
     if ($expType_id == 1) 
     {
-	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     }
     my $link = getLinkByID($dbh, $link_id);
     my @processes = getProcess($dbh);

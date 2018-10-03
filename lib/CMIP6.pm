@@ -311,7 +311,7 @@ sub getCMIP6CaseByID
     my ($field_name, $process_name) = '';
     my ($sql1, $sth1);
     my @fields = qw(archive_date casename caseroot caseuser compiler compset continue_run 
-                    dout_s dout_s_root grid is_ens job_queue job_time machine model 
+                    dout_s dout_s_root expType_id grid is_ens job_queue job_time machine model 
                     model_cost model_throughput model_version mpilib postprocess project 
                     rest_n rest_option run_dir run_lastdate run_refcase run_refdate 
                     run_startdate run_type stop_n stop_option svnuser_id svn_repo_url title);

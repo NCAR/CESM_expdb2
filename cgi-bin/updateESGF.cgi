@@ -22,6 +22,7 @@ use user;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
 use CMIP6;
+##use GCMD;
 
 #------
 # main 
@@ -105,30 +106,31 @@ sub doActions()
 	$validstatus{'message'} = $req->param('statusMsg');
     }
 
-    if ($action eq "update")
+    if ($action eq "")
     {
-	&updateTitle($req->param('case_id'),$req->param('expType_id'));
+	&publishESGFupdate($req->param('case_id'),$req->param('expType_id'));
     }
-    elsif ($action eq "updateTitleProc")
+    elsif ($action eq "updatePublishESGF") 
     {
-	&updateTitleProcess($req->param('case_id'));
+	&publishESGFupdateProcess($req->param('case_id'),$req->param('expType_id'));
     }
     else
     {
 	$dbh->disconnect;
 	print $req->header(-cookie=>$cookie);
 	print qq(<script type="text/javascript">
-                            alert('Problem in caseTitle doactions'); 
+                            alert('Problem in publishESGF doactions'); 
                             window.close();
                             </script>);
     }
 }
 
+
 #------------------
-# updateTitle - popup form to update a case title
+# publishESGFupdate
 #------------------
 
-sub updateTitle
+sub publishESGFupdate
 {
     my $case_id = shift;
     my $expType_id = shift;
@@ -143,6 +145,7 @@ sub updateTitle
 	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
+    # START HERE - need a publication status table update
     my $vars = {
 	case          => $case,
 	authUser      => \%item,
@@ -150,7 +153,7 @@ sub updateTitle
     };
 	
     print $req->header(-cookie=>$cookie);
-    my $tmplFile = '../templates/updateTitle.tmpl';
+    my $tmplFile = '../templates/updateESGF.tmpl';
 
     my $template = Template->new({
 	ENCODING => 'utf8',
@@ -162,12 +165,11 @@ sub updateTitle
 
 }
 
-
 #------------------
-# updateTitleProc
+# publishESGFupdateProcess
 #------------------
 
-sub updateTitleProcess
+sub publishESGFupdateProcess
 {
     my $case_id = shift;
 

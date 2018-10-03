@@ -22,6 +22,7 @@ use user;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
 use CMIP6;
+##use GCMD;
 
 #------
 # main 
@@ -105,52 +106,55 @@ sub doActions()
 	$validstatus{'message'} = $req->param('statusMsg');
     }
 
-    if ($action eq "update")
+    if ($action eq "")
     {
-	&updateTitle($req->param('case_id'),$req->param('expType_id'));
+	&publishESGF($req->param('case_id'),$req->param('expType_id'));
     }
-    elsif ($action eq "updateTitleProc")
+    elsif ($action eq "publishESGF")
     {
-	&updateTitleProcess($req->param('case_id'));
+	&publishESGFProcess($req->param('case_id'),$req->param('expType_id'));
     }
     else
     {
 	$dbh->disconnect;
 	print $req->header(-cookie=>$cookie);
 	print qq(<script type="text/javascript">
-                            alert('Problem in caseTitle doactions'); 
+                            alert('Problem in publishESGF doactions'); 
                             window.close();
                             </script>);
     }
 }
 
 #------------------
-# updateTitle - popup form to update a case title
+# publishESGF form
 #------------------
 
-sub updateTitle
+sub publishESGF
 {
     my $case_id = shift;
     my $expType_id = shift;
     my ($case, $status, $project, $notes, $links, $globalAtts);
 
+    # Check on permissions return validstatus message
+
+    # TODO branch on expType_id
     if ($expType_id == 1) 
     {
 	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     }
-    else
-    {
-	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
-    }
+
+    # construct the path to the conformed files
+    my $path = "/glade/...";
 
     my $vars = {
-	case          => $case,
-	authUser      => \%item,
-	validstatus   => \%validstatus,
+	case        => $case,
+	path        => $path,
+	authUser    => \%item,
+	validstatus => \%validstatus,
     };
 	
     print $req->header(-cookie=>$cookie);
-    my $tmplFile = '../templates/updateTitle.tmpl';
+    my $tmplFile = '../templates/publishESGF.tmpl';
 
     my $template = Template->new({
 	ENCODING => 'utf8',
@@ -164,10 +168,10 @@ sub updateTitle
 
 
 #------------------
-# updateTitleProc
+# publishESGFProcess
 #------------------
 
-sub updateTitleProcess
+sub publishESGFProcess
 {
     my $case_id = shift;
 
@@ -175,16 +179,13 @@ sub updateTitleProcess
     foreach my $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
     }
-    my $title = $dbh->quote($item{'title'});
-    my $sql = qq(update t2_cases set title = $title where id = $case_id);
-    my $sth = $dbh->prepare($sql);
-    $sth->execute();
-    $sth->finish();
+
+    # TODO generate email to ESGF group
 
     # refresh the current page
     print $req->header(-cookie=>$cookie);
     $item{message} =  qq(<script type="text/javascript">
-                     alert('Case title updated.');
+                     alert('Case published to ESGF.');
                      window.close();
                      if (window.opener && !window.opener.closed) {
                             window.opener.location.reload();
@@ -199,6 +200,7 @@ sub updateTitleProcess
 
     $template->process($tmplFile, \%item) || die ("Problem processing $tmplFile, ", $template->error());
 }
+
 
 $dbh->disconnect;
 exit;

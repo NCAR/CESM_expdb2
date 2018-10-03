@@ -118,7 +118,8 @@ def join_DECK_exps(db, cursor, version):
 
     # get the DECK MIP id from the t2_cmip6_MIP_types table
     count = 0
-    sql = "select count(id), id from t2_cmip6_MIP_types where name = 'DECK'";
+    #sql = "select count(id), id from t2_cmip6_MIP_types where name = 'DECK'";
+    sql = "select count(id), id from t2_cmip6_MIP_types where name = 'CMIP'";
     try:
         print ("Executing sql = {0}".format(sql))
         cursor.execute(sql)
@@ -175,7 +176,8 @@ def join_DECK_exps(db, cursor, version):
 
                 if not exists:
                     # insert a row into the t2_cmip6_exps
-                    sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version, DECK_id) value ('{0}','{1}','{2}','DECK','{3}',{4})".format(exp, description, uid[0], version, deck_type_id[0])
+                    #sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version, DECK_id) value ('{0}','{1}','{2}','DECK','{3}',{4})".format(exp, description, uid[0], version, deck_type_id[0])
+                    sql = "insert into t2_cmip6_exps (name, description, uid, design_mip, dreq_version, DECK_id) value ('{0}','{1}','{2}','CMIP','{3}',{4})".format(exp, description, uid[0], version, deck_type_id[0])
                     try:
                         print ("Executing sql = {0}".format(sql))
                         cursor.execute(sql)
