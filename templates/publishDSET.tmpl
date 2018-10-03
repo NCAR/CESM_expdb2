@@ -3,7 +3,7 @@
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 
 <head>
-  <title>CESM2.0 Experiments Database</title>
+  <title>CESM2 Experiments Database</title>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
    <meta http-equiv="cache-control" content="max-age=0" />
    <meta http-equiv="cache-control" content="no-cache" />
@@ -30,7 +30,7 @@
 
 <body>
   <div class="body">
-    <h1>[% case.casename %] - Publish to DSET</h1>
+    <h1>[% case.casename.value %] - Publish to DASH</h1>
 
     <div class="expDetail_accordion expDetail_applying">
     <div id="expDetail_accordion">
@@ -44,64 +44,64 @@
 	  </thead>
 	  <tr>
 	    <td>Case Name (CASE):</td>
-	    <td>[% case.casename %]</td>
+	    <td>[% case.casename.value %]</td>
 	    </td>
 	  </tr>
 	  <tr>
 	    <td>Caseroot (CASEROOT):</td>
-	    <td>[% case.caseroot %]</td>
+	    <td>[% case.caseroot.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Compiler (COMPILER):</td>
-	    <td>[% case.compiler %]</td>
+	    <td>[% case.compiler.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Component Set (COMPSET):</td>
-	    <td>[% case.compset %]</td>
+	    <td>[% case.compset.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Project or Experiment Type:</td>
-	    <td>[% case.expType_name %] - [% case.expType_desc %]</td>
+	    <td>[% case.expType_name.value %] - [% case.expType_desc.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Grid (GRID):</td>
-	    <td>[% case.grid %]</td>
+	    <td>[% case.grid.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Machine (MACH):</td>
-	    <td>[% case.machine %]</td>
+	    <td>[% case.machine.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Model (MODEL):</td>
-	    <td>[% case.model %]</td>
+	    <td>[% case.model.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Model Version (MODEL_VERSION):</td>
-	    <td>[% case.model_version %]</td>
+	    <td>[% case.model_version.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>MPI Library (MPILIB):</td>
-	    <td>[% case.mpilib %]</td>
+	    <td>[% case.mpilib.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Initial Archive Date:</td>
-	    <td>[% case.archive_date %]</td>
+	    <td>[% case.archive_date.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Run Reference Case (RUN_REFCASE):</td>
-	    <td>[% case.run_refcase %]</td>
+	    <td>[% case.run_refcase.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Run Reference Date (RUN_REFDATE):</td>
-	    <td>[% case.run_refdate %]</td>
+	    <td>[% case.run_refdate.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Run Start Date (STARTDATE):</td>
-	    <td>[% case.run_startdate %]</td>
+	    <td>[% case.run_startdate.value %]</td>
 	  </tr>
 	  <tr>
 	    <td>Run Type (RUNTYPE):</td>
-	    <td>[% case.run_type %]</td>
+	    <td>[% case.run_type.value %]</td>
 	  </tr>
 	</table>
       </div>
@@ -110,7 +110,7 @@
       <div id="expDetail_table">
 	<table class="bordered">
 	  <tr>
-	    <td valign="top"> <button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Notes:</td>
+	    <td valign="top"> <button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id.value %]&expType_id=[% case.expType_id.value %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Notes:</td>
 	    <td>
 	      <table>
 		<thead>
@@ -120,7 +120,7 @@
 		</thead>
 		[% FOREACH n IN notes %]
 		<tr>
-		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id %]&note_id=[% n.note_id %]&action=update&expType_id=[% case.expType_id %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id.value %]&note_id=[% n.note_id %]&action=update&expType_id=[% case.expType_id.value %]','height=200,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
 		  <td>[% n.note %]</td>
 		  <td>[% n.last_update %]</td>
 		</tr>
@@ -131,11 +131,11 @@
 	</table>
       </div>
 
-      <h3>Case Diagnostics and ESG Links</h3>
+      <h3>Case Diagnostics and CDG Links</h3>
       <div id="expDetail_table">
 	<table class="bordered">
 	  <tr>
-	    <td valign="top"><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&expType_id=[% case.expType_id %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Links:</td>
+	    <td valign="top"><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id.value %]&expType_id=[% case.expType_id.value %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-plus"></span></button> Case Links:</td>
 	    <td>
 	      <table>
 	      [% FOREACH lk IN links %]
@@ -147,7 +147,7 @@
 		  <th>Last Update</th>		
 		</thead>
 		<tr>
-		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id %]&link_id=[% lk.link_id %]&action=update&expType_id=[% case.expType_id %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
+		  <td><button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id.value %]&link_id=[% lk.link_id %]&action=update&expType_id=[% case.expType_id.value %]','height=300,width=800,scrollbars=yes')"><span class="ui-icon ui-icon-pencil"></span></button></td>
 		  <td>[% lk.process_name %]</td>
 		  <td>[% lk.linkType_name %]</td>
 		  [% http = lk.link %]

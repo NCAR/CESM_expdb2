@@ -146,12 +146,12 @@ sub addNote
 {
     my $case_id = shift;
     my $expType_id = shift;
-    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
+    my ($case, $status, $project, $notes, $links, $globalAtts);
 
     # TODO branch on expType_id
     if ($expType_id == 1) 
     {
-	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     }
 
     my $vars = {
@@ -220,12 +220,12 @@ sub updateNote
     my $case_id = shift;
     my $expType_id = shift;
     my $note_id = shift;
-    my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
+    my ($case, $status, $project, $notes, $links, $globalAtts);
 
     # TODO branch on expType_id
     if ($expType_id == 1) 
     {
-	($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     }
     my $note = getNoteByID($dbh, $note_id);
 

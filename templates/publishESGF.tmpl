@@ -3,7 +3,7 @@
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 
 <head>
-  <title>CESM2.0 Experiments Database</title>
+  <title>CESM2 Experiments Database</title>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
    <meta http-equiv="cache-control" content="max-age=0" />
    <meta http-equiv="cache-control" content="no-cache" />
@@ -28,56 +28,44 @@
    <script type="text/javascript" src="/expdb2.0/scripts/exp_dashboard.js"></script>  
 </head>
 
-<body style="text-align: left">
- <div align="center">
-   [% IF validstatus.status == 0 %]
-    <span class="error">Add a Case Note Error:</span>
+<body>
+  <div align="center">
+    [% IF validstatus.status == 0 %]
+    <span class="error">Publish to ESGF Error:</span>
     <p>
-	[% validstatus.message %]
+      [% validstatus.message %]
     </p>
     [% END %]
 
-    <h3>Add a new case link for [% case.casename.value %]</h3>
 
-    <form id="caseAddLinkForm" action="/expdb2.0/cgi-bin/caseLinks.cgi" method="POST">
-      <input type="hidden" name="action" value="addLinkProc"/>
+  <div class="body">
+    <h3>[% case.casename.value %] - Publish to ESGF</h3>
+    <p>The following email requesting publication will be sent. Data managers will update the
+      publication status using the Publish to ESGF update form.</p>
+
+    <pre>
+email address: gateway-publish@ucar.edu
+email subject: CESM EXDB ESGF Publication Notification: [% case.casename.value %]
+email body:
+
+CESM EXDB ESGF Publication Notification
+Case_ID: [% case.case_id.value %]
+Path: [% path %]
+</pre>
+<p> add editable path? Example for this case:  /glade/collections/cdg/cmip6/[% case.case_id.value %]/CMIP6/CMIP/NCAR/CESM2/[cmip6-experiment-name]/[ripf]/...</p>
+<p> add CC for users?</p>
+
+<br/>
+    <form id="updateTitleForm" action="/expdb2.0/cgi-bin/publishESGF.cgi" method="POST">
+      <input type="hidden" name="action" value="publishESFGProcess"/>
       <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
       <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-      <table class="bordered">
-	<tr>
-	  <td><b>Process:</b></td>
-	  <td>
-	    <select required name="processName">
-	      <option value="">Select Process</option>
-	      [% FOREACH p IN processes %]
-	      <option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
-	      [% END %]
-	    </select>
-	  </td>
-	</tr>
-	<tr>
-	  <td><b>Link Type:</b></td>
-	  <td>
-	    [% FOREACH lt IN linkTypes %]
-	    <input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"/><label for="[% lt.linkType_id %]">[% lt.linkType_name %]</label>
-	    [% END %]
-	  </td>
-	</tr>
-	<tr>
-	  <td><b>Link Value:</b></td>
-	  <td><textarea name="link" cols="100" rows="1" required></textarea></td>
-	</tr>
-	<tr>
-	  <td><b>Description:</b></td>
-	  <td><textarea name="description" cols="100" rows="5"></textarea></td>
-	</tr>
-	<tr>
-	  <td></td>
-    	  <td><input id="submit" class="button" type="submit" value="Submit"/> <input type="reset"/>
-	    <input class="button" type="button" value="Cancel" onclick="window.close(); if (window.opener && !window.opener.closed) { window.opener.location.reload();}"/></td>
-	</tr>
-      </table>
+      <input id="submit" class="button" type="submit" value="Send Email"/> &nbsp;&nbsp;
+      <input class="button" type="button" value="Cancel" onclick="window.close(); if (window.opener && !window.opener.closed) { window.opener.location.reload();}"/>
     </form>
- </div>
+
+  </div>
+
+</div>
 </body>
 </html>

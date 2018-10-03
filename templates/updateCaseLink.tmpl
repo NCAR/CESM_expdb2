@@ -37,7 +37,7 @@
     </p>
     [% END %]
 
-    <h3>Update a case link for [% case.casename %]</h3>
+    <h3>Update a case link for [% case.casename.value %]</h3>
     <br/>
     <form id="updateLinkForm" action="/expdb2.0/cgi-bin/caseLinks.cgi" method="POST">
       <table class="bordered">
@@ -91,7 +91,7 @@
 	      <td>
 		<input type="hidden" name="action" value="updateLinkProc"/>
 		<input type="hidden" name="link_id" value="[% link_id %]"/>
-		<input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
+		<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
 		<input id="submit" class="button" type="submit" value="Update"/>
 	      </form>
 	    </td>
@@ -99,7 +99,7 @@
 	      <form id="deleteLinkForm" action="/expdb2.0/cgi-bin/caseLinks.cgi" method="POST">
 		<input type="hidden" name="action" value="deleteLinkProc"/>
 		<input type="hidden" name="link_id" value="[% link_id %]"/>
-		<input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
+		<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
 		<input id="delete" class="button" type="submit" value="Delete"/>
 	      </form>
 	    </td>

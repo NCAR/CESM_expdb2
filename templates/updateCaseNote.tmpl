@@ -37,7 +37,7 @@
     </p>
     [% END %]
 
-    <h3>Update a case note for [% case.casename %]</h3>
+    <h3>Update a case note for [% case.casename.value %]</h3>
     <br/>
     <form id="updateNoteForm" action="/expdb2.0/cgi-bin/caseNotes.cgi" method="POST">
       <table>
@@ -51,7 +51,7 @@
 	  <td>
 	    <input type="hidden" name="action" value="updateNoteProc"/>
 	    <input type="hidden" name="note_id" value="[% note_id %]"/>
-	    <input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
+	    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
 	    <input id="submit" class="button" type="submit" value="Update"/>
 	  </td>
 	</form>
@@ -59,7 +59,7 @@
 	  <form id="deleteNoteForm" action="/expdb2.0/cgi-bin/caseNotes.cgi" method="POST">
 	    <input type="hidden" name="action" value="deleteNoteProc"/>
 	    <input type="hidden" name="note_id" value="[% note_id %]"/>
-	    <input type="hidden" name="expType_id" value="[% case.expType_id %]"/>
+	    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
 	    <input id="delete" class="button" type="submit" value="Delete"/>
 	  </form>
 	</td>
