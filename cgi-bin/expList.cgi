@@ -49,7 +49,7 @@ my ($loggedin, $session) = &checksession($req);
 my $cookie = $req->cookie(CGISESSID => $session->id);
 my $sid = $req->cookie('CGISESSID');
 # DEBUG
-$loggedin = 1;
+##$loggedin = 1;
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
 
@@ -105,10 +105,6 @@ sub doActions()
     if ( length($action) == 0)
     {
 	&showExpList(\%validstatus);
-    }
-    if ($action eq "showCMIP6Exps")
-    {
-	&showCMIP6Exps;
     }
     if ($action eq "showCaseDetail")
     {

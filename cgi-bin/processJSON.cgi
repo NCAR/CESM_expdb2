@@ -43,6 +43,8 @@ my $user = uri_unescape($req->param('username'));
 my $password = uri_unescape($req->param('password'));
 my $datafile = ($req->param('data'));
 my $data = uri_unescape($req->param('data'));
+
+## uncomment to debug from command line
 ##my $data;
 ##open(my $fh, '<', $datafile) or die "cannot open file $datafile";
 ##{
@@ -86,7 +88,7 @@ my @keys = qw(casename caseroot caseuser compiler compset continue_run
               dout_s dout_s_root grid job_queue job_time machine model 
               model_cost model_throughput model_version mpilib postprocess project 
               rest_n rest_option run_dir run_lastdate run_refcase run_refdate 
-              run_startdate run_type stop_n stop_option svn_repo_url title);
+              run_startdate run_type stop_n stop_option svnuser_id svn_repo_url title);
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
 my $jsonObj = JSON->new->allow_nonref;
@@ -115,7 +117,7 @@ $fields{'project'}          = $dbh->quote($json->{'PROJECT'});
 $fields{'rest_n'}           = $dbh->quote($json->{'REST_N'});
 $fields{'rest_option'}      = $dbh->quote($json->{'REST_OPTION'});
 $fields{'run_dir'}          = $dbh->quote($json->{'RUNDIR'});
-$fields{'run_lastdate'}     = $dbh->quote($json->{'run_lastdate'});
+$fields{'run_lastdate'}     = $dbh->quote($json->{'run_last_date'});
 $fields{'run_refcase'}      = $dbh->quote($json->{'RUN_REFCASE'});
 $fields{'run_refdate'}      = $dbh->quote($json->{'RUN_REFDATE'});
 $fields{'run_startdate'}    = $dbh->quote($json->{'RUN_STARTDATE'});
@@ -182,36 +184,6 @@ if ($json->{'postprocess'}) {
     $pp_fields{'timeseries'}{'path'}          = $dbh->quote($json->{'timeseries_path'});
     $pp_fields{'timeseries'}{'dates'}         = $dbh->quote($json->{'timeseries_dates'});
 
-    $pp_fields{'atm_timeseries'}{'status'}    = $json->{'atm_timeseries_status'};
-    $pp_fields{'atm_timeseries'}{'size'}      = $dbh->quote($json->{'atm_timeseries_size'});
-    $pp_fields{'atm_timeseries'}{'path'}      = $dbh->quote($json->{'atm_timeseries_path'});
-    $pp_fields{'atm_timeseries'}{'dates'}     = $dbh->quote($json->{'atm_timeseries_dates'});
-    
-    $pp_fields{'glc_timeseries'}{'status'}    = $json->{'glc_timeseries_status'};
-    $pp_fields{'glc_timeseries'}{'size'}      = $dbh->quote($json->{'glc_timeseries_size'});
-    $pp_fields{'glc_timeseries'}{'path'}      = $dbh->quote($json->{'glc_timeseries_path'});
-    $pp_fields{'glc_timeseries'}{'dates'}     = $dbh->quote($json->{'glc_timeseries_dates'});
-    
-    $pp_fields{'ice_timeseries'}{'status'}    = $json->{'ice_timeseries_status'};
-    $pp_fields{'ice_timeseries'}{'size'}      = $dbh->quote($json->{'ice_timeseries_size'});
-    $pp_fields{'ice_timeseries'}{'path'}      = $dbh->quote($json->{'ice_timeseries_path'});
-    $pp_fields{'ice_timeseries'}{'dates'}     = $dbh->quote($json->{'ice_timeseries_dates'});
-
-    $pp_fields{'lnd_timeseries'}{'status'}    = $json->{'lnd_timeseries_status'};
-    $pp_fields{'lnd_timeseries'}{'size'}      = $dbh->quote($json->{'lnd_timeseries_size'});
-    $pp_fields{'lnd_timeseries'}{'path'}      = $dbh->quote($json->{'lnd_timeseries_path'});
-    $pp_fields{'lnd_timeseries'}{'dates'}     = $dbh->quote($json->{'lnd_timeseries_dates'});
-
-    $pp_fields{'ocn_timeseries'}{'status'}    = $json->{'ocn_timeseries_status'};
-    $pp_fields{'ocn_timeseries'}{'size'}      = $dbh->quote($json->{'ocn_timeseries_size'});
-    $pp_fields{'ocn_timeseries'}{'path'}      = $dbh->quote($json->{'ocn_timeseries_path'});
-    $pp_fields{'ocn_timeseries'}{'dates'}     = $dbh->quote($json->{'ocn_timeseries_dates'});
-    
-    $pp_fields{'rof_timeseries'}{'status'}    = $json->{'rof_timeseries_status'};
-    $pp_fields{'rof_timeseries'}{'size'}      = $dbh->quote($json->{'rof_timeseries_size'});
-    $pp_fields{'rof_timeseries'}{'path'}      = $dbh->quote($json->{'rof_timeseries_path'});
-    $pp_fields{'rof_timeseries'}{'dates'}     = $dbh->quote($json->{'rof_timeseries_dates'});
-
     $pp_fields{'iconform'}{'status'}          = $json->{'iconform_status'};
     $pp_fields{'iconform'}{'size'}            = $dbh->quote($json->{'iconform_size'});
     $pp_fields{'iconform'}{'path'}            = $dbh->quote($json->{'iconform_path'});
@@ -229,11 +201,12 @@ my $svnlogin = $dbh->quote($json->{'svnlogin'});
 my $sql = qq(select count(user_id), user_id from t_svnusers where svnlogin = $fields{'svnlogin'});
 my $sth = $dbh->prepare($sql);
 $sth->execute() or die $dbh->errstr;
-($count, $item{'user_id'}) = $sth->fetchrow;
+($count, $item{'svnuser_id'}) = $sth->fetchrow;
 $sth->finish();
 if ($count == 0) {
     die "Error in $sql - no SVN user found";
 }
+$fields{'svnuser_id'} = $item{'svnuser_id'};
 
 # get the status table into a hash
 my %status;
@@ -276,7 +249,7 @@ if ($count == 0) {
                $fields{'job_queue'}, $fields{'job_time'}, $fields{'machine'}, $fields{'model'}, 
                $fields{'model_cost'}, $fields{'model_throughput'}, 
                $fields{'model_version'}, $fields{'mpilib'}, $fields{'postprocess'}, $fields{'project'},
-               $item{'expType_id'}, $item{'user_id'},
+               $item{'expType_id'}, $item{'svnuser_id'},
                $fields{'rest_n'}, $fields{'rest_option'}, $fields{'run_dir'}, 
                $fields{'run_lastdate'}, $fields{'run_refcase'}, $fields{'run_refdate'},
                $fields{'run_startdate'}, $fields{'run_type'}, $fields{'stop_n'}, 
@@ -292,7 +265,7 @@ else {
 	$count = 0;
 
 	# handle the initial archive_date as a separate case
-	$sql = qq(select count(id) from t2_cases  where 
+	$sql = qq(select count(id) from t2_cases where 
                   archive_date is NULL and 
                   id = $item{'case_id'} and expType_id = $item{'expType_id'});
 	$sth = $dbh->prepare($sql);

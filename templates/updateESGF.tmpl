@@ -50,23 +50,13 @@
       <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
 
       <table>
-	  <td>Verified?<br/>
-	    <input type="radio" name="verified" value="yes"/> Yes<br/>
-	    <input type="radio" name="verified" value="no" selected="selected"/> No
-	  </td>
 	  <td>Published?<br/>
 	    <input type="radio" name="published" value="yes"/> Yes<br/>
-	    <input type="radio" name="published" value="no" selected="selected"/> No
+	    <input type="radio" name="published" value="no" checked="checked"/> No
 	  </td>
-	  <td>Total Data Volume?<br/>
-	    <input type="text" name="volume" size="10"/>
-	    <select name="units">
-	      <option value="kb">KB</option>
-	      <option value="mb">MB</option>
-	      <option value="gb">GB</option>
-	      <option value="tb">TB</option>
-	      <option value="pb">PB</option>
-	    </select>
+	  <td>Verified?<br/>
+	    <input type="radio" name="verified" value="yes"/> Yes<br/>
+	    <input type="radio" name="verified" value="no" checked="checked"/> No
 	  </td>
 	<tr>
 	  <td><input id="submit" class="button" type="submit" value="Update"/> </td>
