@@ -52,6 +52,7 @@ my $data = uri_unescape($req->param('data'));
 ##    $data = <$fh>;
 ##}
 ##close($fh);
+## end uncomment
 
 my $loginType = 'SVN';
 $logger->debug("username = " . $user);
@@ -342,14 +343,17 @@ else {
 
 
 # load the run status into the t2j_status join table
-# only insert if the model_date has changed since the last time archive_metadata was run
+# only insert if the model_date, disk_usage, and disk_path has 
+# changed since the last time archive_metadata was run
 $pid = $procs{'case_run'};
 $pstat_id = $status{ $fields{'run_status'} };
 $sql = qq(select count(*) from t2j_status where
           case_id = $item{'case_id'} and
           status_id = $pstat_id and
           process_id = $pid and
-          model_date = $fields{'run_last_date'});
+          model_date = $fields{'run_last_date'} and
+          disk_usage = $fields{'run_size'} and
+          disk_path = $fields{'run_dir'});
 $sth = $dbh->prepare($sql);
 $sth->execute() or die $dbh->errstr;
 ($count) = $sth->fetchrow;
@@ -367,7 +371,8 @@ if (!$count) {
 }
 
 # load the sta status into the t2j_status join table
-# only insert if the model_date has changed since the last time archive_metadata was run
+# only insert if the model_date, disk_usage, and disk_path has 
+# changed since the last time archive_metadata was run
 if ($json->{'DOUT_S'}) {
     $pid = $procs{'case_st_archive'};
     $pstat_id = $status{ $fields{'sta_status'} };
@@ -375,7 +380,9 @@ if ($json->{'DOUT_S'}) {
               case_id = $item{'case_id'} and
               status_id = $pstat_id and
               process_id = $pid and
-              model_date = $fields{'sta_last_date'});
+              model_date = $fields{'sta_last_date'} and
+              disk_usage = $fields{'sta_size'} and
+              disk_path = $fields{'dout_s_root'});
     $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
     ($count) = $sth->fetchrow;
@@ -394,7 +401,8 @@ if ($json->{'DOUT_S'}) {
 }
 
 # load the post process statuses into the t2j_status join table if postprocessing is turned on
-# only insert if the model_date has changed since the last time archive_metadata was run
+# only insert if the model_date, disk_usage or disk_path has changed since the last 
+# time archive_metadata was run
 if ($json->{'postprocess'}) {
     foreach $pname (keys %pp_fields) {
 	$pid = $procs{$pname};
@@ -404,7 +412,9 @@ if ($json->{'postprocess'}) {
                   case_id = $item{'case_id'} and
                   status_id = $pstat_id and
                   process_id = $pid and
-                  model_date = $pp_fields{$pname}{'dates'});
+                  model_date = $pp_fields{$pname}{'dates'} and
+                  disk_usage = $pp_fields{$pname}{'size'} and
+                  disk_path = $pp_fields{$pname}{'path'});
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	($count) = $sth->fetchrow;
