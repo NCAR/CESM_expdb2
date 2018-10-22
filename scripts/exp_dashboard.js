@@ -126,7 +126,7 @@ $(document).ready(function() {
 
     var caseTable = $('#caseTable').DataTable( {
 	"responsive": true,
-	"lengthMenu": [ [25, 50, -1], [25, 50, "All"] ],
+	"lengthMenu": [ [-1, 25, 50], ["All", 25, 50] ],
 	"order": [ [ 0, 'asc'] ]
     } );
 

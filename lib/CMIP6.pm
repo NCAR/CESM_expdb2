@@ -307,14 +307,17 @@ sub getCMIP6CaseByID
     my @notes;
     my @links;
     my @sorted;
+    my $value;
     my $count = 0;
+    my ($firstname, $lastname, $email);
     my ($field_name, $process_name) = '';
     my ($sql1, $sth1);
-    my @fields = qw(archive_date casename caseroot caseuser compiler compset continue_run 
-                    dout_s dout_s_root expType_id grid is_ens job_queue job_time machine model 
-                    model_cost model_throughput model_version mpilib postprocess project 
+    my @fields = qw(archive_date casename caseroot caseuser compiler compset 
+                    dout_s_root grid is_ens job_queue job_time machine model 
+                    model_cost model_throughput model_version mpilib project 
                     rest_n rest_option run_dir run_lastdate run_refcase run_refdate 
-                    run_startdate run_type stop_n stop_option svnuser_id svn_repo_url title);
+                    run_startdate run_type stop_n stop_option svn_repo_url title);
+    my @bool_fields = qw(continue_run dout_s postprocess);
 
     # make sure the case exists
     my $sql = qq(select count(*) from t2_cases where id = $id);
@@ -353,6 +356,19 @@ sub getCMIP6CaseByID
 	    $case{$field}{'history'} = \@field_history;
 	}
 
+	# get all the boolean fields and their history values
+	foreach my $field (@bool_fields) {
+	    $sql = qq(select $field from t2_cases where id = $id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $value = $sth->fetchrow;
+	    $value == 1 ? $case{$field}{'value'} = "True" : ($case{$field}{'value'} = "False");
+	    $sth->finish();
+
+	    my @field_history = getCaseFieldByName($dbh, $id, $field);
+	    $case{$field}{'history'} = \@field_history;
+	}
+
 	# get the expType name seperately
 	$sql = qq(select count(expType_id), expType_id from t2_cases where id = $id);
 	$sth = $dbh->prepare($sql);
@@ -361,20 +377,35 @@ sub getCMIP6CaseByID
 	$sth->finish();
 
 	if ($count) {
-	    $sql = qq(select name, description, expDetail_template from t2_expType where id = $expType_id);
+	    $sql = qq(select name, description from t2_expType where id = $expType_id);
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
-	    ($case{'expType_name'}{'value'}, $case{'expType_desc'}{'value'}, $case{'expType_template'}{'value'}) = $sth->fetchrow();
+	    ($case{'expType_name'}{'value'}, $case{'expType_desc'}{'value'}) = $sth->fetchrow();
 	    $sth->finish();
+	    $case{'expType_id'}{'value'} = $expType_id;
 	}
 	else {
 	    $case{'expType_name'}{'value'} = "undefined";
 	    $case{'expType_desc'}{'value'} = "undefined";
-	    $case{'expType_template'}{'value'} = "undefined";
+	    $case{'expType_id'}{'value'} = 0;
 	}
 	$case{'expType_name'}{'history'} = qw();
 	$case{'expType_desc'}{'history'} = qw();
-	$case{'expType_template'}{'history'} = qw();
+
+	# get the svnlogin name seperately
+	$sql = qq(select count(u.user_id), u.firstname, u.lastname, u.email
+                  from t_svnusers as u, t2_cases as t where
+                  u.user_id = t.svnuser_id and
+                  t.id = $id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	($count, $firstname, $lastname, $email) = $sth->fetchrow();
+	if ($count) {
+	    $case{'archiver'}{'value'} = $firstname . ' ' . $lastname . ': ' . $email
+	}
+	my @field_history = getCaseFieldByName($dbh, $id, "svnuser_id");
+	$case{'archiver'}{'history'} = \@field_history;
+	# TODO later loop through the field history and resolve the id's returned
 
 	# get CMIP6 fields 
 	$sql = qq(select e.name as expName, e.description as expDesc, m.name as mipName, m.description as mipDesc, j.variant_label, 
@@ -528,7 +559,7 @@ sub getCMIP6CaseByID
 	# construct the sub_experiment and sub_experiment_id
 	$globalAtts{'sub_experiment'} = '';
 	$globalAtts{'sub_experiment_id'} = '';
-	if ($case{'is_ens'}{'value'} eq "true") 
+	if ($case{'is_ens'}{'value'} eq "true")
 	{
 	    $globalAtts{'sub_experiment'} = qq(s$child_times[0]-$project{'cmip6_variant_label'}) ;
 	    $globalAtts{'sub_experiment_id'} = qq(s$child_times[0]);
@@ -774,7 +805,7 @@ sub getCMIP6Status
                  c.run_startdate, j.nyears
                  from t2_cases as c, t2_cmip6_exps as e, t2j_cmip6 as j
                  where c.id = j.case_id and
-                 e.id = j.exp_id and
+                 en.id = j.exp_id and
                  j.exp_id = e.id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -841,7 +872,7 @@ sub getCMIP6Status
 	 $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
-	# compute the sta percentage complete
+	# compute the timeseries percentage complete
 	$case{'ts_percent_complete'} = getPercentComplete($case{'ts_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
 	# get the conform status
@@ -849,7 +880,7 @@ sub getCMIP6Status
                       s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
-                      j.process_id = 3 and 
+                      j.process_id = 17 and 
                       j.status_id = s.id
                       order by last_update desc
                       limit 1);

@@ -57,37 +57,31 @@ my $json = $jsonObj->decode($data);
 
 my $queryType = $json->{'queryType'};
 my $expType = $json->{'expType'};
-my $returnCode = ''; 
-
 my ($count, $case_id, $expType_id) = checkCase($dbh, $json->{'casename'}, $expType);
+my %case;
+$case{'case_id'} = $case_id;
 
 # look at the queryType to determine what needs to be returned
 if ($queryType eq 'checkCaseExists') {
-
-    # return the count value as True or False
-    $returnCode = 'True'; 
+    # return the case_id
     if ($count == 0) {
-	$returnCode = 'False';
 	print $req->header('text/html', '500 Case does not exist!');
-	print $req->h1($returnCode);
+	print to_json(\%case);
     }
     else {
 	print $req->header('text/html', '200');
-	print $req->h1($returnCode);
+	print to_json(\%case);
     }
 }
 elsif ($queryType eq 'CMIP6GlobalAtts') {
     my $json = JSON->new->allow_nonref;
-    my ($case, $fields, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-    
-    my $json_text = 
+    my ($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     print $req->header('application/json');
     print to_json($globalAtts);
 }
 else {
-    $returnCode = 'False';
     print $req->header('text/html', '501 invalid query type');
-    print $req->h1($returnCode);
+    print $req->h1('False');
 }
 exit 0;
 
