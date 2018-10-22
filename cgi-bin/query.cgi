@@ -79,8 +79,6 @@ if ($queryType eq 'checkCaseExists') {
 elsif ($queryType eq 'CMIP6GlobalAtts') {
     my $json = JSON->new->allow_nonref;
     my ($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-    
-    my $json_text = 
     print $req->header('application/json');
     print to_json($globalAtts);
 }
