@@ -228,7 +228,11 @@
 	      [% FOREACH key IN case.keys.sort %]
 	      <tr>
 		<td>[% key %]</td>
+		[% IF key == "svn_repo_url"%]
+		<td><a href="[% case.$key.value %]" target="_blank">[% case.$key.value %]</a></td>
+		[% ELSE %]
 		<td>[% case.$key.value %]</td>
+		[% END %]
 		<td>
 		  <table>
 		    <thead>

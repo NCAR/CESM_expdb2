@@ -138,17 +138,13 @@ sub publishESGF
     # Check on permissions return validstatus message
 
     # TODO branch on expType_id
-    if ($expType_id == 1) 
+    if ($expType_id == '1') 
     {
 	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     }
 
-    # construct the path to the conformed files
-    my $path = "/glade/...";
-
     my $vars = {
 	case        => $case,
-	path        => $path,
 	authUser    => \%item,
 	validstatus => \%validstatus,
     };

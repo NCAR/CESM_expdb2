@@ -45,15 +45,13 @@
 
     <pre>
 email address: gateway-publish@ucar.edu
-email subject: CESM EXDB ESGF Publication Notification: [% case.casename.value %]
+email subject: CESM EXDB ESGF Publication Notification: [% case.case_id.value %]
 email body:
 
 CESM EXDB ESGF Publication Notification
 Case_ID: [% case.case_id.value %]
-Path: [% path %]
+Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]
 </pre>
-<p> add editable path? Example for this case:  /glade/collections/cdg/cmip6/[% case.case_id.value %]/CMIP6/CMIP/NCAR/CESM2/[cmip6-experiment-name]/[ripf]/...</p>
-<p> add CC for users?</p>
 
 <br/>
     <form id="updateTitleForm" action="/expdb2.0/cgi-bin/publishESGF.cgi" method="POST">
@@ -64,6 +62,7 @@ Path: [% path %]
       <input class="button" type="button" value="Cancel" onclick="window.close(); if (window.opener && !window.opener.closed) { window.opener.location.reload();}"/>
     </form>
 
+<br/>
   </div>
 
 </div>
