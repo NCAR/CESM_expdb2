@@ -213,7 +213,7 @@ def join_DECK_exps(db, cursor, version):
                     
                 if count3[0] == 0:
                     # insert a new join record
-                    sql = "insert into t2j_cmip6 (exp_id, deck_id, design_mip_id, variant_label) value ({0},{1},{2},'r0i0p0f0')".format(exp_id, deck_type_id[0], deck_id)
+                    sql = "insert into t2j_cmip6 (exp_id, deck_id, design_mip_id) value ({0},{1},{2})".format(exp_id, deck_type_id[0], deck_id)
                     try:
                         print ("Executing sql = {0}".format(sql))
                         cursor.execute(sql)
@@ -224,7 +224,7 @@ def join_DECK_exps(db, cursor, version):
 
                 if count3[0] == 1:
                     # update record with deck_id
-                    sql = "update t2j_cmip6 set deck_id = {0}, design_mip_id = {1}, variant_label = 'r0i0p0f0' where exp_id = {2}".format(deck_type_id[0], deck_id, exp_id)
+                    sql = "update t2j_cmip6 set deck_id = {0}, design_mip_id = {1} where exp_id = {2}".format(deck_type_id[0], deck_id, exp_id)
                     try:
                         print ("Executing sql = {0}".format(sql))
                         cursor.execute(sql)
@@ -289,7 +289,7 @@ def main(options):
                 db.rollback()
 
             if count2[0] == 0:
-                sql = "insert into t2j_cmip6 (exp_id, design_mip_id, variant_label) value ({0},{1},'r0i0p0f0')".format(row[0], design_mip_id)
+                sql = "insert into t2j_cmip6 (exp_id, design_mip_id) value ({0},{1})".format(row[0], design_mip_id)
                 try:
                     print ("Executing sql = {0}".format(sql))
                     cursor1.execute(sql)
@@ -299,7 +299,7 @@ def main(options):
                     db.rollback()
 
             if count2[0] == 1:
-                sql = "update t2j_cmip6 set design_mip_id = {0}, variant_label = 'r0i0p0f0' where exp_id = {1}".format(design_mip_id, row[0])
+                sql = "update t2j_cmip6 set design_mip_id = {0} where exp_id = {1}".format(design_mip_id, row[0])
                 try:
                     print ("Executing sql = {0}".format(sql))
                     cursor1.execute(sql)

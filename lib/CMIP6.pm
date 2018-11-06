@@ -805,7 +805,7 @@ sub getCMIP6Status
                  c.run_startdate, j.nyears
                  from t2_cases as c, t2_cmip6_exps as e, t2j_cmip6 as j
                  where c.id = j.case_id and
-                 en.id = j.exp_id and
+                 e.id = j.exp_id and
                  j.exp_id = e.id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -859,7 +859,7 @@ sub getCMIP6Status
 
 	# get the timeseries status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      j.total_time, s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 3 and 
@@ -869,15 +869,21 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'ts_disk_usage'}, $case{'ts_model_date'}, $case{'ts_last_update'},
-	 $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
+	 $case{'ts_process_time'}, $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
 	# compute the timeseries percentage complete
-	$case{'ts_percent_complete'} = getPercentComplete($case{'ts_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+	$case{'ts_percent_complete'} = 0;
+	if (index($case{'ts_model_date'}, "-") != -1 ) {
+	    my @ts_date_parts = split(/-/, $case{'ts_model_date'});
+	    my $endts_model_date = substr($ts_date_parts[1], 0, 4);
+	    $case{'ts_percent_complete'} = getPercentComplete($endts_model_date, $ref->{'nyears'}, $ref->{'run_startdate'});
+	}
+	    
 
 	# get the conform status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      j.total_time, s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 17 and 
@@ -887,12 +893,18 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'conform_disk_usage'}, $case{'conform_model_date'}, $case{'conform_last_update'},
-	 $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
+	 $case{'conform_process_time'}, $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
 	# compute the conform percentage complete
-	$case{'conform_percent_complete'} = getPercentComplete($case{'conform_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+	$case{'conform_percent_complete'} = 0;
+	if (index($case{'conform_model_date'}, "-") != -1 ) {
+	    my @conform_date_parts = split(/-/, $case{'conform_model_date'});
+	    my $endconform_model_date = substr($conform_date_parts[1], 0, 4);
+	    $case{'conform_percent_complete'} = getPercentComplete($endconform_model_date, $ref->{'nyears'}, $ref->{'run_startdate'});
+	}
 
+	# compute total disk usage
 	$case{'total_disk_usage'} = $case{'run_disk_usage'} + $case{'sta_disk_usage'} + $case{'ts_disk_usage'} + $case{'conform_disk_usage'};
         
         push(@cases, \%case);

@@ -9,16 +9,16 @@ create table t2_cmip6_sources(
        primary key (id));	
 
 insert into t2_cmip6_sources (name, description)
-values ('AGCM', 'atmospheric general circulation model, including a land model'),
-       ('OGCM', 'ocean general circulation model, including a sea-ice model'),
-       ('AOGCM', 'atmosphere-ocean global climate model'),
-       ('LAND', 'land model but only if run "offline"'),
-       ('ISM', 'ice-sheet model, which may be run "offline" or coupled to an AOGCM'),
-       ('RAD', 'radiation code but only if run "offline"'),
-       ('BGC', 'for a model component that includes a biogeochemical treatment which at the very least accounts for carbon reservoirs and fluxes in the atmosphere, terrestrial biosphere, and ocean; when run coupled to an AOGCM with atmospheric concentration calculated or prescribed, specify "AOGCM BGC"'),
-       ('CHEM', 'appears with either AOGCM or AGCM in models that calculate, rather than rely on prescribed concentrations of atmospheric oxidants including at least ozone'),
-       ('AER', 'appears with AOGCM and AGCM in models that calculate tropospheric aerosols driven by emission fluxes, rather than relying on prescribed concentrations'),
-       ('SLAB', 'a slab-ocean model');
+values ('AGCM', 'atmospheric general circulation model run with prescribed ocean surface conditions and usually a model of the land surface'),
+       ('OGCM', 'ocean general circulation model run uncoupled from an AGCM but, usually including a sea-ice model'),
+       ('AOGCM', 'coupled atmosphere-ocean global climate model, additionally including explicit representation of at least the land and sea ice'),
+       ('LAND', 'Land model run uncoupled from the atmosphere'),
+       ('ISM', 'ice-sheet model that includes ice-flow'),
+       ('RAD', 'radiation component of an atmospheric model run "offline"'),
+       ('BGC', 'biogeochemistry model component that at the very least accounts for carbon reservoirs and fluxes in the atmosphere, terrestrial biosphere, and ocean'),
+       ('CHEM', 'chemistry treatment in an atmospheric model that calculates atmospheric oxidant concentrations (including at least ozone), rather than prescribing them'),
+       ('AER', 'aerosol treatment in an atmospheric model where concentrations are calculated based on emissions, transformation, and removal processes (rather than being prescribed or omitted entirely)'),
+       ('SLAB', 'slab-ocean used with an AGCM in representing the atmosphere-ocean coupled system');
 
 drop table if exists t2j_cmip6_source_types;
 

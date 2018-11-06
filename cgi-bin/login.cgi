@@ -117,8 +117,9 @@ sub showloginpage
 		'error' => $error,
 	};
 
-	my $loginpage = "../templates/login.tmpl";
-	my $tt = Template->new(RELATIVE => 1);
+	#my $loginpage = "../templates/login.tmpl";
+    my $loginpage = "../templates/login.tt";
+	my $tt = Template->new(RELATIVE => 1, INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates');
 	print "Content-type: text/html \n\n";
 	$tt->process($loginpage, $vars) or die ("problem processing $loginpage,", $tt->error());
 }

@@ -1,0 +1,21 @@
+<nav class="pull-right">
+	<ul class="breadcrumb">
+		<li role="presentation" class="dropdown"> 
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> Select a case name <span class="caret"></span> </a> 
+            <ul class="dropdown-menu"> 
+                [% FOREACH case IN allCases %]
+                <li><a href="expList.cgi?action=showCaseDetail&case_id=[% case.case_id %]"><b>[% case.expType %]</b> - [% case.casename %]</a></li> 
+                [% END %]
+             </ul> 
+         </li>
+         <li role="presentation" class="">
+            Logged in as <b>[% authUser.lfirstname %] [% authUser.llastname %]</b>
+         </li>	
+
+         <li role="presentation">
+         	<a href="/expdb2.0/cgi-bin/login.cgi?action=logout">Logout</a>
+         </li>
+
+         
+	</ul>
+</nav>

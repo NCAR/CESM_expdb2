@@ -8,7 +8,7 @@ create table t2j_cmip6(
        `deck_id` INTEGER,
        `design_mip_id` INTEGER,
        `parentExp_id` INTEGER,
-       `variant_label` VARCHAR(20),
+       `variant_label` VARCHAR(20) default 'r0i0p0f0',
        `ensemble_num` INTEGER,
        `ensemble_size` INTEGER,
        `assign_id` INTEGER,

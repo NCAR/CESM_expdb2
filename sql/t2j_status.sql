@@ -18,6 +18,7 @@
 --
 -- Table structure for table `t2j_status`
 --
+use csegdb;
 
 DROP TABLE IF EXISTS `t2j_status`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -30,7 +31,8 @@ CREATE TABLE `t2j_status` (
   `model_date` varchar(150) DEFAULT NULL,
   `disk_usage` varchar(20) DEFAULT NULL,
   `disk_path` varchar(4096) DEFAULT NULL,
-  `archive_method` enum('cylc','archive_metadata') DEFAULT NULL
+  `archive_method` enum('cylc','archive_metadata') DEFAULT NULL,
+  `total_time` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

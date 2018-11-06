@@ -28,4 +28,8 @@ values ('case_run','model run'),
        ('xconform', 'conform variables'),
        ('publish_esgf', 'ESGF publication'),
        ('publish_dash', 'DASH publication'),
-       ('publish_cdg', 'Climate Data Guide publication');
+       ('publish_cdg', 'Climate Data Guide publication'),
+       ('cvdp_diagnostics', 'climate variability diagnostics'),
+       ('cmat_diagnostics', 'climate model analysis tool diagnostics'),
+       ('ccr_diagnostics', 'climate change research diagnostics'),
+       ('atmv_diagnostics', 'atmosphere variability diagnostics');
