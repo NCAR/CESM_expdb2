@@ -664,6 +664,10 @@
 			      </td>
 			    </tr>
 			    [% END %]
+			    <tr>
+			      <td id="details">Last Archive Method</td>
+			      <td>[% exp.run_archive_method %]</td>
+			    </tr>
 			  </tbody>
 
 			  <tfoot>
@@ -731,6 +735,117 @@
 				</table>
 			      </td>
 			    </tr>
+=======
+		      </td>
+		      <td valign="top">
+			<table class="small">
+			  <tr>
+			    <td id="details">Disk Usage</td>
+			    <td>[% exp.sta_disk_usage %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Archive Date</td>
+			    <td>[% exp.sta_model_date %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Process Time</td>
+			    <td>[% exp.sta_process_time %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Update</td>
+			    <td>[% exp.sta_last_update %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Archive Method</td>
+			    <td>[% exp.sta_archive_method %]</td>
+			  </tr>
+			</table>
+		      </td>
+		      <td valign="top">
+			<table class="small">
+			  <tr>
+			    <td id="details">Disk Usage</td>
+			    <td>[% exp.ts_disk_usage %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Timeseries Date</td>
+			    <td>[% exp.ts_model_date %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Process Time</td>
+			    <td>[% exp.ts_process_time %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Update</td>
+			    <td>[% exp.ts_last_update %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Archive Method</td>
+			    <td>[% exp.ts_archive_method %]</td>
+			  </tr>
+			</table>
+		      </td>
+		      <td valign="top">
+			<table class="small">
+			  <tr>
+			    <td id="details">Disk Usage</td>
+			    <td>[% exp.conform_disk_usage %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Conform Date</td>
+			    <td>[% exp.conform_model_date %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Process Time</td>
+			    <td>[% exp.conform_process_time %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Update</td>
+			    <td>[% exp.conform_last_update %]</td>
+			  </tr>
+			  <tr>
+			    <td id="details">Last Archive Method</td>
+			    <td>[% exp.conform_archive_method %]</td>
+			  </tr>
+			</table>
+		      </td>
+		      <td valign="top">
+			<table class="small">
+			  <tr>
+			    <td valign="top">Total Disk Usage</td>
+			    <td>[% exp.total_disk_usage %]</td>
+			  </tr>
+			  <tr>
+			    <td valign="top">Run Percent Complete</td>
+			    [% IF exp.run_percent_complete > 0 %]
+		            <td bgcolor="#00ff00">[% exp.run_percent_complete %]%</td>
+			    [% ELSE %]
+		            <td bgcolor="#ffccff">[% exp.run_percent_complete %]%</td>
+			    [% END %]
+			  </tr>
+			  <tr>
+			    <td valign="top">Archive Percent Complete</td>
+			    [% IF exp.sta_percent_complete > 0 %]
+		            <td bgcolor="#00ff00">[% exp.sta_percent_complete %]%</td>
+			    [% ELSE %]
+		            <td bgcolor="#ffccff">[% exp.sta_percent_complete %]%</td>
+			    [% END %]
+			  </tr>
+			  <tr>
+			    <td valign="top">Timeseries Percent Complete</td>
+			    [% IF exp.ts_percent_complete > 0 %]
+		            <td bgcolor="#00ff00">[% exp.ts_percent_complete %]%</td>
+			    [% ELSE %]
+		            <td bgcolor="#ffccff">[% exp.ts_percent_complete %]%</td>
+			    [% END %]
+			  </tr>
+			  <tr>
+			    <td valign="top">Conform Percent Complete</td>
+			    [% IF exp.conform_percent_complete > 0 %]
+		            <td bgcolor="#00ff00">[% exp.conform_percent_complete %]%</td>
+			    [% ELSE %]
+		            <td bgcolor="#ffccff">[% exp.conform_percent_complete %]%</td>
+>>>>>>> dbaa7c76d30b019b0d387e13d7fffc19c54c945d
 			    [% END %]
 			  </tbody>
 			  <tfoot>

@@ -354,6 +354,12 @@ sub getCMIP6CaseByID
 
 	    my @field_history = getCaseFieldByName($dbh, $id, $field);
 	    $case{$field}{'history'} = \@field_history;
+	    # if there is a history, update the display value to the most current
+	    my $field_history = @field_history;
+	    if ($field_history > 0) {
+		$case{$field}{'value'} = $field_history[0]{'field_value'};
+	    }
+	    
 	}
 
 	# get all the boolean fields and their history values
@@ -817,12 +823,28 @@ sub getCMIP6Status
 	$case{'casename'} = $ref->{'casename'};
 	$case{'expName'} = $ref->{'name'};
 	$case{'cmip6_exp_uid'} = $ref->{'uid'};
+
+	# get the most current value for cost 
 	$case{'run_model_cost'} = $ref->{'model_cost'};
+	my @field_history = getCaseFieldByName($dbh, $case{'case_id'}, 'model_cost');
+	# if there is a history, update the display value to the most current
+	my $field_history = @field_history;
+	if ($field_history > 0) {
+	    $case{'run_model_cost'} = $field_history[0]{'field_value'};
+	}
+
+	# get the most current value for throughput
 	$case{'run_model_throughput'} = $ref->{'model_throughput'};
+	@field_history = getCaseFieldByName($dbh, $case{'case_id'}, 'model_throughput');
+	# if there is a history, update the display value to the most current
+	$field_history = @field_history;
+	if ($field_history > 0) {
+	    $case{'run_model_throughput'} = $field_history[0]{'field_value'};
+	}
 
 	# get the case_run status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      s.code, s.color, j.archive_method
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 1 and 
@@ -832,15 +854,33 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'run_disk_usage'}, $case{'run_model_date'}, $case{'run_last_update'},
-	 $case{'run_code'}, $case{'run_color'}) = $sth1->fetchrow();
+	 $case{'run_code'}, $case{'run_color'}, $case{'run_archive_method'}) = $sth1->fetchrow();
 	$sth1->finish();
 
+	# get the most non-zero current run disk usage
+	if ( length($case{'run_disk_usage'} ) <= 1 ) {
+	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
+                       j.case_id = $ref->{'id'} and
+                       j.process_id = 1 and 
+                       j.status_id = s.id and
+                       j.disk_usage is not null and
+                       j.disk_usage <> '0' and
+                       j.archive_method = 'archive_metadata'
+                       order by last_update desc
+                       limit 1);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $case{'run_disk_usage'} = $sth1->fetchrow();
+	    $sth1->finish();
+	}
+
 	# compute the run percentage complete
+
 	$case{'run_percent_complete'} = getPercentComplete($case{'run_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
 	# get the case_st_archive status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      s.code, s.color, j.archive_method
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 2 and 
@@ -851,8 +891,25 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'sta_disk_usage'}, $case{'sta_model_date'}, $case{'sta_last_update'},
-	 $case{'sta_code'}, $case{'sta_color'}) = $sth1->fetchrow();
+	 $case{'sta_code'}, $case{'sta_color'}, $case{'sta_archive_method'}) = $sth1->fetchrow();
 	$sth1->finish();
+
+	# get the most non-zero current sta disk usage
+	if ( length($case{'sta_disk_usage'} ) <= 1 ) {
+	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
+                       j.case_id = $ref->{'id'} and
+                       j.process_id = 2 and 
+                       j.status_id = s.id and
+                       j.disk_usage is not null and
+                       j.disk_usage <> '0' and
+                       j.archive_method = 'archive_metadata'
+                       order by last_update desc
+                       limit 1);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $case{'sta_disk_usage'} = $sth1->fetchrow();
+	    $sth1->finish();
+	}
 
 	# compute the sta percentage complete
 	$case{'sta_percent_complete'} = getPercentComplete($case{'sta_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
@@ -871,6 +928,24 @@ sub getCMIP6Status
 	($case{'ts_disk_usage'}, $case{'ts_model_date'}, $case{'ts_last_update'},
 	 $case{'ts_process_time'}, $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
 	$sth1->finish();
+
+	# get the most non-zero current timeseries disk usage
+	if ( length($case{'ts_disk_usage'} ) <= 1 ) {
+	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
+                       j.case_id = $ref->{'id'} and
+                       j.process_id = 3 and 
+                       j.status_id = s.id and
+                       j.disk_usage is not null and
+                       j.disk_usage <> '0' and
+                       j.archive_method = 'archive_metadata'
+                       order by last_update desc
+                       limit 1);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $case{'ts_disk_usage'} = $sth1->fetchrow();
+	    $sth1->finish();
+	}
+
 
 	# compute the timeseries percentage complete
 	$case{'ts_percent_complete'} = 0;
@@ -895,6 +970,24 @@ sub getCMIP6Status
 	($case{'conform_disk_usage'}, $case{'conform_model_date'}, $case{'conform_last_update'},
 	 $case{'conform_process_time'}, $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
 	$sth1->finish();
+
+	# get the most non-zero current conform disk usage
+	if ( length($case{'conform_disk_usage'} ) <= 1 ) {
+	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
+                       j.case_id = $ref->{'id'} and
+                       j.process_id = 17 and 
+                       j.status_id = s.id and
+                       j.disk_usage is not null and
+                       j.disk_usage <> '0' and
+                       j.archive_method = 'archive_metadata'
+                       order by last_update desc
+                       limit 1);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $case{'conform_disk_usage'} = $sth1->fetchrow();
+	    $sth1->finish();
+	}
+
 
 	# compute the conform percentage complete
 	$case{'conform_percent_complete'} = 0;

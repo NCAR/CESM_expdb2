@@ -405,9 +405,16 @@ sub getPercentComplete
     my @model_year = split(/-/, $model_date);
     my @start_year = split(/-/, $start_date);
 
+    # check if the model year needs further parsing
+    my $model_year = @model_year;
+    my $model_yr = @model_year[0];
+    if ($model_year == 2) {
+	$model_yr = substr($model_year[0], 0, 4);
+    }
+
     my $percent_complete = 0;
-    if ($nyears && $model_year[0] && $start_year[0]) {
-	$percent_complete = (($model_year[0] - $start_year[0] + 0.0)/$nyears) * 100.0;
+    if ($nyears && $model_yr && $start_year[0]) {
+	$percent_complete = (($model_yr - $start_year[0] + 0.0)/$nyears) * 100.0;
     }
 
     return $percent_complete;

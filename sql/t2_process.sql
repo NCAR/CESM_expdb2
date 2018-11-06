@@ -33,3 +33,4 @@ values ('case_run','model run'),
        ('cmat_diagnostics', 'climate model analysis tool diagnostics'),
        ('ccr_diagnostics', 'climate change research diagnostics'),
        ('atmv_diagnostics', 'atmosphere variability diagnostics');
+
