@@ -18,4 +18,6 @@ values
 (14,'Ozone'),
 (15,'Sulfate Aerosol'),
 (16,'Solar only'),
-(17,'Volcanoes');
+(17,'Volcanoes'),
+(18,'1pctCO2'),
+(19,'abrupt-4xCO2');

@@ -348,7 +348,7 @@ sub reserveCaseCMIP6
 
 	# insert notes
 	my $note = $dbh->quote($item{'notes'});
-	if (length($note) > 0)
+	if (length($note) > 2)
 	{
 	    $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id) value ($case_id, $note, NOW(), $item{luser_id}));
 	    $sth = $dbh->prepare($sql);
