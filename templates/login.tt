@@ -375,7 +375,7 @@
                         </div>
                     </div>
 
-                    <form id="formVerify" class="form-verify" action="/expdb2.0/cgi-bin/login.cgi" method="POST" style="clear: both;">
+                    <form id="formVerify" class="form-verify" method="POST" style="clear: both;">
                         <!-- fieldset user details start -->
                         <fieldset style="" id="f-deets-user" class="deets">
                             <h2 class="fs-title">User Details</h2>

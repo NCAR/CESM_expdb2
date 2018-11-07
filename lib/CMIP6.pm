@@ -18,7 +18,7 @@ use expdb2_0;
 @ISA = qw(Exporter);
 @EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCMIP6Sources 
 getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6Inits getCMIP6Physics
-getCMIP6Forcings getCMIP6Diags);
+getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher);
 
 sub getCMIP6Experiments
 {
@@ -578,7 +578,7 @@ sub getCMIP6Sources
 {
     my $dbh = shift;
     my @CMIP6Sources;
-    my $sql = "select * from t2_cmip6_sources order by id";
+    my $sql = qq(select * from t2_cmip6_sources order by id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -610,14 +610,14 @@ sub checkCMIP6Sources
     
     while(my $CMIP6Source = shift(@inSources)) {
 	if ($CMIP6Source ~~ [1,3]) {
-	    my $sql = "select subtype_source_id from t2j_cmip6_source_types 
-                       where parent_source_id = $CMIP6Source";
+	    my $sql = qq(select subtype_source_id from t2j_cmip6_source_types 
+                       where parent_source_id = $CMIP6Source);
 	    my @associates = @{$dbh->selectcol_arrayref($sql)};
 	    # TODO - cross-check the associates array with
 	    # inSources using the Array::Utils module
 	}
-	my $sql = "select name from t2_cmip6_sources 
-                   where id = $CMIP6Source";
+	my $sql = qq(select name from t2_cmip6_sources 
+                   where id = $CMIP6Source);
 	my $sth = $dbh->prepare($sql);
 	$sth->execute();
 	my $source_name = $sth->fetchrow();
@@ -1099,7 +1099,7 @@ sub getCMIP6Forcings
     my $dbh = shift;
     my @CMIP6Forcings;
 
-    my $sql = "select * from t2_cmip6_forcings order by value";
+    my $sql = qq(select * from t2_cmip6_forcings order by value);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -1112,4 +1112,34 @@ sub getCMIP6Forcings
     }
     $sth->finish();
     return @CMIP6Forcings;
+}
+
+sub isCMIP6User
+{
+    my $dbh = shift;
+    my $user_id = shift;
+
+    my $sql = qq(select is_cmip6 from t_svnusers 
+                 where user_id = $user_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my ($is_cmip6) = $sth->fetchrow();
+
+    return $is_cmip6;
+}
+
+
+sub isCMIP6Publisher
+#TODO add column is_cmip6_publisher to the t_svnusers table
+{
+    my $dbh = shift;
+    my $user_id = shift;
+
+    my $sql = qq(select is_cmip6_publisher from t_svnusers 
+                 where user_id = $user_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my ($is_cmip6) = $sth->fetchrow();
+
+    return $is_cmip6;
 }
