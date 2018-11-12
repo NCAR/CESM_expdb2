@@ -25,7 +25,9 @@ sub getCMIP6Experiments
     my $dbh = shift;
     my ($sql1, $sth1);
     my ($sql2, $sth2);
+    my ($count, $case_id);
     my @CMIP6Exps;
+
     my $sql = "select * from t2_cmip6_exps order by name";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -37,15 +39,24 @@ sub getCMIP6Experiments
 	$CMIP6Exp{'description'} = $ref->{'description'};
 	$CMIP6Exp{'cmip6_exp_uid'} = $ref->{'uid'};
 	$CMIP6Exp{'designMIP'} = $ref->{'design_mip'};
-	$sql1 = qq(select count(case_id) from t2j_cmip6 
+	$sql1 = qq(select count(case_id), case_id, 
+                   IFNULL(DATE_FORMAT(request_date, '%Y-%m-%d %H:%i'),'') as request_date from t2j_cmip6 
                    where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
-	my $count = $sth1->fetchrow();
+	($count, $case_id, $CMIP6Exp{'request_date'}) = $sth1->fetchrow();
 	$sth1->finish();
 	if( $count ) {
-	    $sql1 = qq(select case_id from t2j_cmip6 
-                   where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
+	    $sql1 = qq(select DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i') from t2_cases
+                       where id = $case_id);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $CMIP6Exp{'archive_date'} = $sth1->fetchrow();
+	    $sth1->finish();
+
+	    $sql1 = qq(select case_id, 
+                       IFNULL(DATE_FORMAT(request_date, '%Y-%m-%d %H:%i'),'') as request_date from t2j_cmip6 
+                       where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
 	    $sth1 = $dbh->prepare($sql1);
 	    $sth1->execute();
 	    while(my $ref1 = $sth1->fetchrow_hashref())
@@ -57,11 +68,14 @@ sub getCMIP6Experiments
 		$CMIP6EnsExp{'cmip6_exp_uid'} = $ref->{'uid'};
 		$CMIP6EnsExp{'designMIP'} = $ref->{'design_mip'};
 		$CMIP6EnsExp{'case_id'} = $ref1->{'case_id'};
-		$sql2 = qq(select casename from t2_cases where id = $CMIP6EnsExp{'case_id'} and expType_id = 1);
+		$CMIP6EnsExp{'request_date'} = $ref1->{'request_date'};
+		$sql2 = qq(select casename, 
+                           IFNULL(DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i'),'') as archive_date from t2_cases 
+                           where id = $CMIP6EnsExp{'case_id'} and expType_id = 1);
 		##print STDERR ">>> sql2 = " . $sql2;
 		$sth2 = $dbh->prepare($sql2);
 		$sth2->execute();
-		$CMIP6EnsExp{'casename'} = $sth2->fetchrow();
+		($CMIP6EnsExp{'casename'}, $CMIP6EnsExp{'archive_date'}) = $sth2->fetchrow();
 		##print STDERR ">>> casname = " . $CMIP6EnsExp{'casename'};
 		$sth2->finish();
 		push(@CMIP6Exps, \%CMIP6EnsExp);

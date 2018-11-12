@@ -1,1037 +1,1049 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">	
-	<title>CESM2 Experiment Details</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<meta http-equiv="cache-control" content="max-age=0" />
-	<meta http-equiv="cache-control" content="no-cache" />
-	<meta http-equiv="expires" content="0" />
-	<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-	<meta http-equiv="pragma" content="no-cache" />
-	<meta name="description" content="CESM2 Experiment Database"/>
-	<meta name="keywords"    content="CESM Software Engineering Working Group"/>
+  <head>
+    <meta charset="UTF-8">	
+    <title>CESM2 Experiment Details</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta name="description" content="CESM2 Experiment Database"/>
+    <meta name="keywords"    content="CESM Software Engineering Working Group"/>
 
-	<style type="text/css" media="screen">
+    <style type="text/css" media="screen">
       /*@import "/styles/cesm.css";
       @import "/styles/teststyles.css";
       @import "/svnuser/css/svnuser.css";
       @import "/jqueryui/development-bundle/demos/demos.css";
       @import "/jqueryui/css/redmond/jquery-ui-1.8.23.custom.css";
       @import "/jquerydt/DataTables-1.9.3/media/css/jquery.dataTables.css";*/
-  </style>
+    </style>
 
-  <style>
-  #details { 
-  	background-color: #c5edcb; 
-  }
-  .alert:hover {
-  	cursor: pointer;
-  }
-  table {
-  	width: 100%;
-  }
-  .dtr-details {
-  	width: 100%;
-  }
-  table.dataTable tbody.tbody-timing td {
-  	padding: 0px;
-  }
-  #wrapper {
-  	display: block;
-  }
-</style>
+    <style>
+      #details { 
+      background-color: #c5edcb; 
+      }
+      .alert:hover {
+      cursor: pointer;
+      }
+      table {
+      width: 100%;
+      }
+      .dtr-details {
+      width: 100%;
+      }
+      table.dataTable tbody.tbody-timing td {
+      padding: 0px;
+      }
+      #wrapper {
+      display: block;
+      }
+    </style>
 
-[% INCLUDE 'modern/css/css-include.html' %]
-<style>
-[% INCLUDE 'modern/css/datatables.min.css' %]
-[% INCLUDE 'modern/skins/default.css' %]
+    [% INCLUDE 'modern/css/css-include.html' %]
+    <style>
+      [% INCLUDE 'modern/css/datatables.min.css' %]
+      [% INCLUDE 'modern/skins/default.css' %]
 
-#inner-headline nav ul.dropdown-menu li a {
-	color:#000;
-}
+      #inner-headline nav ul.dropdown-menu li a {
+      color:#000;
+      }
 
-.tab-content {
-	border-left: 1px solid #ddd;
-	border-right: 1px solid #ddd;
-	border-bottom: 1px solid #ddd;
-}
+      .tab-content {
+      border-left: 1px solid #ddd;
+      border-right: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      }
 
-.tab-pane {
+      .tab-pane {
 
-}
+      }
 
-.nav-sub {
-	padding: 10px;
-	background-color: #3E6A9C;
-}
+      .nav-sub {
+      padding: 10px;
+      background-color: #3E6A9C;
+      }
 
-.nav-sub > li > a {
-	border-radius: 4px;
-	color: #fff;
-}
+      .nav-sub > li > a {
+      border-radius: 4px;
+      color: #fff;
+      }
 
-.nav-sub > li > a:hover {
-	background-color:#fff;
-	color: #000;
-}
+      .nav-sub > li > a:hover {
+      background-color:#fff;
+      color: #000;
+      }
 
-.tab-pane {
-	/*min-height: 330px;*/
-}
-
-
-.panel-group .panel {
-	border-radius: 0px;
-	border-left: 0px;
-	border-right: 0px;
-}
-
-.panel-group .panel + .panel {
-	margin-top: 0px;
-}
-
-.panel-sub-buttons {
-	float: right;
-	margin-top: -50px;
-	margin-right: 30px;
-}
-
-.modal-footer-sm {
-	margin-top: 0px;
-	padding: 5px 20px 5px 20px;
-}
-</style>
-</head>
+      .tab-pane {
+      /*min-height: 330px;*/
+      }
 
 
-<body>
-<div id="wrapper">
-	<header>
-		<div class="navbar navbar-default navbar-static-top">
-			<div class="container">
-				[% INCLUDE 'modern/includes/header/navbar-header.html' %]
-				[% INCLUDE 'modern/includes/header/search.html' %]
-				[% INCLUDE 'modern/includes/header/nsf-header.html' %]
-				[% INCLUDE 'modern/includes/navigation/models-nav.html' %]
-			</div>
+      .panel-group .panel {
+      border-radius: 0px;
+      border-left: 0px;
+      border-right: 0px;
+      }
+
+      .panel-group .panel + .panel {
+      margin-top: 0px;
+      }
+
+      .panel-sub-buttons {
+      float: right;
+      margin-top: -50px;
+      margin-right: 30px;
+      }
+
+      .modal-footer-sm {
+      margin-top: 0px;
+      padding: 5px 20px 5px 20px;
+      }
+    </style>
+  </head>
+
+
+  <body>
+    <div id="wrapper">
+      <header>
+	<div class="navbar navbar-default navbar-static-top">
+	  <div class="container">
+	    [% INCLUDE 'modern/includes/header/navbar-header.html' %]
+	    [% INCLUDE 'modern/includes/header/search.html' %]
+	    [% INCLUDE 'modern/includes/header/nsf-header.html' %]
+	    [% INCLUDE 'modern/includes/navigation/models-nav.html' %]
+	  </div>
+	</div>
+      </header>
+
+      <section id="inner-headline">
+	<div class="container">
+	  <div class="row">
+	    <div class="col-lg-12">
+	      <ul class="breadcrumb">
+		<li><a href="http://www.cesm/ucar/edu/index.html"><i class="fa fa-home"></i></a><i class="icon-angle-right"></i></li>
+		<li><a href="http://www.cesm.ucar.edu/models/">CESM Models</a><i class="icon-angle-right"></i></li>
+		<li><a href="https://csegweb.cgd.ucar.edu/">CSEG Web Apps</a><i class="icon-angle-right"></i></li>
+		<li><a href="https://csegweb.cgd.ucar.edu/expdb2.0">Experiment Database</a><i class="icon-angle-right"></i></li>
+		<li class="active">Experiment Details</li>
+	      </ul>
+
+	      [% INCLUDE nav.tmpl %]
+	    </div>
+	  </div>
+	</div>
+      </section>
+
+
+      <!-- content start -->
+      <section id="content">
+	<div class="container">
+	  <div class="row visible-sm-block text-center hidden-md hidden-lg">
+	    <h3>Not designed for mobile viewing, please open on a desktop</h3>
+	  </div>
+
+
+	  <div class="row hidden-sm hidden-xs">
+	    <div class="col-lg-12">
+	      <div class="post-image">
+		<div class="post-heading">
+		  <h1>CESM2 Experiment Details <small>- <em>[% case.casename.value %]</em></small></h1>
 		</div>
-	</header>
+	      </div>
 
-	<section id="inner-headline">
-		<div class="container">
-			<div class="row">
-				<div class="col-lg-12">
-					<ul class="breadcrumb">
-						<li><a href="http://www.cesm/ucar/edu/index.html"><i class="fa fa-home"></i></a><i class="icon-angle-right"></i></li>
-						<li><a href="http://www.cesm.ucar.edu/models/">CESM Models</a><i class="icon-angle-right"></i></li>
-						<li><a href="https://csegweb.cgd.ucar.edu/">CSEG Web Apps</a><i class="icon-angle-right"></i></li>
-						<li><a href="https://csegweb.cgd.ucar.edu/expdb2.0">Experiment Database</a><i class="icon-angle-right"></i></li>
-						<li class="active">Experiment Details</li>
-					</ul>
+	      <div class="">
+		<p class="lead">The purpose of this project is to provide a single web portal to store metadata for CESM experiments including tracking run status, viewing diagnostics, and adding publication links.</p>
+		<span class="label label-danger">* You must have a valid CESM SVN developers login or a UCAS login to use the experiment database</span>
+	      </div>
 
-					[% INCLUDE nav.tmpl %]
+	      <br>
+
+	      <!--<h2>[% case.casename.value %] - Experiment Detail</h2>-->
+
+	      <!-- main panel start -->
+	      <div class="panel panel-default">
+		<div class="panel-heading" style="padding: 15px;">
+		  <h2 class="panel-title">CESM Case Working Title &amp; Details <button type="button" class="btn btn-default btn-sm btn-show-exp-details pull-right" style="margin-top: -7px;"><i class="fa fa-folder-open"></i>&nbsp;Toggle All Details</button></h2> 
+		</div>
+		<div class="panel-body">
+		  [% IF validstatus.message %]
+		  <div class="alert [% IF validstatus.status == 1 %] alert-success [% ELSE %] alert-danger [% END %] text-center" role="alert">
+		    <span class="">[% validstatus.message %]</span>
+		  </div>
+		  [% END %]
+		  <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalTitle" style="margin-right: 15px;">
+		    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+		  </button>[% case.title.value %]
+
+		  <div class="modal fade" id="myModalTitle" tabindex="-1" role="dialog" aria-labelledby="myModalTitleLabel">
+		    <div class="modal-dialog" role="document">
+		      <div class="modal-content">
+			<div class="modal-header">
+			  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			  <h4 class="modal-title" id="myModalTitleLabel">Update a case title for [% case.casename.value %]</h4>
+			</div>
+			<form method="post">
+			  <div class="modal-body">
+			    <div class="form-group">
+			      <textarea class="form-control" name="title" rows="5" maxlength="256" cols="100">[% case.title.value %]</textarea>
+			    </div>
+			  </div>
+			  <div class="modal-footer">
+			    <input type="hidden" name="action" value="updateTitleProc"/>
+			    <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+			    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+			    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			    <button type="submit" class="btn btn-primary" value="Update">Update</button>
+			  </div>
+			</form>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+
+		<div id="accordion-details" class="panel-default">
+		  [% IF expType.name == 'cmip6' %]
+		  <!-- cmip6 sub panel start -->
+		  <div class="panel-heading">
+		    <h4 class="panel-title">
+		      <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#CMIP6Collapse" aria-expanded="false" aria-controls="CMIP6Collapse">
+			[% case.expType_name.value %] Project Details
+		      </a>
+		    </h4>
+		  </div>
+		  <div id="CMIP6Collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="CMIP6Header">
+		    <div class="panel-body">
+		      <div class="row">
+			<div class="col-lg-6">
+			  <div class="alert alert-info text-center" role="alert"><strong>CMIP6 Fields</strong></div>
+			  <table class="table table-striped table-condensed small" id="CMIP6Table">
+			    <thead>
+			      <th>Field Name</th>
+			      <th>Value</th>
+			    </thead>
+			    <tbody>
+			      [% FOREACH key IN project.keys.sort  %]
+			      <tr>
+				<td><strong>[% key %]</strong></td>
+				<td>[% project.$key %]</td>
+			      </tr>
+			      [% END %]
+			    </tbody>
+			  </table>
+			</div>
+
+			<div class="col-lg-6">
+			  <div class="alert alert-info text-center" role="alert"><strong>CMIP6 File Global Attributes</strong></div>
+			  <table class="table table-striped table-condensed small" id="CMIP6Table">
+			    <thead>
+			      <th>Field Name</th>
+			      <th>Value</th>
+			    </thead>
+			    <tbody>
+			      [% FOREACH key IN globalAtts.keys.sort  %]
+			      <tr>
+				<td><strong>[% key %]</strong></td>
+				<td>[% globalAtts.$key %]</td>
+			      </tr>
+			      [% END %]
+			    </tbody>
+			  </table>
+			</div>
+		      </div>
+		    </div>
+		  </div>
+		  <!-- cmip6 sub panel end -->
+		  [% END %]
+
+
+
+		  <!-- Case Workflow Process Status sub panel start -->
+		  <div class="panel-heading" role="tab" id="statusTableHeader">
+		    <h4 class="panel-title">
+		      <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#statusTableCollapse" aria-expanded="false" aria-controls="statusTableCollapse">
+			Case Workflow Process Status
+		      </a>
+		    </h4>
+		  </div>
+
+		  <div id="statusTableCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="statusTableHeader">
+		    <div class="panel-body">
+		      <div class="panel-sub-buttons">
+			<button type="button" class="btn btn-default btn-sm" id="statusBtn-show-all-children">
+			  <i class="fa fa-folder-open"></i> Show All
+			</button>
+
+			<button type="button" class="btn btn-default btn-sm" id="statusBtn-hide-all-children">
+			  <i class="fa fa-folder-open"></i> Hide All
+			</button>
+		      </div>
+
+		      <table id="statusTable" class="table table-striped table-condensed small" width="100%">
+			<thead>
+			  <tr>
+			    <th>Description</th>		
+			    <!--<th>Process Name</th>-->	
+			    <th>Status</th>		
+			    <th>Model Date</th>		
+			    <!--<th>Disk Path</th>-->	
+			    <!--<th>Disk Usage</th>-->
+			    <th>Last Update</th>		
+			    <th>Archive Method</th>
+			    <th class="none"><span class="label label-warning" style="font-weight: bold; font-size: 13px;">Status History</span></th>
+			  </tr>
+			</thead>
+			<tbody>
+			  [% FOREACH key IN status.keys.sort %]
+			  <tr>
+			    <td>[% status.$key.description %]</td>
+			    <!--<td>[% key %]</td>-->
+			    <!--<td style="background-color:[% status.$key.color %]">[% status.$key.code %]</td>-->
+			    <td>
+			      [% IF status.$key.code == "Succeeded" %]
+			      <span class="label label-info">[% status.$key.code %]</span>
+			      [% END %]
+			      [% IF status.$key.code == "Unknown" %]
+			      <span class="label label-default">[% status.$key.code %]</span>
+			      [% END %]
+			      [% IF status.$key.code == "Started" %]
+			      <span class="label label-success">[% status.$key.code %]</span>
+			      [% END %]
+			      [% IF status.$key.code == "Failed" %]
+			      <span class="label label-danger">[% status.$key.code %]</span>
+			      [% END %]
+			    </td>
+			    <td>[% IF status.$key.model_date %]<pre>[% status.$key.model_date %]</pre>[% END %]</td>
+			    <!--<td><small>[% status.$key.disk_path %]</small></td>-->
+			    <!--<td>[% status.$key.disk_usage %]</td>-->
+			    <td>[% status.$key.last_update %]</td>
+			    <td>[% status.$key.archive_method %]</td>
+			    <td>
+			      <table class="table table-condensed table-striped table-bordered" width="100%" style="background-color: #f2f2f2;">
+				<thead>
+				  <tr id="">
+				    <th>Status</th>		
+				    <th>Process Name</th>		
+				    <th>Model Date</th>		
+				    <th>Disk Path</th>		
+				    <th>Disk Usage</th>		
+				    <th>Last Update</th>		
+				    <th>Archive Method</th>
+				  </tr>
+				</thead>
+				<tbody class="tbody-status">
+				  [% FOREACH stat IN status.$key.history %]
+				  [% IF stat.code %]
+				  <tr class="tr-status">
+				    <!--<td style="background-color:[% stat.color %]">[% stat.code %]</td>-->
+				    <td>
+				      [% IF stat.code == "Succeeded" %]
+				      <span class="label label-info">[% stat.code %]</span>
+				      [% END %]
+				      [% IF stat.code == "Unknown" %]
+				      <span class="label label-default">[% stat.code %]</span>
+				      [% END %]
+				      [% IF stat.code == "Started" %]
+				      <span class="label label-success">[% stat.code %]</span>
+				      [% END %]
+				      [% IF stat.code == "Failed" %]
+				      <span class="label label-danger">[% stat.code %]</span>
+				      [% END %]
+				    </td>
+				    <td>[% key %]</td>
+				    <td>[% IF stat.model_date %]<pre>[% stat.model_date %]</pre>[% END %]</td>
+				    <td>[% stat.disk_path %]</td>
+				    <td class="bytes-convert" id="bytes-[% key %]-[% stat.disk_usage %]">[% stat.disk_usage %]</td>
+				    <td>[% stat.last_update %]</td>
+				    <td>[% stat.archive_method %]</td>
+				  </tr>
+				  [% END %]
+				  [% END %]
+				</tbody>
+			      </table>
+			    </td>
+			  </tr>
+			  [% END %]
+			</tbody>
+			<tfoot>
+			  <tr>
+			    <th>Description</th>		
+			    <!--<th>Process Name</th>-->	
+			    <th>Status</th>		
+			    <th>Model Date</th>		
+			    <!--<th>Disk Path</th>	-->	
+			    <!--<th>Disk Usage</th>	-->
+			    <th>Last Update</th>		
+			    <th>Archive Method</th>
+			    <th class="none">Status History</th>
+			  </tr>
+			</tfoot>
+		      </table>
+		    </div>
+		  </div>
+		  <!-- Case Workflow Process Status sub panel end -->
+
+
+		  <!-- Caseroot Settings sub panel start -->
+		  <div class="panel-heading" role="tab" id="caseTableHeader">
+		    <h4 class="panel-title">
+		      <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#caseTableCollapse" aria-expanded="false" aria-controls="caseTableCollapse">
+			Caseroot Settings
+		      </a>
+		    </h4>
+		  </div>
+
+		  <div id="caseTableCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="caseTableHeader">
+		    <div class="panel-body">
+		      <div class="panel-sub-buttons">
+			<button type="button" class="btn btn-default btn-sm" id="caseBtn-show-all-children">
+			  <i class="fa fa-folder-open"></i> Show All
+			</button>
+
+			<button type="button" class="btn btn-default btn-sm" id="caseBtn-hide-all-children">
+			  <i class="fa fa-folder-open"></i> Hide All
+			</button>
+		      </div>
+
+		      <table id="caseTable" class="table table-striped table-condensed" width="100%">
+			<thead>
+			  <tr>
+			    <th>Case Field Name</th>		
+			    <th>Field Value</th>		
+			    <th class="none"><span class="label label-warning" style="font-weight: bold; font-size: 13px;">Change History</span></th>		
+			  </tr>
+			</thead>
+			<tbody>
+			  [% FOREACH key IN case.keys.sort %]
+			  <tr>
+			    <td>[% key %]</td>
+			    [% IF key == "svn_repo_url"%]
+			    <td><a href="[% case.$key.value %]" target="_blank">[% case.$key.value %]</a></td>
+			    [% ELSE %]
+			    <td>[% case.$key.value %]</td>
+			    [% END %]
+			    <td>
+			      <table class="table table-condensed table-striped" width="100%" style="background-color: #f2f2f2;">
+				<thead>
+				  <tr id="">
+				    <th>Field Value</th>
+				    <th>Last Update</th>
+				  </tr>
+				</thead>
+				<tbody>
+				  [% FOREACH change IN case.$key.history %]
+				  <tr>
+				    <td>[% change.field_value %]</td>
+				    <td>[% change.last_update %]</td>
+				  </tr>
+				  [% END %]
+				</tbody>
+			      </table>
+			    </td>
+			  </tr>
+			  [% END %]
+			</tbody>
+			<tfoot>
+			  <tr>
+			    <th>Case Field Name</th>		
+			    <th>Field Value</th>		
+			    <th class="none">Change History</th>		
+			  </tr>
+			</tfoot>
+		      </table>
+		    </div>
+		  </div>
+		  <!-- Caseroot Settings sub panel end -->
+
+
+		  <!-- Case Notes sub panel start -->
+		  <div class="panel-heading" role="tab" id="caseNotesHeader">
+		    <h4 class="panel-title">
+		      <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#caseNotesCollapse" aria-expanded="false" aria-controls="caseNotesCollapse">
+			Case Notes
+		      </a>
+		    </h4>
+		  </div>
+
+		  <div id="caseNotesCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="caseNotesHeader">
+		    <div class="panel-body">
+		      <div class="panel-sub-buttons">
+			<button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseNotes">
+			  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Case Note
+			</button>
+		      </div>
+
+		      <div class="modal fade" id="myModalCaseNotes" tabindex="-1" role="dialog" aria-labelledby="myModalCaseNotesLabel">
+			<div class="modal-dialog" role="document">
+			  <div class="modal-content">
+			    <div class="modal-header">
+			      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			      <h4 class="modal-title" id="myModalCaseNotesLabel">Add a new case note for [% case.casename.value %]</h4>
+			    </div>
+
+			    <form id="caseAddNoteForm" method="POST">
+			      <div class="modal-body">
+				<div class="form-group">
+				  <textarea class="form-control" name="note" cols="100" rows="5"></textarea>
 				</div>
+			      </div>
+
+
+			      <div class="modal-footer">
+				<input type="hidden" name="action" value="addNoteProc"/>
+				<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+			      </div>
+			    </form>
+			  </div>
 			</div>
+		      </div>
+
+		      <table class="table table-condensed table-striped">
+			<thead>
+			  <th>Edit</th>		
+			  <th>Note</th>		
+			  <th>User</th>		
+			  <th>Last Update</th>		
+			</thead>
+			<tbody>
+			  [% FOREACH n IN notes %]
+			  <tr>
+			    <td>
+			      <!--
+				  <button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id.value %]&note_id=[% n.note_id %]&action=update&expType_id=[% case.expType_id.value %]','height=200,width=800,scrollbars=yes')">
+				    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+				  </button>
+				  -->
+			      <button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseNote[% n.note_id %]">
+				<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+			      </button>
+			    </td>
+			    <td><pre>[% n.note %]</pre></td>
+			    <td>[% n.firstname %] [% n.lastname %] ([% n.email %]) </td>
+			    <td>[% n.last_update %]</td>
+
+			    <div class="modal fade" id="myModalCaseNote[% n.note_id %]" tabindex="-1" role="dialog" aria-labelledby="myModalCaseNote[% n.note_id %]Label">
+			      <div class="modal-dialog" role="document">
+				<div class="modal-content">
+				  <div class="modal-header">
+				    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				    <h4 class="modal-title" id="myModalCaseNote[% n.note_id %]Label">Update case note for [% case.casename.value %]</h4>
+				  </div>
+
+				  <form id="updateNoteForm" method="POST">
+				    <div class="modal-body">
+				      <div class="form-group">
+					<textarea class="form-control" name="note" cols="100" rows="5">[% n.note %]</textarea>
+				      </div>
+
+				      <input type="hidden" name="action" value="updateNoteProc"/>
+				      <input type="hidden" name="note_id" value="[% n.note_id %]"/>
+				      <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				      <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				      <button type="submit" class="btn btn-primary btn-block" value="Submit">Submit</button>
+				    </div>
+				  </form>
+
+
+				  <div class="modal-footer modal-footer-sm">
+				    <form id="updateNoteForm" method="POST">
+				      <input type="hidden" name="note_id" value="[% n.note_id %]"/>
+				      <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				      <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				      <input type="hidden" name="action" value="deleteNoteProc"/>
+				      <button type="submit" class="btn btn-danger" value="Delete">Delete</button>
+				    </form>
+				  </div>
+
+</form>
+</div>
+</div>
+</div>
+</tr>
+[% END %]
+</tbody>
+</table>
+</div>
+</div>
+<!-- Case Notes sub panel end -->
+
+
+<!-- Case Diag Links sub panel start -->
+<div class="panel-heading" role="tab" id="caseLinksHeader">
+  <h4 class="panel-title">
+    <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#caseLinksCollapse" aria-expanded="false" aria-controls="caseLinksCollapse">
+      Case Diagnostics and Climate Data Gateway Links
+    </a>
+  </h4>
+</div>
+
+<div id="caseLinksCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="caseLinksHeader">
+  <div class="panel-body">
+    <div class="panel-sub-buttons">
+      <button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseLinks">
+	<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Case Link
+      </button>
+    </div>
+
+    <div class="modal fade" id="myModalCaseLinks" tabindex="-1" role="dialog" aria-labelledby="myModalCaseLinksLabel">
+      <div class="modal-dialog" role="document">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title" id="myModalCaseLinksLabel">Add a new case link for [% case.casename.value %]</h4>
+	  </div>
+
+	  <form id="caseAddNoteForm" method="POST">
+	    <div class="modal-body">
+	      <div class="form-group">
+		<label>Process</label>
+		<br>
+		<select name="processName">
+		  <option value="">Select Process</option>
+		  [% FOREACH p IN processes %]
+		  <option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
+		  [% END %]
+		</select>
+	      </div>
+
+	      <div class="form-group">
+		<label>Link Type :&nbsp;</label>
+		[% FOREACH lt IN linkTypes %]
+		<label class="radio-inline" for="[% lt.linkType_id %]">
+		  <input type="radio" name="linkType" id="" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"> [% lt.linkType_name %]
+		</label>
+		[% END %]
+	      </div>
+
+	      <div class="form-group">
+		<label>Link Value</label>
+		<textarea class="form-control" name="link" cols="100" rows="1"></textarea>
+	      </div>
+
+	      <div class="form-group">
+		<label>Description</label>
+		<textarea class="form-control" name="description" cols="100" rows="5"></textarea>
+	      </div>
+	    </div>
+
+
+	    <div class="modal-footer">
+	      <input type="hidden" name="action" value="addLinkProc"/>
+	      <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+	      <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+
+	      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	      <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+	    </div>
+	  </form>
+	</div>
+      </div>
+    </div>
+
+    <table class="table table-striped table-condensed">
+      <thead>
+	<th>Edit</th>
+	<th>Process</th>		
+	<th>Link Type</th>		
+	<th>Link</th>		
+	<th>Last Update</th>		
+      </thead>
+      [% FOREACH lk IN links %]
+      <tr>
+	<td>
+	  <button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseLink[% lk.link_id %]">
+	    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+	  </button>
+
+	  <!--
+	      <button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id.value %]&link_id=[% lk.link_id %]&action=update&expType_id=[% case.expType_id.value %]','height=300,width=800,scrollbars=yes')">
+		<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+	      </button>
+	      -->
+	</td>
+	<td>[% lk.process_name %]</td>
+	<td>[% lk.linkType_name %]</td>
+	[% http = lk.link %]
+	[% IF lk.linkType_id == 1 %]
+	<td><a href="[% lk.link %]" target="_blank">[% lk.link %]</a></td>
+	[% ELSE %]
+	<td>[% lk.link %]</td>
+	[% END %]
+	<td>[% lk.last_update %]</td>
+      </tr>
+
+      
+      <tr>
+	<td colspan="5">
+	  <div style="padding-left: 15px; padding-bottom: 15px;">
+	    <h6 class="clear-marginbot" style="margin-top: 0px;">Description</h6>
+	    [% IF lk.description %]
+	    [% lk.description %]
+	    [% ELSE %]
+	    n/a
+	    [% END %]
+	  </div>
+	</td>
+      </tr>
+      
+
+      <div class="modal fade" id="myModalCaseLink[% lk.link_id %]" tabindex="-1" role="dialog" aria-labelledby="myModalCaseLink[% lk.link_id %]Label">
+	<div class="modal-dialog" role="document">
+	  <div class="modal-content">
+	    <div class="modal-header">
+	      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	      <h4 class="modal-title" id="myModalCaseLink[% lk.link_id %]Label">Update case link for [% case.casename.value %]</h4>
+	    </div>
+
+	    <form id="" method="POST">
+	      <div class="modal-body">
+		<div class="form-group">
+		  <label>Process</label>
+		  <br>
+		  <select name="processName">
+		    <option value="">Select Process</option>
+		    [% FOREACH p IN processes %]
+		    [% IF p.process_id == lk.process_id %]
+		    <option value="[% p.process_id %]" selected="selected">[% p.process_name %] - [% p.description %]</option>
+		    [% ELSE %]
+		    <option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
+		    [% END %]
+		    [% END %]
+		  </select>
 		</div>
-	</section>
 
-
-	<!-- content start -->
-	<section id="content">
-		<div class="container">
-			<div class="row visible-sm-block text-center hidden-md hidden-lg">
-				<h3>Not designed for mobile viewing, please open on a desktop</h3>
-			</div>
-
-
-			<div class="row hidden-sm hidden-xs">
-				<div class="col-lg-12">
-					<div class="post-image">
-						<div class="post-heading">
-							<h1>CESM2 Experiment Details <small>- <em>[% case.casename.value %]</em></small></h1>
-						</div>
-					</div>
-
-					<div class="">
-						<p class="lead">The purpose of this project is to provide a single web portal to store metadata for CESM experiments including tracking run status, viewing diagnostics, and adding publication links.</p>
-						<span class="label label-danger">* You must have a valid CESM SVN developers login or a UCAS login to use the experiment database</span>
-					</div>
-
-					<br>
-
-					<!--<h2>[% case.casename.value %] - Experiment Detail</h2>-->
-
-					<!-- main panel start -->
-					<div class="panel panel-default">
-						<div class="panel-heading" style="padding: 15px;">
-							<h2 class="panel-title">CESM Case Working Title &amp; Details <button type="button" class="btn btn-default btn-sm btn-show-exp-details pull-right" style="margin-top: -7px;"><i class="fa fa-folder-open"></i>&nbsp;Toggle All Details</button></h2> 
-						</div>
-						<div class="panel-body">
-							[% IF validstatus.message %]
-							<div class="alert [% IF validstatus.status == 1 %] alert-success [% ELSE %] alert-danger [% END %] text-center" role="alert">
-								<span class="">[% validstatus.message %]</span>
-							</div>
-							[% END %]
-							<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalTitle" style="margin-right: 15px;">
-								<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-							</button>[% case.title.value %]
-
-							<div class="modal fade" id="myModalTitle" tabindex="-1" role="dialog" aria-labelledby="myModalTitleLabel">
-								<div class="modal-dialog" role="document">
-									<div class="modal-content">
-										<div class="modal-header">
-											<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-											<h4 class="modal-title" id="myModalTitleLabel">Update a case title for [% case.casename.value %]</h4>
-										</div>
-										<form method="post">
-											<div class="modal-body">
-												<div class="form-group">
-													<textarea class="form-control" name="title" rows="5" maxlength="256" cols="100">[% case.title.value %]</textarea>
-												</div>
-											</div>
-											<div class="modal-footer">
-												<input type="hidden" name="action" value="updateTitleProc"/>
-												<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-												<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-												<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-												<button type="submit" class="btn btn-primary" value="Update">Update</button>
-											</div>
-										</form>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div id="accordion-details" class="panel-default">
-							[% IF expType.name == 'cmip6' %]
-							<!-- cmip6 sub panel start -->
-							<div class="panel-heading">
-								<h4 class="panel-title">
-									<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#CMIP6Collapse" aria-expanded="false" aria-controls="CMIP6Collapse">
-										[% case.expType_name.value %] Project Details
-									</a>
-								</h4>
-							</div>
-							<div id="CMIP6Collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="CMIP6Header">
-								<div class="panel-body">
-									<div class="row">
-										<div class="col-lg-6">
-											<div class="alert alert-info text-center" role="alert"><strong>CMIP6 Fields</strong></div>
-											<table class="table table-striped table-condensed small" id="CMIP6Table">
-												<thead>
-													<th>Field Name</th>
-													<th>Value</th>
-												</thead>
-												<tbody>
-													[% FOREACH key IN project.keys.sort  %]
-													<tr>
-														<td><strong>[% key %]</strong></td>
-														<td>[% project.$key %]</td>
-													</tr>
-													[% END %]
-												</tbody>
-											</table>
-										</div>
-
-										<div class="col-lg-6">
-											<div class="alert alert-info text-center" role="alert"><strong>CMIP6 File Global Attributes</strong></div>
-											<table class="table table-striped table-condensed small" id="CMIP6Table">
-												<thead>
-													<th>Field Name</th>
-													<th>Value</th>
-												</thead>
-												<tbody>
-													[% FOREACH key IN globalAtts.keys.sort  %]
-													<tr>
-														<td><strong>[% key %]</strong></td>
-														<td>[% globalAtts.$key %]</td>
-													</tr>
-													[% END %]
-												</tbody>
-											</table>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- cmip6 sub panel end -->
-							[% END %]
-
-
-
-							<!-- Case Workflow Process Status sub panel start -->
-							<div class="panel-heading" role="tab" id="statusTableHeader">
-								<h4 class="panel-title">
-									<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#statusTableCollapse" aria-expanded="false" aria-controls="statusTableCollapse">
-										Case Workflow Process Status
-									</a>
-								</h4>
-							</div>
-
-							<div id="statusTableCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="statusTableHeader">
-								<div class="panel-body">
-									<div class="panel-sub-buttons">
-										<button type="button" class="btn btn-default btn-sm" id="statusBtn-show-all-children">
-											<i class="fa fa-folder-open"></i> Show All
-										</button>
-
-										<button type="button" class="btn btn-default btn-sm" id="statusBtn-hide-all-children">
-											<i class="fa fa-folder-open"></i> Hide All
-										</button>
-									</div>
-
-									<table id="statusTable" class="table table-striped table-condensed small" width="100%">
-										<thead>
-											<tr>
-												<th>Description</th>		
-												<!--<th>Process Name</th>-->	
-												<th>Status</th>		
-												<th>Model Date</th>		
-												<!--<th>Disk Path</th>-->	
-												<!--<th>Disk Usage</th>-->
-												<th>Last Update</th>		
-												<th>Archive Method</th>
-												<th class="none"><span class="label label-warning" style="font-weight: bold; font-size: 13px;">Status History</span></th>
-											</tr>
-										</thead>
-										<tbody>
-											[% FOREACH key IN status.keys.sort %]
-											<tr>
-												<td>[% status.$key.description %]</td>
-												<!--<td>[% key %]</td>-->
-												<!--<td style="background-color:[% status.$key.color %]">[% status.$key.code %]</td>-->
-												<td>
-													[% IF status.$key.code == "Succeeded" %]
-													<span class="label label-info">[% status.$key.code %]</span>
-													[% END %]
-													[% IF status.$key.code == "Unknown" %]
-													<span class="label label-default">[% status.$key.code %]</span>
-													[% END %]
-													[% IF status.$key.code == "Started" %]
-													<span class="label label-success">[% status.$key.code %]</span>
-													[% END %]
-													[% IF status.$key.code == "Failed" %]
-													<span class="label label-danger">[% status.$key.code %]</span>
-													[% END %]
-												</td>
-												<td>[% IF status.$key.model_date %]<pre>[% status.$key.model_date %]</pre>[% END %]</td>
-												<!--<td><small>[% status.$key.disk_path %]</small></td>-->
-												<!--<td>[% status.$key.disk_usage %]</td>-->
-												<td>[% status.$key.last_update %]</td>
-												<td>[% status.$key.archive_method %]</td>
-												<td>
-													<table class="table table-condensed table-striped table-bordered" width="100%" style="background-color: #f2f2f2;">
-														<thead>
-															<tr id="">
-																<th>Status</th>		
-																<th>Process Name</th>		
-																<th>Model Date</th>		
-																<th>Disk Path</th>		
-																<th>Disk Usage</th>		
-																<th>Last Update</th>		
-																<th>Archive Method</th>
-															</tr>
-														</thead>
-														<tbody class="tbody-status">
-															[% FOREACH stat IN status.$key.history %]
-															[% IF stat.code %]
-															<tr class="tr-status">
-																<!--<td style="background-color:[% stat.color %]">[% stat.code %]</td>-->
-																<td>
-																	[% IF stat.code == "Succeeded" %]
-																	<span class="label label-info">[% stat.code %]</span>
-																	[% END %]
-																	[% IF stat.code == "Unknown" %]
-																	<span class="label label-default">[% stat.code %]</span>
-																	[% END %]
-																	[% IF stat.code == "Started" %]
-																	<span class="label label-success">[% stat.code %]</span>
-																	[% END %]
-																	[% IF stat.code == "Failed" %]
-																	<span class="label label-danger">[% stat.code %]</span>
-																	[% END %]
-																</td>
-																<td>[% key %]</td>
-																<td>[% IF stat.model_date %]<pre>[% stat.model_date %]</pre>[% END %]</td>
-																<td>[% stat.disk_path %]</td>
-																<td class="bytes-convert" id="bytes-[% key %]-[% stat.disk_usage %]">[% stat.disk_usage %]</td>
-																<td>[% stat.last_update %]</td>
-																<td>[% stat.archive_method %]</td>
-															</tr>
-															[% END %]
-															[% END %]
-														</tbody>
-													</table>
-												</td>
-											</tr>
-											[% END %]
-										</tbody>
-										<tfoot>
-											<tr>
-												<th>Description</th>		
-												<!--<th>Process Name</th>-->	
-												<th>Status</th>		
-												<th>Model Date</th>		
-												<!--<th>Disk Path</th>	-->	
-												<!--<th>Disk Usage</th>	-->
-												<th>Last Update</th>		
-												<th>Archive Method</th>
-												<th class="none">Status History</th>
-											</tr>
-										</tfoot>
-									</table>
-								</div>
-							</div>
-							<!-- Case Workflow Process Status sub panel end -->
-
-
-							<!-- Caseroot Settings sub panel start -->
-							<div class="panel-heading" role="tab" id="caseTableHeader">
-								<h4 class="panel-title">
-									<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#caseTableCollapse" aria-expanded="false" aria-controls="caseTableCollapse">
-										Caseroot Settings
-									</a>
-								</h4>
-							</div>
-
-							<div id="caseTableCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="caseTableHeader">
-								<div class="panel-body">
-									<div class="panel-sub-buttons">
-										<button type="button" class="btn btn-default btn-sm" id="caseBtn-show-all-children">
-											<i class="fa fa-folder-open"></i> Show All
-										</button>
-
-										<button type="button" class="btn btn-default btn-sm" id="caseBtn-hide-all-children">
-											<i class="fa fa-folder-open"></i> Hide All
-										</button>
-									</div>
-
-									<table id="caseTable" class="table table-striped table-condensed" width="100%">
-										<thead>
-											<tr>
-												<th>Case Field Name</th>		
-												<th>Field Value</th>		
-												<th class="none"><span class="label label-warning" style="font-weight: bold; font-size: 13px;">Change History</span></th>		
-											</tr>
-										</thead>
-										<tbody>
-											[% FOREACH key IN case.keys.sort %]
-											<tr>
-												<td>[% key %]</td>
-												[% IF key == "svn_repo_url"%]
-												<td><a href="[% case.$key.value %]" target="_blank">[% case.$key.value %]</a></td>
-												[% ELSE %]
-												<td>[% case.$key.value %]</td>
-												[% END %]
-												<td>
-													<table class="table table-condensed table-striped" width="100%" style="background-color: #f2f2f2;">
-														<thead>
-															<tr id="">
-																<th>Field Value</th>
-																<th>Last Update</th>
-															</tr>
-														</thead>
-														<tbody>
-															[% FOREACH change IN case.$key.history %]
-															<tr>
-																<td>[% change.field_value %]</td>
-																<td>[% change.last_update %]</td>
-															</tr>
-															[% END %]
-														</tbody>
-													</table>
-												</td>
-											</tr>
-											[% END %]
-										</tbody>
-										<tfoot>
-											<tr>
-												<th>Case Field Name</th>		
-												<th>Field Value</th>		
-												<th class="none">Change History</th>		
-											</tr>
-										</tfoot>
-									</table>
-								</div>
-							</div>
-							<!-- Caseroot Settings sub panel end -->
-
-
-							<!-- Case Notes sub panel start -->
-							<div class="panel-heading" role="tab" id="caseNotesHeader">
-								<h4 class="panel-title">
-									<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#caseNotesCollapse" aria-expanded="false" aria-controls="caseNotesCollapse">
-										Case Notes
-									</a>
-								</h4>
-							</div>
-
-							<div id="caseNotesCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="caseNotesHeader">
-								<div class="panel-body">
-									<div class="panel-sub-buttons">
-										<button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseNotes">
-											<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Case Note
-										</button>
-									</div>
-
-									<div class="modal fade" id="myModalCaseNotes" tabindex="-1" role="dialog" aria-labelledby="myModalCaseNotesLabel">
-										<div class="modal-dialog" role="document">
-											<div class="modal-content">
-												<div class="modal-header">
-													<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-													<h4 class="modal-title" id="myModalCaseNotesLabel">Add a new case note for [% case.casename.value %]</h4>
-												</div>
-
-												<form id="caseAddNoteForm" method="POST">
-													<div class="modal-body">
-														<div class="form-group">
-															<textarea class="form-control" name="note" cols="100" rows="5"></textarea>
-														</div>
-													</div>
-
-
-													<div class="modal-footer">
-														<input type="hidden" name="action" value="addNoteProc"/>
-														<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-														<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-														<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-														<button type="submit" class="btn btn-primary" value="Submit">Submit</button>
-													</div>
-												</form>
-											</div>
-										</div>
-									</div>
-
-									<table class="table table-condensed table-striped">
-										<thead>
-											<th>Edit</th>		
-											<th>Note</th>		
-											<th>User</th>		
-											<th>Last Update</th>		
-										</thead>
-										<tbody>
-											[% FOREACH n IN notes %]
-											<tr>
-												<td>
-													<!--
-													<button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id.value %]&note_id=[% n.note_id %]&action=update&expType_id=[% case.expType_id.value %]','height=200,width=800,scrollbars=yes')">
-														<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-													</button>
-													-->
-													<button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseNote[% n.note_id %]">
-														<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-													</button>
-												</td>
-												<td><pre>[% n.note %]</pre></td>
-												<td>[% n.firstname %] [% n.lastname %] ([% n.email %]) </td>
-												<td>[% n.last_update %]</td>
-
-												<div class="modal fade" id="myModalCaseNote[% n.note_id %]" tabindex="-1" role="dialog" aria-labelledby="myModalCaseNote[% n.note_id %]Label">
-													<div class="modal-dialog" role="document">
-														<div class="modal-content">
-															<div class="modal-header">
-																<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-																<h4 class="modal-title" id="myModalCaseNote[% n.note_id %]Label">Update case note for [% case.casename.value %]</h4>
-															</div>
-
-															<form id="updateNoteForm" method="POST">
-																<div class="modal-body">
-																	<div class="form-group">
-																		<textarea class="form-control" name="note" cols="100" rows="5">[% n.note %]</textarea>
-																	</div>
-
-																	<input type="hidden" name="action" value="updateNoteProc"/>
-																    <input type="hidden" name="note_id" value="[% n.note_id %]"/>
-																	<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-																    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-																	<button type="submit" class="btn btn-primary btn-block" value="Submit">Submit</button>
-																</div>
-															</form>
-
-
-																<div class="modal-footer modal-footer-sm">
-																	<form id="updateNoteForm" method="POST">
-																	    <input type="hidden" name="note_id" value="[% n.note_id %]"/>
-																	    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-																		<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-																		<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-																		<input type="hidden" name="action" value="deleteNoteProc"/>
-																		<button type="submit" class="btn btn-danger" value="Delete">Delete</button>
-																	</form>
-																</div>
-															</form>
-														</div>
-													</div>
-												</div>
-											</tr>
-											[% END %]
-										</tbody>
-									</table>
-								</div>
-							</div>
-							<!-- Case Notes sub panel end -->
-
-
-							<!-- Case Diag Links sub panel start -->
-							<div class="panel-heading" role="tab" id="caseLinksHeader">
-								<h4 class="panel-title">
-									<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#caseLinksCollapse" aria-expanded="false" aria-controls="caseLinksCollapse">
-										Case Diagnostics and Climate Data Gateway Links
-									</a>
-								</h4>
-							</div>
-
-							<div id="caseLinksCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="caseLinksHeader">
-								<div class="panel-body">
-									<div class="panel-sub-buttons">
-										<button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseLinks">
-											<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Case Link
-										</button>
-									</div>
-
-									<div class="modal fade" id="myModalCaseLinks" tabindex="-1" role="dialog" aria-labelledby="myModalCaseLinksLabel">
-										<div class="modal-dialog" role="document">
-											<div class="modal-content">
-												<div class="modal-header">
-													<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-													<h4 class="modal-title" id="myModalCaseLinksLabel">Add a new case link for [% case.casename.value %]</h4>
-												</div>
-
-												<form id="caseAddNoteForm" method="POST">
-													<div class="modal-body">
-														<div class="form-group">
-															<label>Process</label>
-															<br>
-															<select name="processName">
-																<option value="">Select Process</option>
-																[% FOREACH p IN processes %]
-																<option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
-																[% END %]
-															</select>
-														</div>
-
-														<div class="form-group">
-															<label>Link Type :&nbsp;</label>
-															[% FOREACH lt IN linkTypes %]
-															<label class="radio-inline" for="[% lt.linkType_id %]">
-																<input type="radio" name="linkType" id="" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"> [% lt.linkType_name %]
-															</label>
-														    [% END %]
-														</div>
-
-														<div class="form-group">
-															<label>Link Value</label>
-															<textarea class="form-control" name="link" cols="100" rows="1"></textarea>
-														</div>
-
-														<div class="form-group">
-															<label>Description</label>
-															<textarea class="form-control" name="description" cols="100" rows="5"></textarea>
-														</div>
-													</div>
-
-
-													<div class="modal-footer">
-														<input type="hidden" name="action" value="addLinkProc"/>
-														<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-														<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-
-														<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-														<button type="submit" class="btn btn-primary" value="Submit">Submit</button>
-													</div>
-												</form>
-											</div>
-										</div>
-									</div>
-
-									<table class="table table-striped table-condensed">
-										<thead>
-											<th>Edit</th>
-											<th>Process</th>		
-											<th>Link Type</th>		
-											<th>Link</th>		
-											<th>Last Update</th>		
-										</thead>
-										[% FOREACH lk IN links %]
-										<tr>
-											<td>
-												<button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseLink[% lk.link_id %]">
-													<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-												</button>
-
-												<!--
-												<button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id.value %]&link_id=[% lk.link_id %]&action=update&expType_id=[% case.expType_id.value %]','height=300,width=800,scrollbars=yes')">
-													<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-												</button>
-												-->
-											</td>
-											<td>[% lk.process_name %]</td>
-											<td>[% lk.linkType_name %]</td>
-											[% http = lk.link %]
-											[% IF lk.linkType_id == 1 %]
-											<td><a href="[% lk.link %]" target="_blank">[% lk.link %]</a></td>
-											[% ELSE %]
-											<td>[% lk.link %]</td>
-											[% END %]
-											<td>[% lk.last_update %]</td>
-										</tr>
-
-										<tr>
-											<td colspan="5">
-												<h6 class="clear-marginbot">Description</h6>
-												[% lk.description %]
-											</td>
-										</tr>
-
-										<div class="modal fade" id="myModalCaseLink[% n.note_id %]" tabindex="-1" role="dialog" aria-labelledby="myModalCaseLink[% n.note_id %]Label">
-											<div class="modal-dialog" role="document">
-												<div class="modal-content">
-													<div class="modal-header">
-														<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-														<h4 class="modal-title" id="myModalCaseLink[% n.note_id %]Label">Update case link for [% case.casename.value %]</h4>
-													</div>
-
-													<form id="" method="POST">
-														<div class="modal-body">
-															<div class="form-group">
-																<label>Process</label>
-																<br>
-																<select name="processName">
-																	<option value="">Select Process</option>
-																	[% FOREACH p IN processes %]
-																	[% IF p.process_id == lk.process_id %]
-																	<option value="[% p.process_id %]" selected="selected">[% p.process_name %] - [% p.description %]</option>
-																	[% ELSE %]
-																	<option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
-																	[% END %]
-																	[% END %]
-																</select>
-															</div>
-
-															<div class="form-group">
-																<label>Link Type :&nbsp;</label>
-																[% FOREACH lt IN linkTypes %]
-																<label class="radio-inline" for="[% lt.linkType_id %]">
-																	[% IF lt.linkType_id == lk.linkType_id %]
-																	<input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]" checked="checked"/>[% lt.linkType_name %]
-																	[% ELSE %]
-																	<input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"/>[% lt.linkType_name %]
-																	[% END %]
-																</label>
-																[% END %]
-															</div>
-
-															<div class="form-group">
-																<label>Link Value</label>
-																<textarea class="form-control" name="link" cols="100" rows="1">[% lk.link %]</textarea>
-															</div>
-
-															<div class="form-group">
-																<label>Description</label>
-																<textarea class="form-control" name="description" cols="100" rows="5">[% lk.description %]</textarea>
-															</div>
-
-															<input type="hidden" name="action" value="updateLinkProc"/>
-															<input type="hidden" name="link_id" value="[% lk.link_id %]"/>
-															<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-															<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-															<button type="submit" class="btn btn-primary btn-block" value="Update">Update</button>
-														</div>
-													</form>
-
-
-														<div class="modal-footer modal-footer-sm">
-															<form id="" method="POST">
-															    <input type="hidden" name="action" value="deleteLinkProc"/>
-																<input type="hidden" name="link_id" value="[% lk.link_id %]"/>
-																<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-																<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-																<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-																<button type="submit" class="btn btn-danger" value="Delete">Delete</button>
-															</form>
-														</div>
-													</form>
-												</div>
-											</div>
-										</div>
-										[% END %]
-									</table>
-								</div>
-							</div>
-							<!-- Case Diag Links sub panel end -->
-
-
-							<!-- Publicatoin Options sub panel start -->
-							<div class="panel-heading" role="tab" id="publicationsHeader">
-								<h4 class="panel-title">
-									<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#publicationsCollapse" aria-expanded="false" aria-controls="publicationsCollapse">
-										Publication Options
-									</a>
-								</h4>
-							</div>
-
-							<div id="publicationsCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicationsHeader">
-								<div class="panel-body">
-									<p class="small text-center">* You must be the scientific lead or archiver for this experiment or a expdb2.0 admin in order to publish. After successful publication, it is up to the user to delete any intermediate files associated with this experiment on disk. Clicking on any of the options below will bring up a separate window with options for publication or a current status of a publication request.</p>
-									<span class="label label-danger">PUBLICATION OPTIONS ARE WORK-IN-PROGRESS</span>
-
-									<br>
-
-									<ul class="list-group">
-										<li class="list-group-item">
-											<p>Publish the Conformed compressed timeseries netCDF files to the ESGF and the CDG. Data managers can update the publication status using the <em>Update Status of ESGF button</em></p>
-
-											<div class="btn-group" role="group">
-												<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalESGF">
-													Publish Request to ESGF
-												</button>
-												<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalESGFStatus">
-													Update Status of ESGF
-												</button>
-											</div>
-
-											<div class="modal fade" id="myModalESGF" tabindex="-1" role="dialog" aria-labelledby="myModalESGFLabel">
-												<div class="modal-dialog" role="document">
-													<div class="modal-content">
-														<div class="modal-header">
-															<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-															<h4 class="modal-title" id="myModalESGFLabel">[% case.casename.value %] Publish to ESGF</h4>
-															<p>The following email requesting publication to the ESGF will be sent. Data managers can update the
-															publication status using the Update Status of ESGF button.</p>
-														</div>
-														<pre>email address: gateway-publish@ucar.edu
-															email subject: CESM EXDB ESGF Publication Notification: [% case.case_id.value %]
-															email body:
-
-															CESM EXDB ESGF Publication Notification
-															Case_ID: [% case.case_id.value %]
-															Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]</pre>
-														<form method="post">
-															<div class="modal-footer">
-																<input type="hidden" name="action" value="publishESGFProcess"/>
-																<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-																<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-																<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-																<button type="submit" class="btn btn-primary" value="Update">Send Email</button>
-															</div>
-														</form>
-													</div>
-												</div>
-											</div>
-
-											<div class="modal fade" id="myModalESGFStatus" tabindex="-1" role="dialog" aria-labelledby="myModalESGFStatusLabel">
-												<div class="modal-dialog" role="document">
-													<div class="modal-content">
-														<div class="modal-header">
-															<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-															<h4 class="modal-title" id="myModalESGFStatusLabel">[% case.casename.value %] Update Status of ESGF</h4>
-															<p>Only data managers can update the ESGF publication status.</p>
-														</div>
-														<form method="post">
-
-															<table class="table">
-																<thead>
-																	<tr>
-																		<th>Published?</th>
-																		<th>Verified?</th>
-																	</tr>
-																</thead>
-																<tbody>
-																	<tr>
-																		<td>
-																			<input type="radio" name="published" value="yes"/> Yes<br/>
-																			<input type="radio" name="published" value="no" checked="checked"/> No
-																		</td>
-																		<td>
-																			<input type="radio" name="verified" value="yes"/> Yes<br/>
-																			<input type="radio" name="verified" value="no" checked="checked"/> No
-																		</td>
-																	</tr>
-																</tbody>
-															</table>
-
-															<div class="modal-footer">
-																<input type="hidden" name="action" value="updateESGFProcess"/>
-																<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-																<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-																<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-																<button type="submit" class="btn btn-primary" value="Update">Update</button>
-															</div>
-														</form>
-													</div>
-												</div>
-											</div>
-										</li>
-
-										<li class="list-group-item">
-											Publish to NCAR Climate Data Gateway (formally ESG). This publishes the single-variable CESM compressed timeseries netCDF files.
-											Data managers can update the publication status using the Update Status of CDG button.<br/>
-											<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalCDG" style="margin-right: 15px;">
-												Publish Request to CDG
-											</button>
-											<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalCDGstatus" style="margin-right: 15px;">
-												Update Status of CDG
-											</button>
-
-											<div class="modal fade" id="myModalCDG" tabindex="-1" role="dialog" aria-labelledby="myModalCDGLabel">
-												<div class="modal-dialog" role="document">
-													<div class="modal-content">
-														<div class="modal-header">
-															<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-															<h4 class="modal-title" id="myModalCDGLabel">[% case.casename.value %] Publish to CDG</h4>
-															<p>The following email requesting publication to the CDG will be sent. Data managers can update the
-															publication status using the Update Status of CDG button.</p>
-														</div>
-														<pre>
-															email address: gateway-publish@ucar.edu
-															email subject: CESM EXDB CDG Publication Notification: [% case.case_id.value %]
-															email body:
-
-															CESM EXDB CDG Publication Notification
-															Case_ID: [% case.case_id.value %]
-															Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]
-														</pre>
-														<form method="post">
-															<div class="modal-footer">
-																<input type="hidden" name="action" value="publishCDGProcess"/>
-																<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-																<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-																<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-																<button type="submit" class="btn btn-primary" value="Update">Send Email</button>
-															</div>
-														</form>
-													</div>
-												</div>
-											</div>
-										</li>
-
-										<li class="list-group-item">
-											Publish experiment metadata to the NCAR <a href="https://data.ucar.edu/">Digital Assets Services Hub</a><br/>
-											<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalDASH" style="margin-right: 15px;">
-												Publish Metadata to DASH
-											</button>
-										</li>
-
-										<li class="list-group-item">
-											Publish experiment metadata and public links to diagnostics pages to the 
-											<a href="http://www.cesm.ucar.edu/models/cesm2/scientifically-validated-cesm2.html">CESM2 Scientifically Validated web page.</a><br/>
-											<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalScience" style="margin-right: 15px;">
-												Publish to CESM Science Validation Page
-											</button>
-										</li>
-
-										<li class="list-group-item">
-											Publish experiment detailed timing information to the 
-											<a href="https://csegweb.cgd.ucar.edu/timing/cgi-bin/timings.cgi">CESM2 Timing, Performance, and Load Balancing Data</a><br/>
-											<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModalTiming" style="margin-right: 15px;">
-												Publish to CESM Timing Page
-											</button>
-										</li>
-
-									</ul>
-								</div>
-							</div>
-							<!-- Publicatoin Options sub panel end -->
-						</div>
-					</div>
-					<!-- main panel end -->
-				</div>
-			</div>
+		<div class="form-group">
+		  <label>Link Type :&nbsp;</label>
+		  [% FOREACH lt IN linkTypes %]
+		  <label class="radio-inline" for="[% lt.linkType_id %]">
+		    [% IF lt.linkType_id == lk.linkType_id %]
+		    <input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]" checked="checked"/>[% lt.linkType_name %]
+		    [% ELSE %]
+		    <input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"/>[% lt.linkType_name %]
+		    [% END %]
+		  </label>
+		  [% END %]
 		</div>
-	</section>
-	<!-- content end -->
 
-	<!-- footer start -->
-	<footer>        
-		[% INCLUDE 'modern/includes/footer/footer-inc.html' %]
-	</footer>
-	<!-- footer end -->
+		<div class="form-group">
+		  <label>Link Value</label>
+		  <textarea class="form-control" name="link" cols="100" rows="1">[% lk.link %]</textarea>
+		</div>
 
+		<div class="form-group">
+		  <label>Description</label>
+		  <textarea class="form-control" name="description" cols="100" rows="5">[% lk.description %]</textarea>
+		</div>
 
-	<!-- scroll to top arrow -->
-	<a href="#" class="scrollup"><i class="fa fa-angle-up active"></i></a>
-
-
-	<!-- js start -->
-	[% INCLUDE 'modern/js/js-include.html' %]
-	<script>
-		[% INCLUDE 'modern/js/datatables.min.js' %]
-
-		var statusTable = $('#statusTable').DataTable({
-			"responsive": true,
-			"lengthMenu": [ [25, 50, -1], [25, 50, "All"] ],
-			"order": [ [ 0, 'asc'] ]
-		});
-
-		// Handle click on "Expand All" button
-		$('button#statusBtn-show-all-children').on('click', function(){
-			// Expand row details
-			statusTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
-		});
-
-		// Handle click on "Collapse All" button
-		$('button#statusBtn-hide-all-children').on('click', function(){
-			// Collapse row details
-			statusTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
-		});
+		<input type="hidden" name="action" value="updateLinkProc"/>
+		<input type="hidden" name="link_id" value="[% lk.link_id %]"/>
+		<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+		<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+		<button type="submit" class="btn btn-primary btn-block" value="Update">Update</button>
+	      </div>
+	    </form>
 
 
-
-		var caseTable = $('#caseTable').DataTable( {
-			"responsive": true,
-			"lengthMenu": [ [-1, 25, 50], ["All", 25, 50] ],
-			"order": [ [ 0, 'asc'] ]
-		} );
-
-		// Handle click on "Expand All" button
-		$('button#caseBtn-show-all-children').on('click', function(){
-			// Expand row details
-			caseTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
-		});
-
-		// Handle click on "Collapse All" button
-		$('button#caseBtn-hide-all-children').on('click', function(){
-			// Collapse row details
-			caseTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
-		});
-
-
-		// when clicking the toggle all details button show all in the containing div
-		$('.btn-show-exp-details').on('click', function () {
-		    $('#accordion-details .panel-collapse').collapse('toggle');
-		});
+	    <div class="modal-footer modal-footer-sm">
+	      <form id="" method="POST">
+		<input type="hidden" name="action" value="deleteLinkProc"/>
+		<input type="hidden" name="link_id" value="[% lk.link_id %]"/>
+		<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+		<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+		<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		<button type="submit" class="btn btn-danger" value="Delete">Delete</button>
+	      </form>
+	    </div>
+</form>
+</div>
+</div>
+</div>
+[% END %]
+</table>
+</div>
+</div>
+<!-- Case Diag Links sub panel end -->
 
 
-		// function for the bytes converter
-		function formatBytes(a,b){if(0==a)return"0 Bytes";var c=1024,d=b||2,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f]}
+<!-- Publicatoin Options sub panel start -->
+<div class="panel-heading" role="tab" id="publicationsHeader">
+  <h4 class="panel-title">
+    <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#publicationsCollapse" aria-expanded="false" aria-controls="publicationsCollapse">
+      Publication Options
+    </a>
+  </h4>
+</div>
+
+<div id="publicationsCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicationsHeader">
+  <div class="panel-body">
+    <p class="small text-center">* You must be the scientific lead or archiver for this experiment or a expdb2.0 admin in order to publish. After successful publication, it is up to the user to delete any intermediate files associated with this experiment on disk. Clicking on any of the options below will bring up a separate window with options for publication or a current status of a publication request.</p>
+    <span class="label label-danger">PUBLICATION OPTIONS ARE WORK-IN-PROGRESS</span>
+
+    <br>
+
+    <ul class="list-group">
+      <li class="list-group-item">
+	<p>Publish the Conformed compressed timeseries netCDF files to the ESGF and the CDG. Data managers can update the publication status using the <em>Update Status of ESGF button</em></p>
+
+	<div class="btn-group" role="group">
+	  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalESGF">
+	    Publish Request to ESGF
+	  </button>
+	  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalESGFStatus">
+	    Update Status of ESGF
+	  </button>
+	</div>
+
+	<div class="modal fade" id="myModalESGF" tabindex="-1" role="dialog" aria-labelledby="myModalESGFLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<h4 class="modal-title" id="myModalESGFLabel">[% case.casename.value %] Publish to ESGF</h4>
+		<p>The following email requesting publication to the ESGF will be sent. Data managers can update the
+		  publication status using the Update Status of ESGF button.</p>
+	      </div>
+	      <pre>
+email address: gateway-publish@ucar.edu
+email subject: CESM EXDB ESGF Publication Notification: [% case.case_id.value %]
+email body:
+
+CESM EXDB ESGF Publication Notification
+Case_ID: [% case.case_id.value %]
+Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]</pre>
+	      <form method="post">
+		<div class="modal-footer">
+		  <input type="hidden" name="action" value="publishESGFProcess"/>
+		  <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+		  <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+		  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		  <button type="submit" class="btn btn-primary" value="Update">Send Email</button>
+		</div>
+	      </form>
+	    </div>
+	  </div>
+	</div>
+
+	<div class="modal fade" id="myModalESGFStatus" tabindex="-1" role="dialog" aria-labelledby="myModalESGFStatusLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<h4 class="modal-title" id="myModalESGFStatusLabel">[% case.casename.value %] Update Status of ESGF</h4>
+		<p>Only data managers can update the ESGF publication status.</p>
+	      </div>
+	      <form method="post">
+
+		<table class="table">
+		  <thead>
+		    <tr>
+		      <th>Published?</th>
+		      <th>Verified?</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    <tr>
+		      <td>
+			<input type="radio" name="published" value="yes"/> Yes<br/>
+			<input type="radio" name="published" value="no" checked="checked"/> No
+		      </td>
+		      <td>
+			<input type="radio" name="verified" value="yes"/> Yes<br/>
+			<input type="radio" name="verified" value="no" checked="checked"/> No
+		      </td>
+		    </tr>
+		  </tbody>
+		</table>
+
+		<div class="modal-footer">
+		  <input type="hidden" name="action" value="updateESGFProcess"/>
+		  <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+		  <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+		  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		  <button type="submit" class="btn btn-primary" value="Update">Update</button>
+		</div>
+	      </form>
+	    </div>
+	  </div>
+	</div>
+      </li>
+
+      <li class="list-group-item">
+	Publish to NCAR Climate Data Gateway (formally ESG). This publishes the single-variable CESM compressed timeseries netCDF files.
+	Data managers can update the publication status using the Update Status of CDG button.<br/>
+	<div class="btn-group" role="group">
+	  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalCDG">
+	    Publish Request to CDG
+	  </button>
+	  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalCDGstatus">
+	    Update Status of CDG
+	  </button>
+	</div>
+
+	<div class="modal fade" id="myModalCDG" tabindex="-1" role="dialog" aria-labelledby="myModalCDGLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<h4 class="modal-title" id="myModalCDGLabel">[% case.casename.value %] Publish to CDG</h4>
+		<p>The following email requesting publication to the CDG will be sent. Data managers can update the
+		  publication status using the Update Status of CDG button.</p>
+	      </div>
+	      <pre>
+email address: gateway-publish@ucar.edu
+email subject: CESM EXDB CDG Publication Notification: [% case.case_id.value %]
+email body:
+
+CESM EXDB CDG Publication Notification
+Case_ID: [% case.case_id.value %]
+Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]
+	      </pre>
+	      <form method="post">
+		<div class="modal-footer">
+		  <input type="hidden" name="action" value="publishCDGProcess"/>
+		  <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+		  <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+		  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		  <button type="submit" class="btn btn-primary" value="Update">Send Email</button>
+		</div>
+	      </form>
+	    </div>
+	  </div>
+	</div>
+      </li>
+
+      <li class="list-group-item">
+	Publish experiment metadata to the NCAR <a href="https://data.ucar.edu/" target="_blank">Digital Assets Services Hub</a><br/>
+	<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalDASH" style="margin-right: 15px;">
+	  Publish Metadata to DASH
+	</button>
+      </li>
+
+      <li class="list-group-item">
+	Publish experiment metadata and public links to diagnostics pages to the 
+	<a href="http://www.cesm.ucar.edu/models/cesm2/scientifically-validated-cesm2.html" target="_blank">CESM2 Scientifically Validated web page.</a><br/>
+	<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalScience" style="margin-right: 15px;">
+	  Publish to CESM Science Validation Page
+	</button>
+      </li>
+
+      <li class="list-group-item">
+	Publish experiment detailed timing information to the 
+	<a href="https://csegweb.cgd.ucar.edu/timing/cgi-bin/timings.cgi" target="_blank">CESM2 Timing, Performance, and Load Balancing Data</a><br/>
+	<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalTiming" style="margin-right: 15px;">
+	  Publish to CESM Timing Page
+	</button>
+      </li>
+
+    </ul>
+  </div>
+</div>
+<!-- Publicatoin Options sub panel end -->
+</div>
+</div>
+<!-- main panel end -->
+</div>
+</div>
+</div>
+</section>
+<!-- content end -->
+
+<!-- footer start -->
+<footer>        
+  [% INCLUDE 'modern/includes/footer/footer-inc.html' %]
+</footer>
+<!-- footer end -->
 
 
-		// loop thru to check if any bytes need to be converted
-		$('.bytes-convert').each(function(i, obj) {
-			// get the val of byes
-			var bytes = $(this).text();
+<!-- scroll to top arrow -->
+<a href="#" class="scrollup"><i class="fa fa-angle-up active"></i></a>
 
-			// get the id
-			var bytesId = $(this).attr("id");
 
-			// check if it is set and over 0
-			if ( (bytes != "") && (bytes > 0) ) {
-				// convert it
-				bytesConverted = formatBytes(bytes);
+<!-- js start -->
+[% INCLUDE 'modern/js/js-include.html' %]
+<script>
+  [% INCLUDE 'modern/js/datatables.min.js' %]
 
-				//console.log(bytesConverted);
-				//console.log(bytesId);
+  var statusTable = $('#statusTable').DataTable({
+  "responsive": true,
+  "lengthMenu": [ [25, 50, -1], [25, 50, "All"] ],
+  "order": [ [ 0, 'asc'] ]
+  });
 
-				// convert and set it
-				$("#" + bytesId).text("bytesConverted");
-			}
-		});
-	</script>
+  // Handle click on "Expand All" button
+  $('button#statusBtn-show-all-children').on('click', function(){
+  // Expand row details
+  statusTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
+  });
 
-		
+  // Handle click on "Collapse All" button
+  $('button#statusBtn-hide-all-children').on('click', function(){
+  // Collapse row details
+  statusTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
+  });
+
+
+
+  var caseTable = $('#caseTable').DataTable( {
+  "responsive": true,
+  "lengthMenu": [ [-1, 25, 50], ["All", 25, 50] ],
+  "order": [ [ 0, 'asc'] ]
+  } );
+
+  // Handle click on "Expand All" button
+  $('button#caseBtn-show-all-children').on('click', function(){
+  // Expand row details
+  caseTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
+  });
+
+  // Handle click on "Collapse All" button
+  $('button#caseBtn-hide-all-children').on('click', function(){
+  // Collapse row details
+  caseTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
+  });
+
+
+  // when clicking the toggle all details button show all in the containing div
+  $('.btn-show-exp-details').on('click', function () {
+  $('#accordion-details .panel-collapse').collapse('toggle');
+  });
+
+
+  // function for the bytes converter
+  function formatBytes(a,b){if(0==a)return"0 Bytes";var c=1024,d=b||2,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f]}
+
+
+  // loop thru to check if any bytes need to be converted
+  $('.bytes-convert').each(function(i, obj) {
+  // get the val of byes
+  var bytes = $(this).text();
+
+  // get the id
+  var bytesId = $(this).attr("id");
+
+  // check if it is set and over 0
+  if ( (bytes != "") && (bytes > 0) ) {
+  // convert it
+  bytesConverted = formatBytes(bytes);
+
+  //console.log(bytesConverted);
+  //console.log(bytesId);
+
+  // convert and set it
+  $("#" + bytesId).text("bytesConverted");
+  }
+  });
+</script>
+
+
 <script type="text/javascript" src="/expdb2.0/scripts/popitup.js"></script>
 
-	<!-- js end -->
+<!-- js end -->
 </div>
 </body>
 </html>
