@@ -1,8 +1,8 @@
 #!/usr/bin/csh
 
 mysql < ./t2_cases.sql
-mysql < ./t2_cmip6_DECK_types.sql
 mysql < ./t2_cmip6_DECK_exps.sql
+mysql < ./t2_cmip6_DECK_types.sql
 mysql < ./t2_cmip6_MIP_types.sql
 mysql < ./t2_cmip6_exps.sql
 mysql < ./t2_cmip6_forcings.sql
@@ -21,5 +21,9 @@ mysql < ./t2e_notes.sql
 mysql < ./t2j_cmip6.sql
 mysql < ./t2j_cmip6_exps_mips.sql
 mysql < ./t2j_links.sql
-mysql < ./t2j_status.sql
 mysql < ./t2j_publish_approvals.sql
+mysql < ./t2j_status.sql
+
+
+
+

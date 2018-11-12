@@ -1,25 +1,24 @@
-<div class="loginHeader">
-    <div class="ui-state-default ui-corner-all" style="position: absolute; top: 20px; left: 20px; font-weight:normal">
-     <form name="expForm">
-     <a href="/expdb/cgi-bin/index.cgi" target="_blank">CESM1 Experiments</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-     <a href="/expdb2.0/cgi-bin/expList.cgi">CESM2 Experiments</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-     <a href="/expdb2.0/cgi-bin/search.cgi">Advanced Search</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-     	Select a Case Name:
-    	  <select id="expPD">
-	     <option>Select Case Name</option>
-	     [% FOREACH case IN allCases %]
-	   	  <option value="[% case.case_id %]"><b>[% case.expType %]</b> - [% case.casename %]</option>
-	     [% END %]
-	  </select>
-      </form>
-
-<script>
-$('#expPD').change(function() {
-//  alert('The option with value ' + $(this).val() + ' and text ' + $(this).text() + ' was selected.');
-  window.location = '/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=' + $(this).val();
-});
-</script>
-
-    </div>
-    Logged in as <b>[% authUser.lfirstname %] [% authUser.llastname %]</b>&nbsp;&nbsp;|&nbsp;&nbsp;<span class="ui-state-default ui-corner-all" style="font-weight:normal"><a href="/expdb2.0/cgi-bin/login.cgi?action=logout">Logout</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="/expdb2.0/html/procedures.html">Help</a></span>
+<div class="row">
+    <ul class="nav nav-pills"> 
+        <li role="presentation" class="">
+            <a href="/expdb/cgi-bin/index.cgi">CESM1 Experiments</a>
+        </li> 
+        <li role="presentation" class="active">
+            <a href="/expdb2.0/cgi-bin/expList.cgi">CESM2 Experiments</a>
+        </li> 
+        <li role="presentation">
+            <a href="/expdb2.0/cgi-bin/search.cgi">Advanced Search</a>
+        </li> 
+        <li role="presentation" class="dropdown"> 
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> Select a case name <span class="caret"></span> </a> 
+            <ul class="dropdown-menu"> 
+                [% FOREACH case IN allCases %]
+                <li><a href="expList.cgi?action=showCaseDetail&case_id=[% case.case_id %]"><b>[% case.expType %]</b> - [% case.casename %]</a></li> 
+                [% END %]
+             </ul> 
+         </li>
+         <li role="presentation" class="pull-right">
+            Logged in as <b>[% authUser.lfirstname %] [% authUser.llastname %]</b> <div class="btn-group" role="group" aria-label="Basic example"> <a href="/expdb2.0/cgi-bin/login.cgi?action=logout"><button type="button" class="btn btn-default">Logout</button></a> <a href="/expdb2.0/html/procedures.html"><button type="button" class="btn btn-default">Help</button></a></div>
+         </li>
+    </ul>
 </div>

@@ -18,14 +18,16 @@ use expdb2_0;
 @ISA = qw(Exporter);
 @EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCMIP6Sources 
 getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6Inits getCMIP6Physics
-getCMIP6Forcings getCMIP6Diags);
+getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher);
 
 sub getCMIP6Experiments
 {
     my $dbh = shift;
     my ($sql1, $sth1);
     my ($sql2, $sth2);
+    my ($count, $case_id);
     my @CMIP6Exps;
+
     my $sql = "select * from t2_cmip6_exps order by name";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -37,15 +39,24 @@ sub getCMIP6Experiments
 	$CMIP6Exp{'description'} = $ref->{'description'};
 	$CMIP6Exp{'cmip6_exp_uid'} = $ref->{'uid'};
 	$CMIP6Exp{'designMIP'} = $ref->{'design_mip'};
-	$sql1 = qq(select count(case_id) from t2j_cmip6 
+	$sql1 = qq(select count(case_id), case_id, 
+                   IFNULL(DATE_FORMAT(request_date, '%Y-%m-%d %H:%i'),'') as request_date from t2j_cmip6 
                    where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
-	my $count = $sth1->fetchrow();
+	($count, $case_id, $CMIP6Exp{'request_date'}) = $sth1->fetchrow();
 	$sth1->finish();
 	if( $count ) {
-	    $sql1 = qq(select case_id from t2j_cmip6 
-                   where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
+	    $sql1 = qq(select DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i') from t2_cases
+                       where id = $case_id);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $CMIP6Exp{'archive_date'} = $sth1->fetchrow();
+	    $sth1->finish();
+
+	    $sql1 = qq(select case_id, 
+                       IFNULL(DATE_FORMAT(request_date, '%Y-%m-%d %H:%i'),'') as request_date from t2j_cmip6 
+                       where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
 	    $sth1 = $dbh->prepare($sql1);
 	    $sth1->execute();
 	    while(my $ref1 = $sth1->fetchrow_hashref())
@@ -57,11 +68,14 @@ sub getCMIP6Experiments
 		$CMIP6EnsExp{'cmip6_exp_uid'} = $ref->{'uid'};
 		$CMIP6EnsExp{'designMIP'} = $ref->{'design_mip'};
 		$CMIP6EnsExp{'case_id'} = $ref1->{'case_id'};
-		$sql2 = qq(select casename from t2_cases where id = $CMIP6EnsExp{'case_id'} and expType_id = 1);
+		$CMIP6EnsExp{'request_date'} = $ref1->{'request_date'};
+		$sql2 = qq(select casename, 
+                           IFNULL(DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i'),'') as archive_date from t2_cases 
+                           where id = $CMIP6EnsExp{'case_id'} and expType_id = 1);
 		##print STDERR ">>> sql2 = " . $sql2;
 		$sth2 = $dbh->prepare($sql2);
 		$sth2->execute();
-		$CMIP6EnsExp{'casename'} = $sth2->fetchrow();
+		($CMIP6EnsExp{'casename'}, $CMIP6EnsExp{'archive_date'}) = $sth2->fetchrow();
 		##print STDERR ">>> casname = " . $CMIP6EnsExp{'casename'};
 		$sth2->finish();
 		push(@CMIP6Exps, \%CMIP6EnsExp);
@@ -354,6 +368,12 @@ sub getCMIP6CaseByID
 
 	    my @field_history = getCaseFieldByName($dbh, $id, $field);
 	    $case{$field}{'history'} = \@field_history;
+	    # if there is a history, update the display value to the most current
+	    my $field_history = @field_history;
+	    if ($field_history > 0) {
+		$case{$field}{'value'} = $field_history[0]{'field_value'};
+	    }
+	    
 	}
 
 	# get all the boolean fields and their history values
@@ -572,7 +592,7 @@ sub getCMIP6Sources
 {
     my $dbh = shift;
     my @CMIP6Sources;
-    my $sql = "select * from t2_cmip6_sources order by id";
+    my $sql = qq(select * from t2_cmip6_sources order by id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -604,14 +624,14 @@ sub checkCMIP6Sources
     
     while(my $CMIP6Source = shift(@inSources)) {
 	if ($CMIP6Source ~~ [1,3]) {
-	    my $sql = "select subtype_source_id from t2j_cmip6_source_types 
-                       where parent_source_id = $CMIP6Source";
+	    my $sql = qq(select subtype_source_id from t2j_cmip6_source_types 
+                       where parent_source_id = $CMIP6Source);
 	    my @associates = @{$dbh->selectcol_arrayref($sql)};
 	    # TODO - cross-check the associates array with
 	    # inSources using the Array::Utils module
 	}
-	my $sql = "select name from t2_cmip6_sources 
-                   where id = $CMIP6Source";
+	my $sql = qq(select name from t2_cmip6_sources 
+                   where id = $CMIP6Source);
 	my $sth = $dbh->prepare($sql);
 	$sth->execute();
 	my $source_name = $sth->fetchrow();
@@ -805,7 +825,7 @@ sub getCMIP6Status
                  c.run_startdate, j.nyears
                  from t2_cases as c, t2_cmip6_exps as e, t2j_cmip6 as j
                  where c.id = j.case_id and
-                 en.id = j.exp_id and
+                 e.id = j.exp_id and
                  j.exp_id = e.id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -817,12 +837,28 @@ sub getCMIP6Status
 	$case{'casename'} = $ref->{'casename'};
 	$case{'expName'} = $ref->{'name'};
 	$case{'cmip6_exp_uid'} = $ref->{'uid'};
+
+	# get the most current value for cost 
 	$case{'run_model_cost'} = $ref->{'model_cost'};
+	my @field_history = getCaseFieldByName($dbh, $case{'case_id'}, 'model_cost');
+	# if there is a history, update the display value to the most current
+	my $field_history = @field_history;
+	if ($field_history > 0) {
+	    $case{'run_model_cost'} = $field_history[0]{'field_value'};
+	}
+
+	# get the most current value for throughput
 	$case{'run_model_throughput'} = $ref->{'model_throughput'};
+	@field_history = getCaseFieldByName($dbh, $case{'case_id'}, 'model_throughput');
+	# if there is a history, update the display value to the most current
+	$field_history = @field_history;
+	if ($field_history > 0) {
+	    $case{'run_model_throughput'} = $field_history[0]{'field_value'};
+	}
 
 	# get the case_run status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      s.code, s.color, j.archive_method
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 1 and 
@@ -832,15 +868,33 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'run_disk_usage'}, $case{'run_model_date'}, $case{'run_last_update'},
-	 $case{'run_code'}, $case{'run_color'}) = $sth1->fetchrow();
+	 $case{'run_code'}, $case{'run_color'}, $case{'run_archive_method'}) = $sth1->fetchrow();
 	$sth1->finish();
 
+	# get the most non-zero current run disk usage
+	if ( length($case{'run_disk_usage'} ) <= 1 ) {
+	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
+                       j.case_id = $ref->{'id'} and
+                       j.process_id = 1 and 
+                       j.status_id = s.id and
+                       j.disk_usage is not null and
+                       j.disk_usage <> '0' and
+                       j.archive_method = 'archive_metadata'
+                       order by last_update desc
+                       limit 1);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $case{'run_disk_usage'} = $sth1->fetchrow();
+	    $sth1->finish();
+	}
+
 	# compute the run percentage complete
+
 	$case{'run_percent_complete'} = getPercentComplete($case{'run_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
 	# get the case_st_archive status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      s.code, s.color, j.archive_method
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 2 and 
@@ -851,15 +905,32 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'sta_disk_usage'}, $case{'sta_model_date'}, $case{'sta_last_update'},
-	 $case{'sta_code'}, $case{'sta_color'}) = $sth1->fetchrow();
+	 $case{'sta_code'}, $case{'sta_color'}, $case{'sta_archive_method'}) = $sth1->fetchrow();
 	$sth1->finish();
+
+	# get the most non-zero current sta disk usage
+	if ( length($case{'sta_disk_usage'} ) <= 1 ) {
+	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
+                       j.case_id = $ref->{'id'} and
+                       j.process_id = 2 and 
+                       j.status_id = s.id and
+                       j.disk_usage is not null and
+                       j.disk_usage <> '0' and
+                       j.archive_method = 'archive_metadata'
+                       order by last_update desc
+                       limit 1);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $case{'sta_disk_usage'} = $sth1->fetchrow();
+	    $sth1->finish();
+	}
 
 	# compute the sta percentage complete
 	$case{'sta_percent_complete'} = getPercentComplete($case{'sta_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
 	# get the timeseries status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      j.total_time, s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 3 and 
@@ -869,15 +940,39 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'ts_disk_usage'}, $case{'ts_model_date'}, $case{'ts_last_update'},
-	 $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
+	 $case{'ts_process_time'}, $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
+	# get the most non-zero current timeseries disk usage
+	if ( length($case{'ts_disk_usage'} ) <= 1 ) {
+	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
+                       j.case_id = $ref->{'id'} and
+                       j.process_id = 3 and 
+                       j.status_id = s.id and
+                       j.disk_usage is not null and
+                       j.disk_usage <> '0' and
+                       j.archive_method = 'archive_metadata'
+                       order by last_update desc
+                       limit 1);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $case{'ts_disk_usage'} = $sth1->fetchrow();
+	    $sth1->finish();
+	}
+
+
 	# compute the timeseries percentage complete
-	$case{'ts_percent_complete'} = getPercentComplete($case{'ts_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+	$case{'ts_percent_complete'} = 0;
+	if (index($case{'ts_model_date'}, "-") != -1 ) {
+	    my @ts_date_parts = split(/-/, $case{'ts_model_date'});
+	    my $endts_model_date = substr($ts_date_parts[1], 0, 4);
+	    $case{'ts_percent_complete'} = getPercentComplete($endts_model_date, $ref->{'nyears'}, $ref->{'run_startdate'});
+	}
+	    
 
 	# get the conform status
 	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      j.total_time, s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 17 and 
@@ -887,12 +982,36 @@ sub getCMIP6Status
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
 	($case{'conform_disk_usage'}, $case{'conform_model_date'}, $case{'conform_last_update'},
-	 $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
+	 $case{'conform_process_time'}, $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
-	# compute the conform percentage complete
-	$case{'conform_percent_complete'} = getPercentComplete($case{'conform_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+	# get the most non-zero current conform disk usage
+	if ( length($case{'conform_disk_usage'} ) <= 1 ) {
+	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
+                       j.case_id = $ref->{'id'} and
+                       j.process_id = 17 and 
+                       j.status_id = s.id and
+                       j.disk_usage is not null and
+                       j.disk_usage <> '0' and
+                       j.archive_method = 'archive_metadata'
+                       order by last_update desc
+                       limit 1);
+	    $sth1 = $dbh->prepare($sql1);
+	    $sth1->execute();
+	    $case{'conform_disk_usage'} = $sth1->fetchrow();
+	    $sth1->finish();
+	}
 
+
+	# compute the conform percentage complete
+	$case{'conform_percent_complete'} = 0;
+	if (index($case{'conform_model_date'}, "-") != -1 ) {
+	    my @conform_date_parts = split(/-/, $case{'conform_model_date'});
+	    my $endconform_model_date = substr($conform_date_parts[1], 0, 4);
+	    $case{'conform_percent_complete'} = getPercentComplete($endconform_model_date, $ref->{'nyears'}, $ref->{'run_startdate'});
+	}
+
+	# compute total disk usage
 	$case{'total_disk_usage'} = $case{'run_disk_usage'} + $case{'sta_disk_usage'} + $case{'ts_disk_usage'} + $case{'conform_disk_usage'};
         
         push(@cases, \%case);
@@ -994,7 +1113,7 @@ sub getCMIP6Forcings
     my $dbh = shift;
     my @CMIP6Forcings;
 
-    my $sql = "select * from t2_cmip6_forcings order by value";
+    my $sql = qq(select * from t2_cmip6_forcings order by value);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -1007,4 +1126,34 @@ sub getCMIP6Forcings
     }
     $sth->finish();
     return @CMIP6Forcings;
+}
+
+sub isCMIP6User
+{
+    my $dbh = shift;
+    my $user_id = shift;
+
+    my $sql = qq(select is_cmip6 from t_svnusers 
+                 where user_id = $user_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my ($is_cmip6) = $sth->fetchrow();
+
+    return $is_cmip6;
+}
+
+
+sub isCMIP6Publisher
+#TODO add column is_cmip6_publisher to the t_svnusers table
+{
+    my $dbh = shift;
+    my $user_id = shift;
+
+    my $sql = qq(select is_cmip6_publisher from t_svnusers 
+                 where user_id = $user_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my ($is_cmip6) = $sth->fetchrow();
+
+    return $is_cmip6;
 }

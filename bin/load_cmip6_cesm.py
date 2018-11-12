@@ -163,7 +163,7 @@ def main(options):
                     
                 if count[0] == 0:
                     # insert a new join record
-                    sql = "insert into t2j_cmip6 (exp_id, design_mip_id, variant_label) value ({0},{1},'r0i0p0f0')".format(exp_id, design_mip_id[0])
+                    sql = "insert into t2j_cmip6 (exp_id, design_mip_id) value ({0},{1})".format(exp_id, design_mip_id[0])
                     try:
                         print ("Executing sql = {0}".format(sql))
                         cursor.execute(sql)
@@ -174,7 +174,7 @@ def main(options):
 
                 if count[0] == 1:
                     # update record with deck_id
-                    sql = "update t2j_cmip6 set design_mip_id = {0}, variant_label = 'r0i0p0f0' where exp_id = {1}".format(design_mip_id[0], exp_id)
+                    sql = "update t2j_cmip6 set design_mip_id = {0} where exp_id = {1}".format(design_mip_id[0], exp_id)
                     try:
                         print ("Executing sql = {0}".format(sql))
                         cursor.execute(sql)

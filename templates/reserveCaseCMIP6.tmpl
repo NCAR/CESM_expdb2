@@ -1,259 +1,245 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-lg-12">
 
-	  <form id="reserveCaseForm" action="/expdb2.0/cgi-bin/expList.cgi" method="POST">
-	    <input type="hidden" name="action" value="reserveCase">
-	    <input type="hidden" name="expType_id" value="1">
-	      <p>This form must be completed for every CMIP6 experiment prior to running create_newcase.
-		It contains expert knowledge that cannot be retrieved by the caseroot <b>archive_metadata</b>
-		script required by the CMIP6 project. For detatils, please see the following <b>CMIP6 Specific References:</b>
-		<br/><br/>
-	      	- <a href="http://clipc-services.ceda.ac.uk/dreq/index.html" target="_blank">View CMIP6 Data Request Definitions</a>
-		<br/>
-                - <a href="https://www.earthsystemcog.org/projects/wip/position_papers" target="_blank">
-		      View CMIP6 Global Attributes, DRS, Filenames, Directory Structure, and Controlled Vocabularies (CVs)</a> 
-		    for details concerning the "ripf" specification.
-		<br/>
-		- <a href="https://github.com/WCRP-CMIP/CMIP6_CVs/blob/master/CMIP6_experiment_id.json" target="_blank">CMIP6 github JSON defined experiment ID's and sources</a>
-	      </p>
-	      <br/>
-	      <hr/>
-	      <br/>
-	      <br/>
-	    <span class="error">*</span> Indicates a required field.<br/>
-	    CMIP6 Global Attributes are enclosed in ( ).
-	    <table>
-	      <thead>
-		<th colspan="2">General Case Information</th>
-	      </thead>
-	      <tbody>
-		<tr>
-		  <td align="right"><span class="error">*</span> <b>Unique Case Name:</b></td>
-		  <td><input type="text" name="case" maxlength="128" size="64" required/></td>
-		</tr>
-		<tr>
-		  <td align="right" valign="top"><span class="error">*</span> <b>Brief Title/Description:</b><br/>
-		  (variant_info)</td>
-		  <td><textarea name="case_title" rows="3" maxlength="256" cols="64" required/></textarea></td>
-		</tr>
-		<tr>
-		  <td align="right"><b>Total number of model years to be run:</b></td>  
-		  <td align="left"><input type="number" name="nyears" min="1" max="10000" value="" required/></td>
-		</tr>
-	        <tr>
-		  <td colspan="2"><span class="error">*</span> <b>Run Type and Start Date (YYYY-MM-DD):</b><br/>
-		  (branch_method) and (branch_time_in_child)</td>
-		</tr>
-		<tr>
-		  <td align="right"><input type="radio" name="runtype" value="startup"/> <b>Startup</b></td>
-		  <td><input type="text" name="startup_startyear" maxlength="10" size="10"/></td>
-		</tr>
-		<tr>
-		  <td align="right"><input type="radio" name="runtype" value="branch"/> <b>Branch</b></td>
-		  <td><input type="text" name="branch_startyear" maxlength="10" size="10"/></td>
-		</tr>
-		<tr>
-		  <td align="right"><input type="radio" name="runtype" value="hybrid"/> <b>Hybrid</b></td>
-		  <td><input type="text" name="hybrid_startyear" maxlength="10" size="10"/></td>
-		</tr>
-	      </tbody>
-	    </table>
 
-	    <br/>
-	      <hr/>
-	    <br/>
+			<form id="reserveCaseForm" action="/expdb2.0/cgi-bin/expList.cgi" method="POST">
+			    <input type="hidden" name="action" value="reserveCase">
+			    <input type="hidden" name="expType_id" value="1">
+			    <br>
+			    <p class="lead text-center">This form must be completed for every CMIP6 experiment prior to running create_newcase. It contains expert knowledge that cannot be retrieved by the caseroot <strong>archive_metadata</strong> script required by the CMIP6 project.</p>
 
-	    <table>
-	      <thead>
-		<th colspan="2">Experiment Ensembles</th>
-	      </thead>
-	      <tbody>
-		<tr>
-		  <td valign="top" style="width: 40%"><b>Is this an ensemble experiment?</b></td>
-		  <td align="left"><input type="radio" name="ensemble" value="false" checked required/> No<br/>
-		      <input type="radio" name="ensemble" value="true"/> Yes</td>
-		</tr>
-		<tr>
-		  <td><b>If "Yes", enter the number of ensemble members:</b></td> 
-		  <td align="left"><input type="number" name="ensemble_size" min="1" max="100" value=""/></td>
-		</tr>
-		<tr>
-		  <td><b>... and number of years for each ensemble member:</b></td>  
-		  <td align="left"><input type="number" name="ensemble_years" min="1" max="2000" value=""/></td>
-		</tr>
-	      </tbody>
-	    </table>
-	    <p>Note: Ensemble experiments need to only reserve one unique casename 
-	      corresponding to the first ensemble name of the experiment.
-	      For example, "b.e20.dp.hd-1961.20C.1d.001" is the only case name that needs to be 
-	      entered for the hindcast initialization of the 20th Century run starting
-	      at 1961. Subsequent ensemble member casenames will be automatically added to the database
-	      with the last numeric extension incremented for each ensemble member as well as the
-	      realization number. </p>
-	    <br/>
-	      <hr/>
-	    <br/>
-	    <table> 
-	      <thead>
-		<th colspan="2">CMIP6 Experiment Associations</th>
-	      </thead>
-	      <tbody>
-		<tr>
-		  <td align="right"><span class="error">*</span> <b>CMIP6 Experiment</b><br/>
-		  (experiment_id)</td>
-		  <td><select required name="expName">
-		      <option value="">Select Experiment</option>
-		      [% FOREACH exp IN CMIP6Exps %]	
-		      <option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
-		      [% END %]
-		    </select>
-		  </td>
-		</tr>	
-		<tr>
-		  <td align="right" valign="top"><span class="error">*</span> <b>Variant Label "ripf":</b><br/>
-		  (variant_label) All entries must be integer values > 0.</td>
-		  <td>
-		    <table>
-		      <tbody>
-			<tr>
-			  <td align="right" valign="top">realization_index:</td> <td><input type="number" name="real_num" min="1" max="100" value="1" required/>
-			  <b>Note: the CESM2 database will automatically assign a realization number for ensemble experiments</b>
-			  <p>realization_index = an integer (>=1) distinguishing among members of an ensemble of simulations that differ 
-			  only in their initial conditions (e.g., initialized from different points in a control run). 
-			  Note that if two different simulations were started from the same initial conditions, the same
-			  realization number should be used for both simulations. For example if a historical run with 
-			  "natural forcing" only and another historical run that includes anthropogenic forcing were both 
-			  spawned at the same point in a control run, both should be assigned the same realization. Also,
-			  each so-called RCP (future scenario) simulation should normally be assigned the same realization 
-			  integer as the historical run from which it was initiated. This will allow users to easily splice 
-			  together the appropriate historical and future runs.</p>
-			  </td>
-			</tr>
-			<tr>
-			  <td align="right" valign="top">intialization_index:</td>
-			  <td><select required name="init_num">
-			      [% FOREACH init IN CMIP6Inits %]
-			      <option value="[% init.init_id %]">[% init.value %] : [% init.description %]</option>
-			      [% END %]
-			    </select>   
-			  <p>initialization_index = an integer (>=1), which should be assigned a value of 1 except to distinguish simulations performed under the same
-			  conditions but with different initialization procedures. In CMIP6 this index should invariably be assigned the value <b>1</b> except 
-			  for some hindcast and forecast experiments called for by the DCPP activity. The initialization_index can be used either to 
-			  distinguish between different algorithms used to impose initial conditions on a forecast or to distinguish between different 
-			  observational datasets used to initialize a forecast.</p>
-			  </td>
-			</tr>
-			<tr>
-			  <td align="right">physics_index:</td> 
-			  <td><select required name="phys_num">
-			      [% FOREACH physic IN CMIP6Physics %]
-			      <option value="[% physic.physic_id %]">[% physic.value %] : CESM2-1-[% physic.description %]</option>
-			      [% END %]
-			    </select>
-			    <p>physics_index = an integer (>=1) identifying the physics version used by the model. In the usual case of a single 
-			    physics version of a model, this argument should normally be assigned the value 1, but it is essential that a consistent 
-			    assignment of physics_index be used across all simulations performed by a particular model. Use of "physics_index" is 
-			    reserved for closely-related model versions (e.g., as in a "perturbed physics" ensemble) or for the same model run with 
-			    slightly different parameterizations (e.g., of cloud physics). Model versions that are
-			    substantially different from one another should be given a different source_id (rather than simply assigning a different value of the
-			    physics_index).
-			    </p>
-			  </td>
-			</tr>
-			<tr>
-			  <td align="right">forcing_index:</td> 
-			  <td><select required name="force_num">
-			      [% FOREACH forcing IN CMIP6Forcings %]
-			      <option value="[% forcing.force_id %]">[% forcing.value %] : [% forcing.description %]</option>
-			      [% END %]
-			    </select>
-			    <p>forcing_index = an integer (>=1) used to distinguish runs conforming to the protocol of a single CMIP6 experiment, 
-			    but with different variants of forcing applied. One can, for example, distinguish between two historical simulations, 
-			    one forced with the CMIP6-recommended forcing data sets and another forced by a different dataset, which might yield 
-			    information about how forcing uncertainty affects the simulation.
-			    </p>
-			  </td>
-			</tr>
-		      </tbody>
-		    </table>
-		</tr>
+				<ul class="list-group">
+					<li class="list-group-item" style="background-color: #f5f5f5;">For detatils, please see the following <strong>CMIP6 Specific References below</strong></li>
+					<li class="list-group-item"><a href="http://clipc-services.ceda.ac.uk/dreq/index.html" target="_blank">View CMIP6 Data Request Definitions</a></li>
+					<li class="list-group-item"><a href="https://github.com/WCRP-CMIP/CMIP6_CVs/blob/master/CMIP6_experiment_id.json" target="_blank">CMIP6 github JSON defined experiment ID's and sources</a></li>
+					<li class="list-group-item"><a href="https://www.earthsystemcog.org/projects/wip/position_papers" target="_blank"> View CMIP6 Global Attributes, DRS, Filenames, Directory Structure, and Controlled Vocabularies (CVs) for details concerning the "ripf" specification</a></li>
+				</ul>
 
-		<tr>
-		  <td align="right" valign="top"><span class="error">*</span> <b>Source Types:</b><br/>
-		    (source_type)<br/>check all that apply
-		      <p>Note: <b>Only for source types AGCM and AOGCM</b>, one or more of the following combinations are allowed.</p>
-			<table>
-			  <tbody>
-			    <tr>
-			      <td>AGCM</td><td>BGC</td><td>AER</td><td>CHEM</td><td>SLAB</td>
-			    </tr>
-			    <tr>
-			      <td>AOGCM</td><td>BGC</td><td>AER</td><td>CHEM</td><td>ISM</td>
-			    </tr>
-			  </tbody>
-			</table>
-		  </td>
-		  <td align="left">
-		    [% FOREACH source IN CMIP6Sources %]	
-		    <input type="checkbox" name="source" value="[% source.id %]" /> [% source.name %] - [% source.description %]<br/>
-		    [% END %]<br>
-		  </td>
-		</tr>
-		<tr>
-		  <td align="right" nowrap><b>CMIP6 Parent Experiment</b><br/>
-		  (parent_experiment_id)</td>
-		  <td>
-		    <select name="parentExp">
-		      <option value="0">Select Experiment</option>
-		      [% FOREACH exp IN CMIP6Exps %]	
-		      <option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
-		      [% END %]
-		    </select>
-		  </td>
-		<tr>
-		  <td align="right"><b>Parent Reference Date (YYYY-MM-DD):</b><br/>
-		  (branch_time_in_parent)</td>
-		  <td><input type="text" name="run_refdate" maxlength="10" size="10"/></td>
-		</tr>
-	      </tbody>	
-	    </table>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">General Case Information <span class="label label-danger">* Indicates a required field</span> <span class="label label-default">CMIP6 Global Attributes are enclosed in ( )</span></h3>
+					</div>
+					<div class="panel-body">
+						<div class="form-group">
+							<label><span class="text-danger">*</span> Unique Case Name</label>
+							<input class="form-control" type="text" name="case" maxlength="128" size="64" required placeholder="...">
+						</div>
+						<div class="form-group">
+							<label><span class="text-danger">*</span> Brief Title/Description <small class="text-muted">(variant_info)</small></label>
+							<textarea class="form-control" name="case_title" rows="3" maxlength="256" cols="64" required placeholder="..."/></textarea>
+						</div>
+						<div class="row">
+							<div class="col-lg-6">
+								<div class="form-group form-inline">
+									<label><span class="text-danger">*</span> Run Type and Start Date <small class="text-muted">(branch_method) &amp; (branch_time_in_child)</small></label>
+									<br>
+									<div class="form-group text-center">
+										<input type="radio" name="runtype" value="startup"/> Startup <br> <input type="text" class="form-control" name="startup_startyear" maxlength="10" size="11" placeholder="YYYY-MM-DD" />
+									</div>
+									<div class="form-group text-center">
+										<input type="radio" name="runtype" value="branch"/> Branch <br> <input type="text" class="form-control" name="branch_startyear" maxlength="10" size="11" placeholder="YYYY-MM-DD" />
+									</div>
+									<div class="form-group text-center">
+										<input type="radio" name="runtype" value="hybrid"/> Hybrid <br> <input type="text" class="form-control" name="hybrid_startyear" maxlength="10" size="11" placeholder="YYYY-MM-DD" />
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="form-group form-inline">
+									<label>Total number of model years to be run</label>
+									<br>
+									<input type="number" class="form-control" name="nyears" min="1" max="10000" value="" required/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 
-	    <br/>
-	    <hr/>
-	    <br/>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Experiment Ensembles</h3>
+					</div>
+					<div class="panel-body">
+						<div class="form-group">
+							<label>Is this an ensemble experiment?</label>
+							<br>
+							<input type="radio" name="ensemble" value="false" checked required/> No
+							<input type="radio" name="ensemble" value="true"/> Yes
+						</div>
 
-	    <table> 
-	      <thead>
-		<th colspan="2">Case Specific Information</th>
-	      </thead>
-	      <thead>
-		<tr>
-		  <td>
-		    <span class="error">*</span> <b>Assigned To:</b>
-		    <select required name="assignUser">
-		      <option value="">Select User</option>
-		      [% FOREACH user IN CMIP6Users %]	
-		      <option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
-		      [% END %]
-		    </select>
-		  </td>
-		  <td>
-		    <span class="error">*</span> <b>Scientific Lead:</b>
-		    <select required name="scienceUser">
-		      <option value="">Select User</option>
-		      [% FOREACH user IN CMIP6Users %]	
-		      <option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
-		      [% END %]
-		    </select>
-		  </td>
-		</tr>
-		<tr>
-		  <td colspan="2"><b>Case Notes:</b><br/>
-		  <textarea name="notes" cols="100" rows="5"></textarea></td>
-		</tr>
-	      </tbody>	
-	    </table>
-	    <br/>
-	    <hr/>
-	    <br/>
-	    <input id="submit" class="button" type="submit" value="Submit"/>
-	    <input type="reset"/>
-	    </form>
+						<div class="row">
+							<div class="col-lg-6">
+								<div class="form-group form-inline">
+									<label>If "Yes", enter the number of ensemble members</label>
+									<br>
+									<input type="number" class="form-control" name="ensemble_size" min="1" max="100" value=""/>
+								</div>
+							</div>
+
+							<div class="col-lg-6">
+								<div class="form-group form-inline">
+									<label>... and number of years for each ensemble member</label>
+									<br>
+									<input type="number" class="form-control" name="ensemble_years" min="1" max="2000" value=""/>
+								</div>
+							</div>
+						</div>
+
+						<p class="text-muted"><small><strong>Note:</strong> Ensemble experiments need to only reserve one unique casename corresponding to the first ensemble name of the experiment. For example, "b.e20.dp.hd-1961.20C.1d.001" is the only case name that needs to be entered for the hindcast initialization of the 20th Century run starting at 1961. Subsequent ensemble member casenames will be automatically added to the database with the last numeric extension incremented for each ensemble member as well as the realization number.</small></p>
+					</div>
+				</div>
+
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">CMIP6 Experiment Associations</h3>
+					</div>
+					<div class="panel-body">
+						<div class="form-group">
+							<label><span class="text-danger">*</span> CMIP6 Experiment <small class="text-muted">(experiment_id)</small></label>
+							<br>
+							<select required name="expName">
+								<option value="">Select Experiment</option>
+								[% FOREACH exp IN CMIP6Exps %]	
+								<option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
+								[% END %]
+							</select>
+						</div>
+
+						<div class="form-group form-inline">
+							<label><span class="text-danger">*</span> Variant Label "ripf" <small class="text-muted">(variant_label)</small></label>	
+							<br>
+							<div class="form-group">
+								<span class="label label-danger">All entries must be integer values <strong>greater than</strong> 0</span> <span class="label label-default"><strong>Note:</strong> the CESM2 database will automatically assign a realization number for ensemble experiments</span>
+								<br>
+								<br>
+								<label>realization_index:</label> <input type="number" class="form-control" name="real_num" min="1" max="100" value="1" required/>
+								<br>
+								<small class="text-muted"><strong>realization_index =</strong> an integer (>=1) distinguishing among members of an ensemble of simulations that differ only in their initial conditions (e.g., initialized from different points in a control run). Note that if two different simulations were started from the same initial conditions, the same realization number should be used for both simulations. For example if a historical run with "natural forcing" only and another historical run that includes anthropogenic forcing were both spawned at the same point in a control run, both should be assigned the same realization. Also, each so-called RCP (future scenario) simulation should normally be assigned the same realization integer as the historical run from which it was initiated. This will allow users to easily splice together the appropriate historical and future runs.</small>
+							</div>
+							<br><br>
+							<div class="form-group">
+								<label>intialization_index:</label> 
+								<select required name="init_num">
+									[% FOREACH init IN CMIP6Inits %]
+									<option value="[% init.init_id %]">[% init.value %] : [% init.description %]</option>
+									[% END %]
+								</select>  
+								<br> 
+								<small class="text-muted"><strong>initialization_index =</strong> an integer (>=1), which should be assigned a value of 1 except to distinguish simulations performed under the same conditions but with different initialization procedures. In CMIP6 this index should invariably be assigned the value 1 except for some hindcast and forecast experiments called for by the DCPP activity. The initialization_index can be used either to distinguish between different algorithms used to impose initial conditions on a forecast or to distinguish between different observational datasets used to initialize a forecast.</small>
+							</div>
+							<br><br>
+							<div class="form-group">
+								<label>physics_index:</label>
+								<select required name="phys_num">
+									[% FOREACH physic IN CMIP6Physics %]
+									<option value="[% physic.physic_id %]">[% physic.value %] : CESM2-1-[% physic.description %]</option>
+									[% END %]
+								</select>
+								<br>
+								<small class="text-muted"><strong>physics_index =</strong> an integer (>=1) identifying the physics version used by the model. In the usual case of a single physics version of a model, this argument should normally be assigned the value 1, but it is essential that a consistent assignment of physics_index be used across all simulations performed by a particular model. Use of "physics_index" is reserved for closely-related model versions (e.g., as in a "perturbed physics" ensemble) or for the same model run with slightly different parameterizations (e.g., of cloud physics). Model versions that are substantially different from one another should be given a different source_id (rather than simply assigning a different value of the physics_index).</small>
+							</div>
+							<br><br>
+							<div class="form-group">
+								<label>forcing_index:</label>
+								<select required name="force_num">
+									[% FOREACH forcing IN CMIP6Forcings %]
+									<option value="[% forcing.force_id %]">[% forcing.value %] : [% forcing.description %]</option>
+									[% END %]
+								</select>
+								<br>
+								<small class="text-muted"><strong>forcing_index =</strong> an integer (>=1) used to distinguish runs conforming to the protocol of a single CMIP6 experiment, but with different variants of forcing applied. One can, for example, distinguish between two historical simulations, one forced with the CMIP6-recommended forcing data sets and another forced by a different dataset, which might yield information about how forcing uncertainty affects the simulation.</small> 
+							</div>
+						</div>
+						<br><br>
+						<div class="form-group">
+							<div class="row">
+								<div class="col-lg-6">
+									<label><span class="text-danger">*</span> Source Types <small class="text-muted">(source_type) check all that apply</small></label>
+									<br>
+									[% FOREACH source IN CMIP6Sources %]	
+									<input type="checkbox" name="source" value="[% source.id %]" /> <small><strong>[% source.name %]</strong> - [% source.description %]</small><br/>
+									[% END %]
+								</div>
+								<div class="col-lg-6">
+									<div class="alert alert-warning" role="alert"><strong>Note:</strong> Only for source types <strong>AGCM</strong> and <strong>AOGCM</strong>, one or more of the following combinations are allowed</div>
+									<table class="table table-striped">
+										<tbody>
+											<tr>
+												<td>AGCM</td><td>BGC</td><td>AER</td><td>CHEM</td><td>SLAB</td>
+											</tr>
+											<tr>
+												<td>AOGCM</td><td>BGC</td><td>AER</td><td>CHEM</td><td>ISM</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-lg-8">
+								<div class="form-group">
+									<label>CMIP6 Parent Experiment <small class="text-muted">(parent_experiment_id)</small></label>
+									<br>
+									<select name="parentExp">
+										<option value="0">Select Experiment</option>
+										[% FOREACH exp IN CMIP6Exps %]	
+										<option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
+										[% END %]
+									</select>
+								</div>
+							</div>
+							<div class="col-lg-4">
+								<div class="form-group form-inline">
+									<label>Parent Reference Date <small class="text-muted">(branch_time_in_parent)</small></label>
+									<br>
+									<input class="form-control" type="text" name="run_refdate" maxlength="10" size="11" placeholder="YYYY-MM-DD"/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Case Specific Information</h3>
+					</div>
+					<div class="panel-body">
+						<div class="form-group">
+							<div class="row">
+								<div class="col-lg-6">
+									<label><span class="text-danger">*</span> Assigned To</label>
+									<select required name="assignUser">
+										<option value="">Select User</option>
+										[% FOREACH user IN CMIP6Users %]	
+										<option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
+										[% END %]
+									</select>
+								</div>
+								<div class="col-lg-6">
+									<label><span class="text-danger">*</span> Scientific Lead</label>
+									<select required name="scienceUser">
+										<option value="">Select User</option>
+										[% FOREACH user IN CMIP6Users %]	
+										<option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
+										[% END %]
+									</select>
+								</div>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label>Case Notes</label>
+							<br>
+							<textarea class="form-control" name="notes" cols="100" rows="5"></textarea>
+						</div>
+					</div>
+				</div>
+				
+			    <input id="submit" class="btn btn-primary btn-lg btn-block" type="submit" value="Submit"/>
+		    </form>
+		</div>
+	</div>
+</div>

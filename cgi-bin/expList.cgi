@@ -70,13 +70,13 @@ else
     $item{lemail} = $session->param('email');
     $item{version} = $session->param('version');
     $item{version_id} = $session->param('version_id');
-}
-&doActions();
 
-#---------
-# end main
-#---------
+    &doActions();
+}
+
+#--------------
 sub doActions()
+#--------------
 {
     # get the action parameter from the URL
     my $action;
@@ -108,23 +108,84 @@ sub doActions()
     }
     if ($action eq "showCaseDetail")
     {
-	&showCaseDetail($req->param('case_id'));
+	&showCaseDetail();
     }
     if ($action eq "reserveCase")
     {
-	#call different reservation forms for different experiments
+	#call different reservation forms for different experiment types
 	if ($req->param('expType_id') == 1)
 	{
 	    &reserveCaseCMIP6();
 	}
     }
+
+    # update case title
+    if ($action eq "updateTitleProc")
+    {
+	&updateTitleProcess();
+	&showCaseDetail();
+    }
+
+    # add note 
+    if ($action eq "addNoteProc")
+    {
+	&addNoteProcess();
+	&showCaseDetail();
+    }
+
+    # update note 
+    if ($action eq "updateNoteProc")
+    {
+	&updateNoteProcess();
+	&showCaseDetail();
+    }
+
+    # delete note 
+    if ($action eq "deleteNoteProc")
+    {
+	&deleteNoteProcess();
+	&showCaseDetail();
+    }
+
+    # add link
+    if ($action eq "addLinkProc")
+    {
+	&addLinkProcess();
+	&showCaseDetail();
+    }
+
+    # update link
+    if ($action eq "updateLinkProc")
+    {
+	&updateLinkProcess();
+	&showCaseDetail();
+    }
+
+    # delete link
+    if ($action eq "deleteLinkProc")
+    {
+	&deleteLinkProcess();
+	&showCaseDetail();
+    }
+
+    # send ESGF publish email
+    if ($action eq "publishESGFProcess")
+    {
+	&publishESGFProcess();
+	&showCaseDetail();
+    }
+
+    # update ESGF status
+    if ($action eq "updateESGFProcess")
+    {
+	&updateESGFProcess();
+	&showCaseDetail();
+    }
 }
 
-#------------------
-# showExpList - should always default to the CMIP6 experiments
-#------------------
-
+#--------------
 sub showExpList
+#--------------
 {
     my $validstatus = shift;
 
@@ -146,6 +207,7 @@ sub showExpList
     my @allCases      = getAllCases($dbh);
     my @NCARUsers     = getNCARUsers($dbh);
     my @CMIP6Users    = getCMIP6Users($dbh);
+
 
     my $vars = {
 	CMIP6Exps     => \@CMIP6Exps,
@@ -183,12 +245,10 @@ sub showExpList
 }
 
 #------------------
-# showCaseDetail
-#------------------
-
 sub showCaseDetail
+#------------------
 {
-    my $case_id = shift;
+    my $case_id = $req->param('case_id');
     my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
 
     my @allCases = getAllCases($dbh);
@@ -206,19 +266,19 @@ sub showCaseDetail
 	($case, $fields, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
-    $validstatus{'status'} = 1;
-    $validstatus{'message'} = '';
-
     if ($case->{'case_id'} < 0)
     {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = 'Error - two or more case records found in database for case ID = $case_id';
+	$validstatus{'message'} .= qq(Error - two or more case records found in database for case ID = $case_id<br/>);
     }
     elsif ($case->{'case_id'} == 0)
     {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = 'Error - no case record found in database for case ID = $case_id';
+	$validstatus{'message'} .= qq(Error - no case record found in database for case ID = $case_id<br/>);
     }
+
+    my @processes = getProcess($dbh);
+    my @linkTypes = getLinkTypes($dbh);
 
     my $vars = {
 	case        => $case,
@@ -230,6 +290,8 @@ sub showCaseDetail
 	globalAtts  => $globalAtts,
 	allCases    => \@allCases,
 	authUser    => \%item,
+	processes   => \@processes,
+	linkTypes   => \@linkTypes,
 	validstatus => \%validstatus,
     };
 
@@ -245,15 +307,14 @@ sub showCaseDetail
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
 }
 
+#-------------------
 sub reserveCaseCMIP6
+#-------------------
 {
     my ($sql, $sth) = '';
     my ($sql1, $sth1) = '';
     my ($key, $value) = '';
     my (%scienceUser, %assignUser) = ();
-
-    $validstatus{'status'} = 1;
-    $validstatus{'message'} = '';
 
     foreach $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
@@ -265,7 +326,7 @@ sub reserveCaseCMIP6
     {
 	# Error - a casename already exists
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(Error - a CMIP6 case name already exists in the database for case name = $item{'case'}.\n);
+	$validstatus{'message'} .= qq(Error - a CMIP6 case name already exists in the database for case name = $item{'case'}.<br/>);
     }
 
     # get the user assignments from the pulldown
@@ -275,7 +336,7 @@ sub reserveCaseCMIP6
     else {
 	# Error - a user must be assigned
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(Error - A valid user must be assigned to this case.\n);
+	$validstatus{'message'} .= qq(Error - A valid user must be assigned to this case.<br/>);
     }
 
     if ($item{'scienceUser'} > 0) {
@@ -284,14 +345,14 @@ sub reserveCaseCMIP6
     else {
 	# Error - a science lead must be assigned
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(Error - A valid user must be selected as the science lead for this case.\n);
+	$validstatus{'message'} .= qq(Error - A valid user must be selected as the science lead for this case.<br/>);
     }
 
     # check that the expName value id is selected
     if ($item{'expName'} == 0) {
 	# Error - a valid CMIP6 experiment name must be selected
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(Error - A valid CMIP6 experiment name must be associated with this case.\n);
+	$validstatus{'message'} .= qq(Error - A valid CMIP6 experiment name must be associated with this case.<br/>);
     }
 
     # check source types
@@ -299,11 +360,11 @@ sub reserveCaseCMIP6
     my ($valid, $source_type) = checkCMIP6Sources($dbh, \@sources);
     if (length $source_type == 0) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(Error - One or more source associations must be checked.\n);
+	$validstatus{'message'} .= qq(Error - One or more source associations must be checked.<br/>);
     }
     if (!$valid) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(Error - One or more source associations are not allowed.\n);
+	$validstatus{'message'} .= qq(Error - One or more source associations are not allowed.<br/>);
     }
 
     # construct the "ripf" variant_label
@@ -348,7 +409,7 @@ sub reserveCaseCMIP6
 
 	# insert notes
 	my $note = $dbh->quote($item{'notes'});
-	if (length($note) > 0)
+	if (length($note) > 2)
 	{
 	    $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id) value ($case_id, $note, NOW(), $item{luser_id}));
 	    $sth = $dbh->prepare($sql);
@@ -398,7 +459,7 @@ sub reserveCaseCMIP6
 	}
 	$sth->finish();
 
-	$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.);
+	$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.<br/>);
 
 	my $subject = "New CMIP6 experiment $case_name has been reserved in the CESM Experiments 2.0 Database";
 	my $msgbody = <<EOF;
@@ -482,7 +543,7 @@ EOF
 		}
 		$sth->finish();
 
-		$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.);
+		$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.<br/>);
 
 		$subject = "New CMIP6 Ensemble with first member $case_name has been reserved in the CESM Experiments 2.0 Database";
 		$msgbody = <<EOF;
@@ -523,6 +584,297 @@ EOF
 	&showExpList(\%validstatus);
     }
 }
+
+#----------------------
+sub updateTitleProcess
+#----------------------
+{
+    my $case_id = $req->param('case_id');
+
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    # get all the input params
+    foreach my $key ( $req->param )  {
+	$item{$key} = ( $req->param( $key ) );
+    }
+    my $title = $dbh->quote($item{'title'});
+    my $sql = qq(update t2_cases set title = $title where id = $case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(Case title updated.<br/>)
+
+}
+
+#----------------------
+sub publishESGFProcess
+#----------------------
+{
+    my $case_id = $req->param('case_id');
+    my $expType_id = $req->param('expType_id');
+
+    # TODO add isCMIP6Publisher to list of authorized users
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    my ($case, $status, $project, $notes, $links, $globalAtts);
+
+    # TODO branch on expType_id
+    if ($expType_id == '1') 
+    {
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
+
+    # check current publish status for process_id = 18 (publish_esgf)
+    my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
+
+    if ($status_id != 5 || $status_id != 2) {
+	# check permissions for publication - can only be Gary, Eric, Sheri or Alice
+	# TODO add Eric
+	if ($item{luser_id} ~~ [98, 334, 190]) {
+
+	    # update the publish to ESGF status - process_id = 18 to status_id = 2 "started"
+	    updatePublishStatus($dbh, $case_id, 18, 2);
+	    
+	    my $subject = qq(CESM EXDB ESGF Publication Notification: $case_id);
+	    my $msgbody = <<EOF;
+CESM EXDB ESGF Publication Notification
+Case_ID: $case_id
+Path:  /glade/collections/cdg/cmip6/$case_id
+EOF
+
+            my $email = Email::Simple->create(
+		header => [
+		    From => $item{lemail},
+##		    To   => "gateway-publish@ucar.edu",
+		    To   => "aliceb\@ucar.edu",
+		    Subject => $subject,
+		],
+		body => $msgbody,
+	    );
+
+	    sendmail($email, 
+		     { from => $item{lemail},
+		       transport => Email::Sender::Transport::Sendmail->new}
+		) or die "can't send email!";
+
+	    # refresh the current page
+	    $validstatus{'status'} = 1;
+	}
+	else {
+	    $validstatus{'status'} = 0;
+	    $validstatus{'message'} .= qq(Permissions Error - Only Eric Nienhouse, Gary Strand, Sheri Mickelson, or Alice Bertini are allowed to publish to ESGF.<br/>);
+	}
+    }
+    else {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} .= qq(This experiment data has already been published to ESGF.<br/>);
+    }
+}
+
+
+#--------------------
+sub updateESGFProcess
+#--------------------
+{
+# TODO - this needs to be flushed out!
+    my $case_id = $req->param('case_id');
+    my $expType_id = $req->param('expType_id');
+
+    # TODO add isCMIP6Publisher to list of authorized users
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    my ($case, $status, $project, $notes, $links, $globalAtts);
+
+    # TODO branch on expType_id
+    if ($expType_id == '1') 
+    {
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
+
+    # check current publish status for process_id = 18 (publish_esgf)
+    my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
+
+    # TODO - finish update the approver and process status in the t2j_status table
+}
+
+#-----------------
+sub addNoteProcess
+#-----------------
+{
+    my $case_id = $req->param('case_id');
+
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    # get all the input params
+    foreach my $key ( $req->param )  {
+	$item{$key} = ( $req->param( $key ) );
+    }
+    my $note = $dbh->quote($item{'note'});
+    my $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id) 
+               value ($case_id, $note, NOW(), $item{luser_id}));
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(Case note added.<br/>)
+}
+
+
+#---------------------
+sub updateNoteProcess
+#---------------------
+{
+    my $note_id = $req->param('note_id');
+    
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    # get all the input params
+    foreach my $key ( $req->param )  {
+	$item{$key} = ( $req->param( $key ) );
+    }
+    my $note = $dbh->quote($item{'note'});
+    my $sql = qq(update t2e_notes set note = $note, last_update = NOW(),
+                 svnuser_id = $item{luser_id}
+                 where id = $note_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(Case note updated.<br/>)
+}
+
+#---------------------
+sub deleteNoteProcess
+#---------------------
+{
+    my $note_id = $req->param('note_id');
+
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    # get all the input params
+    foreach my $key ( $req->param )  {
+	$item{$key} = ( $req->param( $key ) );
+    }
+    my $note = $dbh->quote($item{'note'});
+    my $sql = qq(delete from t2e_notes where id = $note_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(Case note deleted.<br/>)
+}
+
+#-----------------
+sub addLinkProcess
+#-----------------
+{
+    my $case_id = $req->param('case_id');
+
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    # get all the input params
+    foreach my $key ( $req->param )  {
+	$item{$key} = ( $req->param( $key ) );
+    }
+    my $link = $dbh->quote($item{'link'});
+    my $description = $dbh->quote($item{'description'});
+    my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update) 
+               value ($case_id, $item{'processName'}, $item{'linkType'}, $link, $description, NOW()));
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(Case link added.<br/>)
+}
+
+#--------------------
+sub updateLinkProcess
+#--------------------
+{
+    my $link_id = $req->param('link_id');
+
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    # get all the input params
+    foreach my $key ( $req->param )  {
+	$item{$key} = ( $req->param( $key ) );
+    }
+    my $link = $dbh->quote($item{'link'});
+    my $description = $dbh->quote($item{'description'});
+    my $sql = qq(update t2j_links set link = $link, description = $description, last_update = NOW(),
+                 process_id = $item{'processName'}, linkType_id = $item{'linkType'}
+                 where id = $link_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(Case link updated.<br/>)
+}
+
+#--------------------
+sub deleteLinkProcess
+#--------------------
+{
+    my $link_id = shift;
+
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	return;
+    }
+
+    # get all the input params
+    foreach my $key ( $req->param )  {
+	$item{$key} = ( $req->param( $key ) );
+    }
+    my $sql = qq(delete from t2j_links where id = $link_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(Case link deleted.<br/>)
+}
+
 
 $dbh->disconnect;
 exit;

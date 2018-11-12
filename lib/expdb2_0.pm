@@ -16,7 +16,8 @@ use config;
 @ISA = qw(Exporter);
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers getCMIP6Users checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
-getCaseFields getCaseFieldByName getCaseNotes getPercentComplete getDiags getCaseByID);
+getCaseFields getCaseFieldByName getCaseNotes getPercentComplete getDiags getCaseByID
+updatePublishStatus getPublishStatus);
 
 sub getCasesByType
 {
@@ -405,9 +406,16 @@ sub getPercentComplete
     my @model_year = split(/-/, $model_date);
     my @start_year = split(/-/, $start_date);
 
+    # check if the model year needs further parsing
+    my $model_year = @model_year;
+    my $model_yr = $model_year[0];
+    if ($model_year == 2) {
+	$model_yr = substr($model_year[0], 0, 4);
+    }
+
     my $percent_complete = 0;
-    if ($nyears && $model_year[0] && $start_year[0]) {
-	$percent_complete = (($model_year[0] - $start_year[0] + 0.0)/$nyears) * 100.0;
+    if ($nyears && $model_yr && $start_year[0]) {
+	$percent_complete = (($model_yr - $start_year[0] + 0.0)/$nyears) * 100.0;
     }
 
     return $percent_complete;
@@ -557,3 +565,38 @@ sub getCaseByID
     }
     return \%case, \@fields, \%status, \@notes, \@sorted;
 }
+
+sub updatePublishStatus
+{
+    my $dbh = shift;
+    my $case_id = shift;
+    my $process_id = shift;
+    my $status_id = shift;
+
+    my $sql = qq(update t2j_status set status_id = $status_id
+                 where case_id = $case_id and process_id = $process_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+
+    return;
+}
+
+
+sub getPublishStatus
+{
+    my $dbh = shift;
+    my $case_id = shift;
+    my $process_id = shift;
+
+    my $sql = qq(select s.code, j.status_id from t2j_status as j, t2_status as s
+                 where j.case_id = $case_id and j.process_id = $process_id and
+                 j.status_id = s.id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my ($statusCode, $status_id) = $sth->fetchrow();
+    $sth->finish();
+
+    return $statusCode, $status_id;
+}
+       

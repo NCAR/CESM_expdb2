@@ -184,6 +184,7 @@ if ($json->{'postprocess'}) {
     $pp_fields{'timeseries'}{'size'}          = $dbh->quote($json->{'timeseries_size'});
     $pp_fields{'timeseries'}{'path'}          = $dbh->quote($json->{'timeseries_path'});
     $pp_fields{'timeseries'}{'dates'}         = $dbh->quote($json->{'timeseries_dates'});
+    $pp_fields{'timeseries'}{'total_time'}    = $dbh->quote($json->{'timeseries_time'});
 
     $pp_fields{'iconform'}{'status'}          = $json->{'iconform_status'};
     $pp_fields{'iconform'}{'size'}            = $dbh->quote($json->{'iconform_size'});
@@ -194,6 +195,7 @@ if ($json->{'postprocess'}) {
     $pp_fields{'xconform'}{'size'}            = $dbh->quote($json->{'xconform_size'});
     $pp_fields{'xconform'}{'path'}            = $dbh->quote($json->{'xconform_path'});
     $pp_fields{'xconform'}{'dates'}           = $dbh->quote($json->{'xconform_dates'});
+    $pp_fields{'xconform'}{'total_time'}      = $dbh->quote($json->{'xconform_time'});
 }
 
 my $svnlogin = $dbh->quote($json->{'svnlogin'});
