@@ -86,13 +86,14 @@ def map_exp_to_request_mip(exp_name, dq=None):
         dq = dreq.loadDreq()
 
     mips = []
-    e_id = dq.inx.experiment.label[exp_name][0]
-    mips.append(dq.inx.uid[e_id].mip)
-    e_vars = dq.inx.iref_by_sect[e_id].a
-    for ri in e_vars['requestItem']:
-        dr = dq.inx.uid[ri]
-        if dr.mip not in mips:
-            mips.append(dr.mip)
+    if dq.inx.experiment.label[exp_name]:
+        e_id = dq.inx.experiment.label[exp_name][0]
+        mips.append(dq.inx.uid[e_id].mip)
+        e_vars = dq.inx.iref_by_sect[e_id].a
+        for ri in e_vars['requestItem']:
+            dr = dq.inx.uid[ri]
+            if dr.mip not in mips:
+                mips.append(dr.mip)
 
     return mips
 

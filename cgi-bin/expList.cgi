@@ -854,7 +854,7 @@ sub updateLinkProcess
 sub deleteLinkProcess
 #--------------------
 {
-    my $link_id = shift;
+    my $link_id = $req->param('link_id');
 
     if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
