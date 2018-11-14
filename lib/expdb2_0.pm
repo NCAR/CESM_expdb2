@@ -437,100 +437,121 @@ sub getCaseByID
     my $dbh = shift;
     my $id = shift;
     my (%case, %status, %user) = ();
-    my @fields;
     my @notes;
     my @links;
     my @sorted;
     my $count = 0;
+    my ($firstname, $lastname, $email);
     my ($field_name, $process_name) = '';
-    my ($sql1, $sth1);
+    my ($sql1, $sth1, $value);
 
-    my $sql = qq(select * from t2_cases where id = $id);
+    my @fields = qw(archive_date casename caseroot caseuser compiler compset 
+                    dout_s_root grid is_ens job_queue job_time machine model 
+                    model_cost model_throughput model_version mpilib project 
+                    rest_n rest_option run_dir run_lastdate run_refcase run_refdate 
+                    run_startdate run_type stop_n stop_option svn_repo_url title);
+    my @bool_fields = qw(continue_run dout_s postprocess);
+
+    my $sql = qq(select count(*) from t2_cases where id = $id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
-    while (my $ref = $sth->fetchrow_hashref())
-    {
-	$case{'case_id'} = $ref->{'id'};
-	$case{'archive_date'} = $ref->{'archive_date'};
-	$case{'casename'} = $ref->{'casename'};
-	$case{'caseroot'} = $ref->{'caseroot'};
-	$case{'caseuser'} = $ref->{'caseuser'};
-	$case{'compiler'} = $ref->{'compiler'};
-	$case{'compset'} = $ref->{'compset'};
-	$case{'continue_run'} = $ref->{'continue_run'};
-	$case{'dout_s'} = $ref->{'dout_s'};
-	$case{'dout_s_root'} = $ref->{'dout_s_root'};
-
-	# get the expType Name
-	$case{'expType_name'} = "undefined";
-	$case{'expType_desc'} = "undefined";
-	$case{'expType_template'} = "undefined";
-
-	if ( defined $ref->{'expType_id'} )
-	{
-	    $sql1 = qq(select name, description, expDetail_template from t2_expType where id = $ref->{'expType_id'});
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    ($case{'expType_name'}, $case{'expType_desc'}, $case{'expType_template'}) = $sth1->fetchrow();
-	    $sth1->finish();
-	}
-
-	$case{'expType_id'} = $ref->{'expType_id'};	
-	$case{'grid'} = $ref->{'grid'};
-	$case{'is_ens'} = $ref->{'is_ens'};
-	$case{'job_queue'} = $ref->{'job_queue'};
-	$case{'job_time'} = $ref->{'job_time'};
-	$case{'machine'} = $ref->{'machine'};
-	$case{'model'} = $ref->{'model'};
-	$case{'model_cost'} = $ref->{'model_cost'};
-	$case{'model_throughput'} = $ref->{'model_throughput'};
-	$case{'model_version'} = $ref->{'model_version'};
-	$case{'mpilib'} = $ref->{'mpilib'};
-	$case{'postprocess'} = $ref->{'postprocess'};
-	$case{'project'} = $ref->{'project'};
-	$case{'rest_n'} = $ref->{'rest_n'};
-	$case{'rest_option'} = $ref->{'rest_option'};
-	$case{'run_dir'} = $ref->{'run_dir'};
-	$case{'run_lastdate'} = $ref->{'run_lastdate'};
-	$case{'run_refcase'} = $ref->{'run_refcase'};
-	$case{'run_refdate'} = $ref->{'run_refdate'};
-	$case{'run_startdate'} = $ref->{'run_startdate'};
-	$case{'run_type'} = $ref->{'run_type'};
-	$case{'stop_n'} = $ref->{'stop_n'};
-	$case{'stop_option'} = $ref->{'stop_option'};
-	$case{'svn_repo_url'} = $ref->{'svn_repo_url'};
-	$case{'svnuser_id'} = $ref->{'svnuser_id'};
-	$case{'title'} = $ref->{'title'};
-	$count++;
-    }
+    ($count) = $sth->fetchrow;
     $sth->finish();
 
     # check the row count
     if (!$count) 
     {
 	# no matching rows return case id = 0
-	$case{'case_id'} = 0;
+	$case{'case_id'}{'value'} = 0;
     }
     elsif ($count > 1)
     {
 	# more than one matching row 
 	# indicates a violation of constraints!!
-	$case{'case_id'} = -1;
+	$case{'case_id'}{'value'} = -1;
     }
     else 
     {
-	# get case fields
-	@fields = getCaseFields($dbh, $case{'case_id'});
+	# set the case_id seperately
+	$case{'case_id'}{'value'} = $id;
+	$case{'case_id'}{'history'} = qw();
+
+	# get all the fields and their history values
+	foreach my $field (@fields) {
+	    $sql = qq(select $field from t2_cases where id = $id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $case{$field}{'value'} = $sth->fetchrow;
+	    $sth->finish();
+
+	    my @field_history = getCaseFieldByName($dbh, $id, $field);
+	    $case{$field}{'history'} = \@field_history;
+	    # if there is a history, update the display value to the most current
+	    my $field_history = @field_history;
+	    if ($field_history > 0) {
+		$case{$field}{'value'} = $field_history[0]{'field_value'};
+	    }
+	}
+
+	# get all the boolean fields and their history values
+	foreach my $field (@bool_fields) {
+	    $sql = qq(select $field from t2_cases where id = $id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $value = $sth->fetchrow;
+	    $value == 1 ? $case{$field}{'value'} = "True" : ($case{$field}{'value'} = "False");
+	    $sth->finish();
+	    
+	    my @field_history = getCaseFieldByName($dbh, $id, $field);
+	    $case{$field}{'history'} = \@field_history;
+	}
+
+	# get the expType name seperately
+	$sql = qq(select count(expType_id), expType_id from t2_cases where id = $id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	my ($count, $expType_id) = $sth->fetchrow;
+	$sth->finish();
+
+	if ($count) {
+	    $sql = qq(select name, description from t2_expType where id = $expType_id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    ($case{'expType_name'}{'value'}, $case{'expType_desc'}{'value'}) = $sth->fetchrow();
+	    $sth->finish();
+	    $case{'expType_id'}{'value'} = $expType_id;
+	}
+	else {
+	    $case{'expType_name'}{'value'} = "undefined";
+	    $case{'expType_desc'}{'value'} = "undefined";
+	    $case{'expType_id'}{'value'} = 0;
+	}
+	$case{'expType_name'}{'history'} = qw();
+	$case{'expType_desc'}{'history'} = qw();
+
+	# get the svnlogin name seperately
+	$sql = qq(select count(u.user_id), u.firstname, u.lastname, u.email
+                  from t_svnusers as u, t2_cases as t where
+                  u.user_id = t.svnuser_id and
+                  t.id = $id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	($count, $firstname, $lastname, $email) = $sth->fetchrow();
+	if ($count) {
+	    $case{'archiver'}{'value'} = $firstname . ' ' . $lastname . ': ' . $email
+	}
+	my @field_history = getCaseFieldByName($dbh, $id, "svnuser_id");
+	$case{'archiver'}{'history'} = \@field_history;
 
 	# get case notes
-	@notes = getCaseNotes($dbh, $case{'case_id'});
-
+	@notes = getCaseNotes($dbh, $id);
+	
 	# get process status
 	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
-                j.disk_usage, j.disk_path
+                j.disk_usage, j.disk_path, j.archive_method
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
-                j.case_id = $case{'case_id'} and
+                j.case_id = $id and
                 j.process_id = p.id and
                 j.status_id = s.id
 		order by p.name, j.last_update asc);
@@ -546,11 +567,14 @@ sub getCaseByID
 	    $status{$process_name}{'model_date'} = $ref->{'model_date'};
 	    $status{$process_name}{'disk_usage'} = $ref->{'disk_usage'};
 	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
+	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
+	    my @fullstats = getProcessStats($dbh, $id, $process_name);
+	    $status{$process_name}{'history'} = \@fullstats;
 	}
 	$sth->finish();
 
 	# get case links
-	$sql = qq(select id from t2j_links where case_id = $case{'case_id'});
+	$sql = qq(select id from t2j_links where case_id = $id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
@@ -563,7 +587,7 @@ sub getCaseByID
 	# sort on process_id key
 	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
     }
-    return \%case, \@fields, \%status, \@notes, \@sorted;
+    return \%case, \%status, \@notes, \@sorted;
 }
 
 sub updatePublishStatus

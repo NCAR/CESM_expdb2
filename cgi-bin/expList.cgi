@@ -262,8 +262,7 @@ sub showCaseDetail
     }
     else
     {
-	# START HERE by removing $fields
-	($case, $fields, $status, $notes, $links) = getCaseByID($dbh, $case_id);
+	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
     if ($case->{'case_id'} < 0)
