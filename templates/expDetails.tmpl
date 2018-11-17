@@ -513,11 +513,6 @@
 			  [% FOREACH n IN notes %]
 			  <tr>
 			    <td>
-			      <!--
-				  <button onclick="return popitup('/expdb2.0/cgi-bin/caseNotes.cgi?case_id=[% case.case_id.value %]&note_id=[% n.note_id %]&action=update&expType_id=[% case.expType_id.value %]','height=200,width=800,scrollbars=yes')">
-				    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-				  </button>
-				  -->
 			      <button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseNote[% n.note_id %]">
 				<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
 			      </button>
@@ -559,342 +554,334 @@
 				      <button type="submit" class="btn btn-danger" value="Delete">Delete</button>
 				    </form>
 				  </div>
-
-</form>
-</div>
-</div>
-</div>
-</tr>
-[% END %]
-</tbody>
-</table>
-</div>
-</div>
-<!-- Case Notes sub panel end -->
+				</div>
+			      </div>
+			    </div>
+			  </tr>
+			  [% END %]
+			</tbody>
+		      </table>
+		    </div>
+		  </div>
+		  <!-- Case Notes sub panel end -->
 
 
-<!-- Case Diag Links sub panel start -->
-<div class="panel-heading" role="tab" id="caseLinksHeader">
-  <h4 class="panel-title">
-    <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#caseLinksCollapse" aria-expanded="false" aria-controls="caseLinksCollapse">
-      Case Diagnostics and Climate Data Gateway Links
-    </a>
-  </h4>
-</div>
+		  <!-- Case Diag Links sub panel start -->
+		  <div class="panel-heading" role="tab" id="caseLinksHeader">
+		    <h4 class="panel-title">
+		      <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#caseLinksCollapse" aria-expanded="false" aria-controls="caseLinksCollapse">
+			Case Diagnostics and Climate Data Gateway Links
+		      </a>
+		    </h4>
+		  </div>
 
-<div id="caseLinksCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="caseLinksHeader">
-  <div class="panel-body">
-    <div class="panel-sub-buttons">
-      <button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseLinks">
-	<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Case Link
-      </button>
-    </div>
+		  <div id="caseLinksCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="caseLinksHeader">
+		    <div class="panel-body">
+		      <div class="panel-sub-buttons">
+			<button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseLinks">
+			  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Case Link
+			</button>
+		      </div>
 
-    <div class="modal fade" id="myModalCaseLinks" tabindex="-1" role="dialog" aria-labelledby="myModalCaseLinksLabel">
-      <div class="modal-dialog" role="document">
-	<div class="modal-content">
-	  <div class="modal-header">
-	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-	    <h4 class="modal-title" id="myModalCaseLinksLabel">Add a new case link for [% case.casename.value %]</h4>
-	  </div>
+		      <div class="modal fade" id="myModalCaseLinks" tabindex="-1" role="dialog" aria-labelledby="myModalCaseLinksLabel">
+			<div class="modal-dialog" role="document">
+			  <div class="modal-content">
+			    <div class="modal-header">
+			      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			      <h4 class="modal-title" id="myModalCaseLinksLabel">Add a new case link for [% case.casename.value %]</h4>
+			    </div>
 
-	  <form id="caseAddNoteForm" method="POST">
-	    <div class="modal-body">
-	      <div class="form-group">
-		<label>Process</label>
-		<br>
-		<select name="processName">
-		  <option value="">Select Process</option>
-		  [% FOREACH p IN processes %]
-		  <option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
-		  [% END %]
-		</select>
-	      </div>
+			    <form id="caseAddNoteForm" method="POST">
+			      <div class="modal-body">
+				<div class="form-group">
+				  <label>Process</label>
+				  <br>
+				  <select name="processName">
+				    <option value="">Select Process</option>
+				    [% FOREACH p IN processes %]
+				    <option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
+				    [% END %]
+				  </select>
+				</div>
 
-	      <div class="form-group">
-		<label>Link Type :&nbsp;</label>
-		[% FOREACH lt IN linkTypes %]
-		<label class="radio-inline" for="[% lt.linkType_id %]">
-		  <input type="radio" name="linkType" id="" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"> [% lt.linkType_name %]
-		</label>
-		[% END %]
-	      </div>
+				<div class="form-group">
+				  <label>Link Type :&nbsp;</label>
+				  [% FOREACH lt IN linkTypes %]
+				  <label class="radio-inline" for="[% lt.linkType_id %]">
+				    <input type="radio" name="linkType" id="" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"> [% lt.linkType_name %]
+				  </label>
+				  [% END %]
+				</div>
 
-	      <div class="form-group">
-		<label>Link Value</label>
-		<textarea class="form-control" name="link" cols="100" rows="1"></textarea>
-	      </div>
+				<div class="form-group">
+				  <label>Link Value</label>
+				  <textarea class="form-control" name="link" cols="100" rows="1"></textarea>
+				</div>
 
-	      <div class="form-group">
-		<label>Description</label>
-		<textarea class="form-control" name="description" cols="100" rows="5"></textarea>
-	      </div>
-	    </div>
-
-
-	    <div class="modal-footer">
-	      <input type="hidden" name="action" value="addLinkProc"/>
-	      <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-	      <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-
-	      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	      <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
-	    </div>
-	  </form>
-	</div>
-      </div>
-    </div>
-
-    <table class="table table-striped table-condensed">
-      <thead>
-	<th>Edit</th>
-	<th>Process</th>		
-	<th>Link Type</th>		
-	<th>Link</th>		
-	<th>Last Update</th>		
-      </thead>
-      [% FOREACH lk IN links %]
-      <tr>
-	<td>
-	  <button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseLink[% lk.link_id %]">
-	    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-	  </button>
-
-	  <!--
-	      <button onclick="return popitup('/expdb2.0/cgi-bin/caseLinks.cgi?case_id=[% case.case_id.value %]&link_id=[% lk.link_id %]&action=update&expType_id=[% case.expType_id.value %]','height=300,width=800,scrollbars=yes')">
-		<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-	      </button>
-	      -->
-	</td>
-	<td>[% lk.process_name %]</td>
-	<td>[% lk.linkType_name %]</td>
-	[% http = lk.link %]
-	[% IF lk.linkType_id == 1 %]
-	<td><a href="[% lk.link %]" target="_blank">[% lk.link %]</a></td>
-	[% ELSE %]
-	<td>[% lk.link %]</td>
-	[% END %]
-	<td>[% lk.last_update %]</td>
-      </tr>
-
-      
-      <tr>
-	<td colspan="5">
-	  <div style="padding-left: 15px; padding-bottom: 15px;">
-	    <h6 class="clear-marginbot" style="margin-top: 0px;">Description</h6>
-	    [% IF lk.description %]
-	    [% lk.description %]
-	    [% ELSE %]
-	    n/a
-	    [% END %]
-	  </div>
-	</td>
-      </tr>
-      
-
-      <div class="modal fade" id="myModalCaseLink[% lk.link_id %]" tabindex="-1" role="dialog" aria-labelledby="myModalCaseLink[% lk.link_id %]Label">
-	<div class="modal-dialog" role="document">
-	  <div class="modal-content">
-	    <div class="modal-header">
-	      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-	      <h4 class="modal-title" id="myModalCaseLink[% lk.link_id %]Label">Update case link for [% case.casename.value %]</h4>
-	    </div>
-
-	    <form id="" method="POST">
-	      <div class="modal-body">
-		<div class="form-group">
-		  <label>Process</label>
-		  <br>
-		  <select name="processName">
-		    <option value="">Select Process</option>
-		    [% FOREACH p IN processes %]
-		    [% IF p.process_id == lk.process_id %]
-		    <option value="[% p.process_id %]" selected="selected">[% p.process_name %] - [% p.description %]</option>
-		    [% ELSE %]
-		    <option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
-		    [% END %]
-		    [% END %]
-		  </select>
-		</div>
-
-		<div class="form-group">
-		  <label>Link Type :&nbsp;</label>
-		  [% FOREACH lt IN linkTypes %]
-		  <label class="radio-inline" for="[% lt.linkType_id %]">
-		    [% IF lt.linkType_id == lk.linkType_id %]
-		    <input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]" checked="checked"/>[% lt.linkType_name %]
-		    [% ELSE %]
-		    <input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"/>[% lt.linkType_name %]
-		    [% END %]
-		  </label>
-		  [% END %]
-		</div>
-
-		<div class="form-group">
-		  <label>Link Value</label>
-		  <textarea class="form-control" name="link" cols="100" rows="1">[% lk.link %]</textarea>
-		</div>
-
-		<div class="form-group">
-		  <label>Description</label>
-		  <textarea class="form-control" name="description" cols="100" rows="5">[% lk.description %]</textarea>
-		</div>
-
-		<input type="hidden" name="action" value="updateLinkProc"/>
-		<input type="hidden" name="link_id" value="[% lk.link_id %]"/>
-		<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-		<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-		<button type="submit" class="btn btn-primary btn-block" value="Update">Update</button>
-	      </div>
-	    </form>
+				<div class="form-group">
+				  <label>Description</label>
+				  <textarea class="form-control" name="description" cols="100" rows="5"></textarea>
+				</div>
+			      </div>
 
 
-	    <div class="modal-footer modal-footer-sm">
-	      <form id="" method="POST">
-		<input type="hidden" name="action" value="deleteLinkProc"/>
-		<input type="hidden" name="link_id" value="[% lk.link_id %]"/>
-		<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-		<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-		<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-		<button type="submit" class="btn btn-danger" value="Delete">Delete</button>
-	      </form>
-	    </div>
-</form>
-</div>
-</div>
-</div>
-[% END %]
-</table>
-</div>
-</div>
-<!-- Case Diag Links sub panel end -->
+			      <div class="modal-footer">
+				<input type="hidden" name="action" value="addLinkProc"/>
+				<input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				<input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+			      </div>
+			    </form>
+			  </div>
+			</div>
+		      </div>
+
+		      <table class="table table-striped table-condensed">
+			<thead>
+			  <th>Edit</th>
+			  <th>Process</th>		
+			  <th>Link Type</th>		
+			  <th>Link</th>		
+			  <th>Last Update</th>		
+			</thead>
+			[% FOREACH lk IN links %]
+			<tr>
+			  <td>
+			    <button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCaseLink[% lk.link_id %]">
+			      <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+			    </button>
+			  </td>
+			  <td>[% lk.process_name %]</td>
+			  <td>[% lk.linkType_name %]</td>
+			  [% http = lk.link %]
+			  [% IF lk.linkType_id == 1 %]
+			  <td><a href="[% lk.link %]" target="_blank">[% lk.link %]</a></td>
+			  [% ELSE %]
+			  <td>[% lk.link %]</td>
+			  [% END %]
+			  <td>[% lk.last_update %]</td>
+			</tr>
+
+			
+			<tr>
+			  <td colspan="5">
+			    <div style="padding-left: 15px; padding-bottom: 15px;">
+			      <h6 class="clear-marginbot" style="margin-top: 0px;">Description</h6>
+			      [% IF lk.description %]
+			      [% lk.description %]
+			      [% ELSE %]
+			      n/a
+			      [% END %]
+			    </div>
+			  </td>
+			</tr>
+			
+
+			<div class="modal fade" id="myModalCaseLink[% lk.link_id %]" tabindex="-1" role="dialog" aria-labelledby="myModalCaseLink[% lk.link_id %]Label">
+			  <div class="modal-dialog" role="document">
+			    <div class="modal-content">
+			      <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalCaseLink[% lk.link_id %]Label">Update case link for [% case.casename.value %]</h4>
+			      </div>
+
+			      <form id="" method="POST">
+				<div class="modal-body">
+				  <div class="form-group">
+				    <label>Process</label>
+				    <br>
+				    <select name="processName">
+				      <option value="">Select Process</option>
+				      [% FOREACH p IN processes %]
+				      [% IF p.process_id == lk.process_id %]
+				      <option value="[% p.process_id %]" selected="selected">[% p.process_name %] - [% p.description %]</option>
+				      [% ELSE %]
+				      <option value="[% p.process_id %]">[% p.process_name %] - [% p.description %]</option>
+				      [% END %]
+				      [% END %]
+				    </select>
+				  </div>
+
+				  <div class="form-group">
+				    <label>Link Type :&nbsp;</label>
+				    [% FOREACH lt IN linkTypes %]
+				    <label class="radio-inline" for="[% lt.linkType_id %]">
+				      [% IF lt.linkType_id == lk.linkType_id %]
+				      <input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]" checked="checked"/>[% lt.linkType_name %]
+				      [% ELSE %]
+				      <input type="radio" name="linkType" value="[% lt.linkType_id %]" id="[% lt.linkType_id %]"/>[% lt.linkType_name %]
+				      [% END %]
+				    </label>
+				    [% END %]
+				  </div>
+
+				  <div class="form-group">
+				    <label>Link Value</label>
+				    <textarea class="form-control" name="link" cols="100" rows="1">[% lk.link %]</textarea>
+				  </div>
+
+				  <div class="form-group">
+				    <label>Description</label>
+				    <textarea class="form-control" name="description" cols="100" rows="5">[% lk.description %]</textarea>
+				  </div>
+
+				  <input type="hidden" name="action" value="updateLinkProc"/>
+				  <input type="hidden" name="link_id" value="[% lk.link_id %]"/>
+				  <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				  <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				  <button type="submit" class="btn btn-primary btn-block" value="Update">Update</button>
+				</div>
+			      </form>
 
 
-<!-- Publicatoin Options sub panel start -->
-<div class="panel-heading" role="tab" id="publicationsHeader">
-  <h4 class="panel-title">
-    <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#publicationsCollapse" aria-expanded="false" aria-controls="publicationsCollapse">
-      Publication Options
-    </a>
-  </h4>
-</div>
+			      <div class="modal-footer modal-footer-sm">
+				<form id="" method="POST">
+				  <input type="hidden" name="action" value="deleteLinkProc"/>
+				  <input type="hidden" name="link_id" value="[% lk.link_id %]"/>
+				  <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				  <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				  <button type="submit" class="btn btn-danger" value="Delete">Delete</button>
+				</form>
+			      </div>
+			    </div>
+			  </div>
+			</div>
+			[% END %]
+		      </table>
+		    </div>
+		  </div>
+		  <!-- Case Diag Links sub panel end -->
 
-<div id="publicationsCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicationsHeader">
-  <div class="panel-body">
-    <p class="small text-center">* You must be the scientific lead or archiver for this experiment or a expdb2.0 admin in order to publish. After successful publication, it is up to the user to delete any intermediate files associated with this experiment on disk. Clicking on any of the options below will bring up a separate window with options for publication or a current status of a publication request.</p>
-    <span class="label label-danger">PUBLICATION OPTIONS ARE WORK-IN-PROGRESS</span>
 
-    <br>
+		  <!-- Publication Options sub panel start -->
+		  <div class="panel-heading" role="tab" id="publicationsHeader">
+		    <h4 class="panel-title">
+		      <a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#publicationsCollapse" aria-expanded="false" aria-controls="publicationsCollapse">
+			Publication Options
+		      </a>
+		    </h4>
+		  </div>
 
-    <ul class="list-group">
-      <li class="list-group-item">
-	<p>Publish the Conformed compressed timeseries netCDF files to the ESGF and the CDG. Data managers can update the publication status using the <em>Update Status of ESGF button</em></p>
+		  <div id="publicationsCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicationsHeader">
+		    <div class="panel-body">
+		      <p class="small text-center">* You must be the scientific lead or archiver for this experiment or a expdb2.0 admin in order to publish. After successful publication, it is up to the user to delete any intermediate files associated with this experiment on disk. Clicking on any of the options below will bring up a separate window with options for publication or a current status of a publication request.</p>
+		      <span class="label label-danger">PUBLICATION OPTIONS ARE WORK-IN-PROGRESS</span>
+		      
+		      <br>
 
-	<div class="btn-group" role="group">
-	  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalESGF">
-	    Publish Request to ESGF
-	  </button>
-	  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalESGFStatus">
-	    Update Status of ESGF
-	  </button>
-	</div>
+		      <ul class="list-group">
+			<li class="list-group-item">
+			  <p>Publish the Conformed compressed timeseries netCDF files to the ESGF and the CDG. Data managers can update the publication status using the <em>Update Status of ESGF button</em></p>
 
-	<div class="modal fade" id="myModalESGF" tabindex="-1" role="dialog" aria-labelledby="myModalESGFLabel">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-		<h4 class="modal-title" id="myModalESGFLabel">[% case.casename.value %] Publish to ESGF</h4>
-		<p>The following email requesting publication to the ESGF will be sent. Data managers can update the
-		  publication status using the Update Status of ESGF button.</p>
-	      </div>
-	      <pre>
+			  <div class="btn-group" role="group">
+			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalESGF">
+			      Publish Request to ESGF
+			    </button>
+			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalESGFStatus">
+			      Update Status of ESGF
+			    </button>
+			  </div>
+
+			  <div class="modal fade" id="myModalESGF" tabindex="-1" role="dialog" aria-labelledby="myModalESGFLabel">
+			    <div class="modal-dialog" role="document">
+			      <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				  <h4 class="modal-title" id="myModalESGFLabel">[% case.casename.value %] Publish to ESGF</h4>
+				  <p>The following email requesting publication to the ESGF will be sent. Data managers can update the
+				    publication status using the Update Status of ESGF button.</p>
+				</div>
+<pre>
 email address: gateway-publish@ucar.edu
 email subject: CESM EXDB ESGF Publication Notification: [% case.case_id.value %]
 email body:
 
 CESM EXDB ESGF Publication Notification
 Case_ID: [% case.case_id.value %]
-Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]</pre>
-	      <form method="post">
-		<div class="modal-footer">
-		  <input type="hidden" name="action" value="publishESGFProcess"/>
-		  <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-		  <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-		  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-		  <button type="submit" class="btn btn-primary" value="Update">Send Email</button>
-		</div>
-	      </form>
-	    </div>
-	  </div>
-	</div>
+Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]
+</pre>
+				<form method="post">
+				  <div class="modal-footer">
+				    <input type="hidden" name="action" value="publishESGFProcess"/>
+				    <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				    <button type="submit" class="btn btn-primary" value="Update">Send Email</button>
+				  </div>
+				</form>
+			      </div>
+			    </div>
+			  </div>
 
-	<div class="modal fade" id="myModalESGFStatus" tabindex="-1" role="dialog" aria-labelledby="myModalESGFStatusLabel">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-		<h4 class="modal-title" id="myModalESGFStatusLabel">[% case.casename.value %] Update Status of ESGF</h4>
-		<p>Only data managers can update the ESGF publication status.</p>
-	      </div>
-	      <form method="post">
+			  <div class="modal fade" id="myModalESGFStatus" tabindex="-1" role="dialog" aria-labelledby="myModalESGFStatusLabel">
+			    <div class="modal-dialog" role="document">
+			      <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				  <h4 class="modal-title" id="myModalESGFStatusLabel">[% case.casename.value %] Update Status of ESGF</h4>
+				  <p>Only data managers can update the ESGF publication status.</p>
+				</div>
+				<form method="post">
 
-		<table class="table">
-		  <thead>
-		    <tr>
-		      <th>Published?</th>
-		      <th>Verified?</th>
-		    </tr>
-		  </thead>
-		  <tbody>
-		    <tr>
-		      <td>
-			<input type="radio" name="published" value="yes"/> Yes<br/>
-			<input type="radio" name="published" value="no" checked="checked"/> No
-		      </td>
-		      <td>
-			<input type="radio" name="verified" value="yes"/> Yes<br/>
-			<input type="radio" name="verified" value="no" checked="checked"/> No
-		      </td>
-		    </tr>
-		  </tbody>
-		</table>
+				  <table class="table">
+				    <thead>
+				      <tr>
+					<th>Published?</th>
+					<th>Verified?</th>
+				      </tr>
+				    </thead>
+				    <tbody>
+				      <tr>
+					<td>
+					  <input type="radio" name="published" value="yes"/> Yes<br/>
+					  <input type="radio" name="published" value="no" checked="checked"/> No
+					</td>
+					<td>
+					  <input type="radio" name="verified" value="yes"/> Yes<br/>
+					  <input type="radio" name="verified" value="no" checked="checked"/> No
+					</td>
+				      </tr>
+				    </tbody>
+				  </table>
 
-		<div class="modal-footer">
-		  <input type="hidden" name="action" value="updateESGFProcess"/>
-		  <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-		  <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-		  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-		  <button type="submit" class="btn btn-primary" value="Update">Update</button>
-		</div>
-	      </form>
-	    </div>
-	  </div>
-	</div>
-      </li>
+				  <div class="modal-footer">
+				    <input type="hidden" name="action" value="updateESGFProcess"/>
+				    <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				    <button type="submit" class="btn btn-primary" value="Update">Update</button>
+				  </div>
+				</form>
+			      </div>
+			    </div>
+			  </div>
+			</li>
 
-      <li class="list-group-item">
-	Publish to NCAR Climate Data Gateway (formally ESG). This publishes the single-variable CESM compressed timeseries netCDF files.
-	Data managers can update the publication status using the Update Status of CDG button.<br/>
-	<div class="btn-group" role="group">
-	  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalCDG">
-	    Publish Request to CDG
-	  </button>
-	  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalCDGstatus">
-	    Update Status of CDG
-	  </button>
-	</div>
+			<li class="list-group-item">
+			  Publish to NCAR Climate Data Gateway (formally ESG). This publishes the single-variable CESM compressed timeseries netCDF files.
+			  Data managers can update the publication status using the Update Status of CDG button.<br/>
+			  <div class="btn-group" role="group">
+			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalCDG">
+			      Publish Request to CDG
+			    </button>
+			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalCDGstatus">
+			      Update Status of CDG
+			    </button>
+			  </div>
 
-	<div class="modal fade" id="myModalCDG" tabindex="-1" role="dialog" aria-labelledby="myModalCDGLabel">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-		<h4 class="modal-title" id="myModalCDGLabel">[% case.casename.value %] Publish to CDG</h4>
-		<p>The following email requesting publication to the CDG will be sent. Data managers can update the
-		  publication status using the Update Status of CDG button.</p>
-	      </div>
-	      <pre>
+			  <div class="modal fade" id="myModalCDG" tabindex="-1" role="dialog" aria-labelledby="myModalCDGLabel">
+			    <div class="modal-dialog" role="document">
+			      <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				  <h4 class="modal-title" id="myModalCDGLabel">[% case.casename.value %] Publish to CDG</h4>
+				  <p>The following email requesting publication to the CDG will be sent. Data managers can update the
+				    publication status using the Update Status of CDG button.</p>
+				</div>
+<pre>
 email address: gateway-publish@ucar.edu
 email subject: CESM EXDB CDG Publication Notification: [% case.case_id.value %]
 email body:
@@ -902,148 +889,148 @@ email body:
 CESM EXDB CDG Publication Notification
 Case_ID: [% case.case_id.value %]
 Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]
-	      </pre>
-	      <form method="post">
-		<div class="modal-footer">
-		  <input type="hidden" name="action" value="publishCDGProcess"/>
-		  <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-		  <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-		  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-		  <button type="submit" class="btn btn-primary" value="Update">Send Email</button>
+</pre>
+				<form method="post">
+				  <div class="modal-footer">
+				    <input type="hidden" name="action" value="publishCDGProcess"/>
+				    <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				    <button type="submit" class="btn btn-primary" value="Update">Send Email</button>
+				  </div>
+				</form>
+			      </div>
+			    </div>
+			  </div>
+			</li>
+
+			<li class="list-group-item">
+			  Publish experiment metadata to the NCAR <a href="https://data.ucar.edu/" target="_blank">Digital Assets Services Hub</a><br/>
+			  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalDASH" style="margin-right: 15px;">
+			    Publish Metadata to DASH
+			  </button>
+			</li>
+
+			<li class="list-group-item">
+			  Publish experiment metadata and public links to diagnostics pages to the 
+			  <a href="http://www.cesm.ucar.edu/models/cesm2/scientifically-validated-cesm2.html" target="_blank">CESM2 Scientifically Validated web page.</a><br/>
+			  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalScience" style="margin-right: 15px;">
+			    Publish to CESM Science Validation Page
+			  </button>
+			</li>
+
+			<li class="list-group-item">
+			  Publish experiment detailed timing information to the 
+			  <a href="https://csegweb.cgd.ucar.edu/timing/cgi-bin/timings.cgi" target="_blank">CESM2 Timing, Performance, and Load Balancing Data</a><br/>
+			  <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalTiming" style="margin-right: 15px;">
+			    Publish to CESM Timing Page
+			  </button>
+			</li>
+
+		      </ul>
+		    </div>
+		  </div>
+		  <!-- Publicatoin Options sub panel end -->
 		</div>
-	      </form>
+	      </div>
+	      <!-- main panel end -->
 	    </div>
 	  </div>
 	</div>
-      </li>
+      </section>
+      <!-- content end -->
 
-      <li class="list-group-item">
-	Publish experiment metadata to the NCAR <a href="https://data.ucar.edu/" target="_blank">Digital Assets Services Hub</a><br/>
-	<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalDASH" style="margin-right: 15px;">
-	  Publish Metadata to DASH
-	</button>
-      </li>
-
-      <li class="list-group-item">
-	Publish experiment metadata and public links to diagnostics pages to the 
-	<a href="http://www.cesm.ucar.edu/models/cesm2/scientifically-validated-cesm2.html" target="_blank">CESM2 Scientifically Validated web page.</a><br/>
-	<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalScience" style="margin-right: 15px;">
-	  Publish to CESM Science Validation Page
-	</button>
-      </li>
-
-      <li class="list-group-item">
-	Publish experiment detailed timing information to the 
-	<a href="https://csegweb.cgd.ucar.edu/timing/cgi-bin/timings.cgi" target="_blank">CESM2 Timing, Performance, and Load Balancing Data</a><br/>
-	<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalTiming" style="margin-right: 15px;">
-	  Publish to CESM Timing Page
-	</button>
-      </li>
-
-    </ul>
-  </div>
-</div>
-<!-- Publicatoin Options sub panel end -->
-</div>
-</div>
-<!-- main panel end -->
-</div>
-</div>
-</div>
-</section>
-<!-- content end -->
-
-<!-- footer start -->
-<footer>        
-  [% INCLUDE 'modern/includes/footer/footer-inc.html' %]
-</footer>
-<!-- footer end -->
+      <!-- footer start -->
+      <footer>        
+	[% INCLUDE 'modern/includes/footer/footer-inc.html' %]
+      </footer>
+      <!-- footer end -->
 
 
-<!-- scroll to top arrow -->
-<a href="#" class="scrollup"><i class="fa fa-angle-up active"></i></a>
+      <!-- scroll to top arrow -->
+      <a href="#" class="scrollup"><i class="fa fa-angle-up active"></i></a>
 
 
-<!-- js start -->
-[% INCLUDE 'modern/js/js-include.html' %]
-<script>
-  [% INCLUDE 'modern/js/datatables.min.js' %]
+      <!-- js start -->
+      [% INCLUDE 'modern/js/js-include.html' %]
+      <script>
+	[% INCLUDE 'modern/js/datatables.min.js' %]
 
-  var statusTable = $('#statusTable').DataTable({
-  "responsive": true,
-  "lengthMenu": [ [25, 50, -1], [25, 50, "All"] ],
-  "order": [ [ 0, 'asc'] ]
-  });
+	var statusTable = $('#statusTable').DataTable({
+	"responsive": true,
+	"lengthMenu": [ [25, 50, -1], [25, 50, "All"] ],
+	"order": [ [ 0, 'asc'] ]
+	});
 
-  // Handle click on "Expand All" button
-  $('button#statusBtn-show-all-children').on('click', function(){
-  // Expand row details
-  statusTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
-  });
+	// Handle click on "Expand All" button
+	$('button#statusBtn-show-all-children').on('click', function(){
+	// Expand row details
+	statusTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
+	});
 
-  // Handle click on "Collapse All" button
-  $('button#statusBtn-hide-all-children').on('click', function(){
-  // Collapse row details
-  statusTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
-  });
+	// Handle click on "Collapse All" button
+	$('button#statusBtn-hide-all-children').on('click', function(){
+	// Collapse row details
+	statusTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
+	});
 
 
 
-  var caseTable = $('#caseTable').DataTable( {
-  "responsive": true,
-  "lengthMenu": [ [-1, 25, 50], ["All", 25, 50] ],
-  "order": [ [ 0, 'asc'] ]
-  } );
+	var caseTable = $('#caseTable').DataTable( {
+	"responsive": true,
+	"lengthMenu": [ [-1, 25, 50], ["All", 25, 50] ],
+	"order": [ [ 0, 'asc'] ]
+	} );
 
-  // Handle click on "Expand All" button
-  $('button#caseBtn-show-all-children').on('click', function(){
-  // Expand row details
-  caseTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
-  });
+	// Handle click on "Expand All" button
+	$('button#caseBtn-show-all-children').on('click', function(){
+	// Expand row details
+	caseTable.rows(':not(.parent)').nodes().to$().find('td:first-child').trigger('click');
+	});
 
-  // Handle click on "Collapse All" button
-  $('button#caseBtn-hide-all-children').on('click', function(){
-  // Collapse row details
-  caseTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
-  });
-
-
-  // when clicking the toggle all details button show all in the containing div
-  $('.btn-show-exp-details').on('click', function () {
-  $('#accordion-details .panel-collapse').collapse('toggle');
-  });
+	// Handle click on "Collapse All" button
+	$('button#caseBtn-hide-all-children').on('click', function(){
+	// Collapse row details
+	caseTable.rows('.parent').nodes().to$().find('td:first-child').trigger('click');
+	});
 
 
-  // function for the bytes converter
-  function formatBytes(a,b){if(0==a)return"0 Bytes";var c=1024,d=b||2,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f]}
+	// when clicking the toggle all details button show all in the containing div
+	$('.btn-show-exp-details').on('click', function () {
+	$('#accordion-details .panel-collapse').collapse('toggle');
+	});
 
 
-  // loop thru to check if any bytes need to be converted
-  $('.bytes-convert').each(function(i, obj) {
-  // get the val of byes
-  var bytes = $(this).text();
-
-  // get the id
-  var bytesId = $(this).attr("id");
-
-  // check if it is set and over 0
-  if ( (bytes != "") && (bytes > 0) ) {
-  // convert it
-  bytesConverted = formatBytes(bytes);
-
-  //console.log(bytesConverted);
-  //console.log(bytesId);
-
-  // convert and set it
-  $("#" + bytesId).text("bytesConverted");
-  }
-  });
-</script>
+	// function for the bytes converter
+	function formatBytes(a,b){if(0==a)return"0 Bytes";var c=1024,d=b||2,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f]}
 
 
-<script type="text/javascript" src="/expdb2.0/scripts/popitup.js"></script>
+	// loop thru to check if any bytes need to be converted
+	$('.bytes-convert').each(function(i, obj) {
+	// get the val of byes
+	var bytes = $(this).text();
 
-<!-- js end -->
-</div>
-</body>
+	// get the id
+	var bytesId = $(this).attr("id");
+
+	// check if it is set and over 0
+	if ( (bytes != "") && (bytes > 0) ) {
+	// convert it
+	bytesConverted = formatBytes(bytes);
+
+	//console.log(bytesConverted);
+	//console.log(bytesId);
+
+	// convert and set it
+	$("#" + bytesId).text("bytesConverted");
+	}
+	});
+      </script>
+
+
+      <script type="text/javascript" src="/expdb2.0/scripts/popitup.js"></script>
+
+      <!-- js end -->
+    </div>
+  </body>
 </html>

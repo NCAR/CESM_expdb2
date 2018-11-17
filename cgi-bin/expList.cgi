@@ -619,10 +619,9 @@ sub publishESGFProcess
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
 
-    # TODO add isCMIP6Publisher to list of authorized users
-    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+    if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	$validstatus{'message'} = qq(Only CMIP6 authorized publishers are allowed to publish case details to the ESGF.<br/>);
 	return;
     }
 
@@ -638,42 +637,34 @@ sub publishESGFProcess
     my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
 
     if ($status_id != 5 || $status_id != 2) {
-	# check permissions for publication - can only be Gary, Eric, Sheri or Alice
-	# TODO add Eric
-	if ($item{luser_id} ~~ [98, 334, 190]) {
-
-	    # update the publish to ESGF status - process_id = 18 to status_id = 2 "started"
-	    updatePublishStatus($dbh, $case_id, 18, 2);
+	# update the publish to ESGF status - process_id = 18 to status_id = 2 "started"
+	updatePublishStatus($dbh, $case_id, 18, 2);
 	    
-	    my $subject = qq(CESM EXDB ESGF Publication Notification: $case_id);
-	    my $msgbody = <<EOF;
+	my $subject = qq(CESM EXDB ESGF Publication Notification: $case_id);
+	my $msgbody = <<EOF;
 CESM EXDB ESGF Publication Notification
 Case_ID: $case_id
 Path:  /glade/collections/cdg/cmip6/$case_id
 EOF
 
-            my $email = Email::Simple->create(
-		header => [
-		    From => $item{lemail},
+        my $email = Email::Simple->create(
+	    header => [
+		From => $item{lemail},
 ##		    To   => "gateway-publish@ucar.edu",
-		    To   => "aliceb\@ucar.edu",
-		    Subject => $subject,
-		],
-		body => $msgbody,
-	    );
+		To   => "aliceb\@ucar.edu",
+		Subject => $subject,
+	    ],
+	    body => $msgbody,
+	);
 
-	    sendmail($email, 
-		     { from => $item{lemail},
-		       transport => Email::Sender::Transport::Sendmail->new}
-		) or die "can't send email!";
+	sendmail($email, 
+		 { from => $item{lemail},
+		   transport => Email::Sender::Transport::Sendmail->new}
+	    ) or die "can't send email!";
 
-	    # refresh the current page
-	    $validstatus{'status'} = 1;
-	}
-	else {
-	    $validstatus{'status'} = 0;
-	    $validstatus{'message'} .= qq(Permissions Error - Only Eric Nienhouse, Gary Strand, Sheri Mickelson, or Alice Bertini are allowed to publish to ESGF.<br/>);
-	}
+	# refresh the current page
+	$validstatus{'status'} = 1;
+	$validstatus{'message'} .= qq(Email sent to ESGF publishers.<br/>);
     }
     else {
 	$validstatus{'status'} = 0;

@@ -1144,16 +1144,15 @@ sub isCMIP6User
 
 
 sub isCMIP6Publisher
-#TODO add column is_cmip6_publisher to the t_svnusers table
 {
     my $dbh = shift;
     my $user_id = shift;
 
-    my $sql = qq(select is_cmip6_publisher from t_svnusers 
+    my $sql = qq(select is_cmip6_pub from t_svnusers 
                  where user_id = $user_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
-    my ($is_cmip6) = $sth->fetchrow();
+    my ($is_cmip6_pub) = $sth->fetchrow();
 
-    return $is_cmip6;
+    return $is_cmip6_pub;
 }
