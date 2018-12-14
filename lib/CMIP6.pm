@@ -413,7 +413,7 @@ sub getCMIP6CaseByID
 	$case{'expType_desc'}{'history'} = qw();
 
 	# get the svnlogin name seperately
-	$sql = qq(select count(u.user_id), u.firstname, u.lastname, u.email
+	$sql = qq(select count(u.user_id), u.firstname, u.lastname, IFNULL(u.email, '')
                   from t_svnusers as u, t2_cases as t where
                   u.user_id = t.svnuser_id and
                   t.id = $id);
@@ -430,7 +430,7 @@ sub getCMIP6CaseByID
 	# get CMIP6 fields 
 	$sql = qq(select e.name as expName, e.description as expDesc, m.name as mipName, m.description as mipDesc, j.variant_label, 
                   j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
-	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, j.parentExp_id
+	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, IFNULL(j.parentExp_id, 0) as parentExp_id
 		  from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m
 		  where j.case_id = $id and j.exp_id = e.id and j.design_mip_id = m.id);
 	$sth = $dbh->prepare($sql);
@@ -462,7 +462,7 @@ sub getCMIP6CaseByID
 
 	    # get the parent name if there is one
 	    $project{'cmip6_parent_casename'} = '';
-	    if( defined($ref->{'parentExp_id'}))
+	    if( $ref->{'parentExp_id'} )
 	    {
 		$sql1 = qq(select e.name, c.title, c.casename, j.variant_label, e.description
                            from t2_cmip6_exps as e, t2_cases as c,
