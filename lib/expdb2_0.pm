@@ -195,12 +195,16 @@ sub getLinkByID
    my %link;
 
    my $sql = qq(select j.id, j.case_id, j.process_id, j.linkType_id, j.link, j.description, 
-                DATE_FORMAT(j.last_update, '%Y-%m-%d'), c.casename, p.name, t.name
-                from t2j_links as j, t2_cases as c, t2_process as p, t2_linkType as t
-                where j.id = $link_id and j.case_id = c.id and j.process_id = p.id and j.linkType_id = t.id);
+                DATE_FORMAT(j.last_update, '%Y-%m-%d'), c.casename, p.name, t.name, 
+                u.firstname, u.lastname, u.email 
+                from t2j_links as j, t2_cases as c, t2_process as p, t2_linkType as t, t_svnusers as u
+                where j.id = $link_id and j.case_id = c.id and j.process_id = p.id and 
+                j.linkType_id = t.id and j.user_id = u.user_id);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
-   ($link{'link_id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},$link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},$link{'linkType_name'})  = $sth->fetchrow();
+   ($link{'link_id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},
+    $link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},
+    $link{'linkType_name'},$link{'firstname'},$link{'lastname'},$link{'email'})  = $sth->fetchrow();
    $sth->finish();
 
    return \%link;
@@ -211,7 +215,7 @@ sub getProcess
    my $dbh = shift;
    my @processes;
 
-   my $sql = qq(select * from t2_process order by description);
+   my $sql = qq(select * from t2_process order by name);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
    while(my $ref = $sth->fetchrow_hashref())
@@ -548,7 +552,7 @@ sub getCaseByID
 	
 	# get process status
 	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
-                j.disk_usage, j.disk_path, j.archive_method
+                j.disk_usage, j.disk_path, j.archive_method, IFNULL(j.user_id, 0)
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
                 j.case_id = $id and
@@ -570,6 +574,11 @@ sub getCaseByID
 	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
 	    my @fullstats = getProcessStats($dbh, $id, $process_name);
 	    $status{$process_name}{'history'} = \@fullstats;
+	    $status{$process_name}{'user_id'} = $ref->{'user_id'};
+	    if ( $status{$process_name}{'user_id'} ) {
+		my %procUser = getUserByID($status{$process_name}{'user'});
+		$status{$process_name}{'user'} = \%procUser;
+	    }
 	}
 	$sth->finish();
 
@@ -596,8 +605,10 @@ sub updatePublishStatus
     my $case_id = shift;
     my $process_id = shift;
     my $status_id = shift;
+    my $user_id = shift;
 
-    my $sql = qq(update t2j_status set status_id = $status_id
+    my $sql = qq(update t2j_status set status_id = $status_id,
+                 archive_method = 'user', user_id = $user_id
                  where case_id = $case_id and process_id = $process_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();

@@ -497,7 +497,7 @@ sub getCMIP6CaseByID
 
 	# get process status
 	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
-                j.disk_usage, j.disk_path, j.archive_method
+                j.disk_usage, j.disk_path, j.archive_method, IFNULL(j.user_id, 0)
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
                 j.case_id = $id and
@@ -519,6 +519,11 @@ sub getCMIP6CaseByID
 	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
 	    my @fullstats = getProcessStats($dbh, $id, $process_name);
 	    $status{$process_name}{'history'} = \@fullstats;
+	    $status{$process_name}{'user_id'} = $ref->{'user_id'};
+	    if ( $status{$process_name}{'user_id'} ) {
+		my %procUser = getUserByID($status{$process_name}{'user'});
+		$status{$process_name}{'user'} = \%procUser;
+	    }
 	}
 	$sth->finish();
 

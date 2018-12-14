@@ -22,6 +22,7 @@ use user;
 use lib "/home/www/html/expdb2.0/lib";
 use expdb2_0;
 use CMIP6;
+use DASH;
 
 #------
 # main 
@@ -108,7 +109,7 @@ sub doActions()
     }
     if ($action eq "showCaseDetail")
     {
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
     if ($action eq "reserveCase")
     {
@@ -123,63 +124,91 @@ sub doActions()
     if ($action eq "updateTitleProc")
     {
 	&updateTitleProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
 
     # add note 
     if ($action eq "addNoteProc")
     {
 	&addNoteProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
 
     # update note 
     if ($action eq "updateNoteProc")
     {
 	&updateNoteProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
 
     # delete note 
     if ($action eq "deleteNoteProc")
     {
 	&deleteNoteProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
 
     # add link
     if ($action eq "addLinkProc")
     {
 	&addLinkProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
 
     # update link
     if ($action eq "updateLinkProc")
     {
 	&updateLinkProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
 
     # delete link
     if ($action eq "deleteLinkProc")
     {
 	&deleteLinkProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
 
     # send ESGF publish email
     if ($action eq "publishESGFProcess")
     {
 	&publishESGFProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
     }
 
     # update ESGF status
     if ($action eq "updateESGFProcess")
     {
 	&updateESGFProcess();
-	&showCaseDetail();
+	&showCaseDetail($req->param('case_id'));
+    }
+
+    # send CDG publish email
+    if ($action eq "publishCDGProcess")
+    {
+	&publishCDGProcess();
+	&showCaseDetail($req->param('case_id'));
+    }
+
+    # update CDG status
+    if ($action eq "updateCDGProcess")
+    {
+	&updateCDGProcess();
+	&showCaseDetail($req->param('case_id'));
+    }
+
+    # add DASH keywords
+    if ($action eq "addDASHProcess")
+    {
+	&addDASHProcess();
+	&showCaseDetail($req->param('case_id'));
+    }
+
+    # send DASH ISO template to github for publication
+    if ($action eq "publishDASHProcess")
+    {
+	&publishDASHProcess();
+	&showCaseDetail($req->param('case_id'));
     }
 }
 
@@ -248,7 +277,7 @@ sub showExpList
 sub showCaseDetail
 #------------------
 {
-    my $case_id = $req->param('case_id');
+    my $case_id = shift;
     my ($case, $fields, $status, $project, $notes, $links, $globalAtts);
 
     my @allCases = getAllCases($dbh);
@@ -265,6 +294,14 @@ sub showCaseDetail
 	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
+    # get all the DASH publication select options
+    my @horizontalResolutions = getHorizontalResolutions($dbh);
+    my @temporalResolutions   = getTemporalResolutions($dbh);
+    my @expAttributes         = getExpAttributes($dbh);
+    my @expTypes              = getExpTypes($dbh);
+    my @expPeriods            = getExpPeriods($dbh);
+    my @components            = getComponents($dbh);
+
     if ($case->{'case_id'} < 0)
     {
 	$validstatus{'status'} = 0;
@@ -280,18 +317,24 @@ sub showCaseDetail
     my @linkTypes = getLinkTypes($dbh);
 
     my $vars = {
-	case        => $case,
-	expType     => $expType,
-	status      => $status,
-	project     => $project,
-	notes       => $notes,
-	links       => $links,
-	globalAtts  => $globalAtts,
-	allCases    => \@allCases,
-	authUser    => \%item,
-	processes   => \@processes,
-	linkTypes   => \@linkTypes,
-	validstatus => \%validstatus,
+	case                  => $case,
+	expType               => $expType,
+	status                => $status,
+	project               => $project,
+	notes                 => $notes,
+	links                 => $links,
+	globalAtts            => $globalAtts,
+	allCases              => \@allCases,
+	authUser              => \%item,
+	processes             => \@processes,
+	linkTypes             => \@linkTypes,
+	validstatus           => \%validstatus,
+        horizontalResolutions => \@horizontalResolutions,
+        temporalResolutions   => \@temporalResolutions,
+        expAttributes         => \@expAttributes,
+        expTypes              => \@expTypes,
+        expPeriods            => \@expPeriods,
+	components            => \@components,
     };
 
     print $req->header(-cookie=>$cookie);
@@ -620,16 +663,18 @@ sub publishESGFProcess
 
     if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized publishers are allowed to publish case details to the ESGF.<br/>);
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to publish case details to the ESGF.<br/>);
 	return;
     }
 
     my ($case, $status, $project, $notes, $links, $globalAtts);
 
-    # TODO branch on expType_id
     if ($expType_id == '1') 
     {
 	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
+    else {
+	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
     # check current publish status for process_id = 18 (publish_esgf)
@@ -637,7 +682,7 @@ sub publishESGFProcess
 
     if ($status_id != 5 || $status_id != 2) {
 	# update the publish to ESGF status - process_id = 18 to status_id = 2 "started"
-	updatePublishStatus($dbh, $case_id, 18, 2);
+	updatePublishStatus($dbh, $case_id, 18, 2, $item{luser_id});
 	    
 	my $subject = qq(CESM EXDB ESGF Publication Notification: $case_id);
 	my $msgbody = <<EOF;
@@ -676,29 +721,155 @@ EOF
 sub updateESGFProcess
 #--------------------
 {
-# TODO - this needs to be flushed out!
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
+    my $pub_radio = $req->param('esgf_published');
+    my $verify_radio = $req->param('esgf_verified');
 
-    # TODO add isCMIP6Publisher to list of authorized users
-    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+    if (!isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the ESGF publication options.<br/>);
 	return;
     }
 
     my ($case, $status, $project, $notes, $links, $globalAtts);
 
-    # TODO branch on expType_id
     if ($expType_id == '1') 
     {
 	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
     }
-
+    else 
+    {
+	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
+    }
+    
     # check current publish status for process_id = 18 (publish_esgf)
     my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
 
-    # TODO - finish update the approver and process status in the t2j_status table
+    if ($status_id == 2 && $pub_radio eq 'yes') {
+	# update the publish to ESGF status - process_id = 18 to status_id = 5 "succeeded"
+	updatePublishStatus($dbh, $case_id, 18, 5, $item{luser_id});
+	$validstatus{'status'} = 1;
+	$validstatus{'message'} .= qq(ESGF publication successfully completed.<br/>)
+    }
+    ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
+
+    if ($status_id == 5 && $verify_radio eq 'yes') {
+	# update the publish to ESGF status - process_id = 18 to status_id = 6 "Verified"
+	updatePublishStatus($dbh, $case_id, 18, 6, $item{luser_id});
+	$validstatus{'status'} = 1;
+	$validstatus{'message'} .= qq(ESGF publication verified.<br/>)
+    }
+}
+
+
+#----------------------
+sub publishCDGProcess
+#----------------------
+{
+    my $case_id = $req->param('case_id');
+    my $expType_id = $req->param('expType_id');
+
+    if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to publish case details to the CDG.<br/>);
+	return;
+    }
+
+    my ($case, $status, $project, $notes, $links, $globalAtts);
+
+    if ($expType_id == '1') 
+    {
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
+    else {
+	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
+    }
+
+    # check current publish status for process_id = 20 (publish_cdg)
+    my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 20);
+
+    if ($status_id != 5 || $status_id != 2) {
+	# update the publish to CDG status - process_id = 20 to status_id = 2 "started"
+	updatePublishStatus($dbh, $case_id, 20, 2, $item{luser_id});
+	my $casename = $case->{'casename'}{value};
+	    
+	my $subject = qq(CESM EXDB CDG Publication Notification: $casename);
+	my $msgbody = <<EOF;
+CESM EXDB CDG Publication Notification
+Casename: $casename
+Path:  /glade/collections/cdg/$casename
+EOF
+
+        my $email = Email::Simple->create(
+	    header => [
+		From => $item{lemail},
+##		    To   => "gateway-publish@ucar.edu",
+		To   => "aliceb\@ucar.edu",
+		Subject => $subject,
+	    ],
+	    body => $msgbody,
+	);
+
+	sendmail($email, 
+		 { from => $item{lemail},
+		   transport => Email::Sender::Transport::Sendmail->new}
+	    ) or die "can't send email!";
+
+	# refresh the current page
+	$validstatus{'status'} = 1;
+	$validstatus{'message'} .= qq(Email sent to CDG data managers.<br/>);
+    }
+    else {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} .= qq(This experiment data has already been published to CDG.<br/>);
+    }
+}
+
+
+#--------------------
+sub updateCDGProcess
+#--------------------
+{
+    my $case_id = $req->param('case_id');
+    my $expType_id = $req->param('expType_id');
+    my $pub_radio = $req->param('cdg_published');
+    my $verify_radio = $req->param('cdg_verified');
+
+    if (!isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the CDG publication options.<br/>);
+	return;
+    }
+
+    my ($case, $status, $project, $notes, $links, $globalAtts);
+
+    if ($expType_id == '1') 
+    {
+	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    }
+    else 
+    {
+	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
+    }
+    
+    # check current publish status for process_id = 20 (publish_cdg)
+    my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 20);
+
+    if ($status_id == 2 && $pub_radio eq 'yes') {
+	# update the publish to CDG status - process_id = 20 to status_id = 5 "succeeded"
+	updatePublishStatus($dbh, $case_id, 20, 5, $item{luser_id});
+	$validstatus{'status'} = 1;
+	$validstatus{'message'} .= qq(CDG publication successfully completed.<br/>)
+    }
+    ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 20);
+
+    if ($status_id == 5 && $verify_radio eq 'yes') {
+	# update the publish to CDG status - process_id = 20 to status_id = 6 "Verified"
+	updatePublishStatus($dbh, $case_id, 20, 6, $item{luser_id});
+	$validstatus{'status'} = 1;
+	$validstatus{'message'} .= qq(CDG publication verified.<br/>)
+    }
 }
 
 #-----------------
@@ -801,8 +972,8 @@ sub addLinkProcess
     }
     my $link = $dbh->quote($item{'link'});
     my $description = $dbh->quote($item{'description'});
-    my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update) 
-               value ($case_id, $item{'processName'}, $item{'linkType'}, $link, $description, NOW()));
+    my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, user_id) 
+               value ($case_id, $item{'processName'}, $item{'linkType'}, $link, $description, NOW(), $item{luser_id}));
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish();
@@ -830,7 +1001,7 @@ sub updateLinkProcess
     my $link = $dbh->quote($item{'link'});
     my $description = $dbh->quote($item{'description'});
     my $sql = qq(update t2j_links set link = $link, description = $description, last_update = NOW(),
-                 process_id = $item{'processName'}, linkType_id = $item{'linkType'}
+                 process_id = $item{'processName'}, linkType_id = $item{'linkType'}, user_id = $item{luser_id}
                  where id = $link_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -864,6 +1035,156 @@ sub deleteLinkProcess
     $validstatus{'status'} = 1;
     $validstatus{'message'} = qq(Case link deleted.<br/>)
 }
+
+
+#----------------------
+sub addDASHProcess
+#----------------------
+{
+    my $case_id = $req->param('case_id');
+    my ($sql, $sth);
+    my $update = 0;
+    my (@comps, @eas, @eps, @ets, @hrs, @trs);
+
+
+    # loop through the components ID's array for t2_DASH_tables ID = 1
+    if ($req->param('components')) {
+	if (ref $req->param('components') eq 'ARRAY' ) {
+	    @comps = $req->param('components');
+	}
+	else {
+	    push @comps, $req->param('components');
+	}
+	foreach my $comp (@comps) {
+	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                      value ($case_id, 1, $comp));
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $sth->finish();
+	    $update = 1;
+	}
+    }
+
+    # loop through the expAttributes ID's array for t2_DASH_tables ID = 2
+    if ($req->param('expAttributes')) {
+	if (ref $req->param('expAttributes') eq 'ARRAY' ) {
+	    @eas = $req->param('expAttributes');
+	}
+	else {
+	    push @eas, $req->param('expAttributes');
+	}
+	foreach my $ea (@eas) {
+	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                      value ($case_id, 2, $ea));
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $sth->finish();
+	    $update = 1;
+	}
+    }
+
+    # loop through the expPeriod ID's array for t2_DASH_tables ID = 3
+    if ($req->param('expPeriods')) {
+	if (ref $req->param('expPeriods') eq 'ARRAY' ) {
+	    @eps = $req->param('expPeriods');
+	}
+	else {
+	    push @eps, $req->param('expPeriods');
+	}
+	foreach my $ep (@eps) {
+	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                      value ($case_id, 3, $ep));
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $sth->finish();
+	    $update = 1;
+	}
+    }
+
+    # loop through the expTypes ID's array for t2_DASH_tables ID = 4
+    if ($req->param('expTypes')) {
+	if (ref $req->param('expTypes') eq 'ARRAY' ) {
+	    @ets = $req->param('expTypes');
+	}
+	else {
+	    push @ets, $req->param('expTypes');
+	}
+	foreach my $et (@ets) {
+	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                      value ($case_id, 4, $et));
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $sth->finish();
+	    $update = 1;
+	}
+    }
+
+    # loop through the horizontalResolution ID's array for t2_DASH_tables ID = 5
+    if ($req->param('horizontalResolution')) {
+	if (ref $req->param('horizontalResolution') eq 'ARRAY' ) {
+	    @hrs = $req->param('horizontalResolution');
+	}
+	else {
+	    push @hrs, $req->param('horizontalResolution');
+	}
+	foreach my $hr (@hrs) {
+	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                      value ($case_id, 5, $hr));
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $sth->finish();
+	    $update = 1;
+	}
+    }
+
+    # loop through the temporalResolution ID's array for t2_DASH_tables ID = 6
+    if ($req->param('temporalResolution')) {
+	if (ref $req->param('temporalResolution') eq 'ARRAY' ) {
+	    @trs = $req->param('temporalResolution');
+	}
+	else {
+	    push @trs, $req->param('temporalResolution');
+	}
+	foreach my $tr (@trs) {
+	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                      value ($case_id, 6, $tr));
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $sth->finish();
+	    $update = 1;
+	}
+    }
+
+    # update the t2j_status for the publish_dash (process_id = 19) to Started (status_id = 2)
+    if ($update) {
+	$sql = qq(update t2j_status set status_id = 2, last_update = NOW(), archive_method = 'user',
+                  user_id =  $item{luser_id} where case_id = $case_id and process_id = 19);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
+
+	$validstatus{'status'} = 1;
+	$validstatus{'message'} = qq(DASH keywords successfully added. Press the "Preview and Publish to DASH" button to continue.<br/>)
+    }
+    else {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(No DASH keywords were selected. One or more keywords must be selected to continue.<br/>)
+    }
+}
+
+
+#----------------------
+sub publishDASHProcess
+#----------------------
+{
+    my $case_id = $req->param('case_id');
+    my $expType_id = $req->param('expType_id');
+
+# START HERE and generate the ISO template and send it to the github repo
+
+
+}
+
 
 
 $dbh->disconnect;

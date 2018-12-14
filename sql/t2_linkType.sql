@@ -8,7 +8,7 @@ create table t2_linkType(
        primary key (id));	
 
 insert into t2_linkType (name)
-values ('URL'),('file_path'),('HPSS'),('ESG');
+values ('URL'),('file_path'),('HPSS'),('DOI');
        
        
        
