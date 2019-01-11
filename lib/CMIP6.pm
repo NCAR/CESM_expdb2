@@ -1098,7 +1098,7 @@ sub getCMIP6Physics
     my $dbh = shift;
     my @CMIP6Physics;
 
-    my $sql = qq(select * from t2_cmip6_physics order by description);
+    my $sql = qq(select * from t2_cmip6_physics where id != 2 order by description);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
