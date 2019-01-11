@@ -45,13 +45,13 @@ my $datafile = ($req->param('data'));
 my $data = uri_unescape($req->param('data'));
 
 ## uncomment to debug from command line
-my $data;
-open(my $fh, '<', $datafile) or die "cannot open file $datafile";
-{
-    local $/;
-    $data = <$fh>;
-}
-close($fh);
+##my $data;
+##open(my $fh, '<', $datafile) or die "cannot open file $datafile";
+##{
+##    local $/;
+##    $data = <$fh>;
+##}
+##close($fh);
 ## end uncomment
 
 my $loginType = 'SVN';
@@ -148,63 +148,54 @@ if ($json->{'postprocess'}) {
     $pp_fields{'atm_averages'}{'size'}        = $dbh->quote($json->{'atm_avg_size'});
     $pp_fields{'atm_averages'}{'path'}        = $dbh->quote($json->{'atm_avg_path'});
     $pp_fields{'atm_averages'}{'dates'}       = $dbh->quote($json->{'atm_avg_dates'});
-    $pp_fields{'atm_averages'}{'total_time'}  = $dbh->quote('');
     $pp_fields{'atm_diagnostics'}{'status'}   = $json->{'atm_diag_status'};
     $pp_fields{'atm_diagnostics'}{'size'}     = $dbh->quote($json->{'atm_diag_size'});
     $pp_fields{'atm_diagnostics'}{'path'}     = $dbh->quote($json->{'atm_diag_path'});
     $pp_fields{'atm_diagnostics'}{'dates'}    = $dbh->quote($json->{'atm_diag_dates'});
-    $pp_fields{'atm_diagnostics'}{'total_time'}  = $dbh->quote('');
 
     $pp_fields{'lnd_averages'}{'status'}      = $json->{'lnd_avg_status'};
     $pp_fields{'lnd_averages'}{'size'}        = $dbh->quote($json->{'lnd_avg_size'});
     $pp_fields{'lnd_averages'}{'path'}        = $dbh->quote($json->{'lnd_avg_path'});
     $pp_fields{'lnd_averages'}{'dates'}       = $dbh->quote($json->{'lnd_avg_dates'});
-    $pp_fields{'lnd_averages'}{'total_time'}  = $dbh->quote('');
     $pp_fields{'lnd_diagnostics'}{'status'}   = $json->{'lnd_diag_status'};
     $pp_fields{'lnd_diagnostics'}{'size'}     = $dbh->quote($json->{'lnd_diag_size'});
     $pp_fields{'lnd_diagnostics'}{'path'}     = $dbh->quote($json->{'lnd_diag_path'});
     $pp_fields{'lnd_diagnostics'}{'dates'}    = $dbh->quote($json->{'lnd_diag_dates'});
-    $pp_fields{'lnd_diagnostics'}{'total_time'}  = $dbh->quote('');
 
     $pp_fields{'ice_averages'}{'status'}      = $json->{'ice_avg_status'};
     $pp_fields{'ice_averages'}{'size'}        = $dbh->quote($json->{'ice_avg_size'});
     $pp_fields{'ice_averages'}{'path'}        = $dbh->quote($json->{'ice_avg_path'});
     $pp_fields{'ice_averages'}{'dates'}       = $dbh->quote($json->{'ice_avg_dates'});
-    $pp_fields{'ice_averages'}{'total_time'}  = $dbh->quote('');
     $pp_fields{'ice_diagnostics'}{'status'}   = $json->{'ice_diag_status'};
     $pp_fields{'ice_diagnostics'}{'size'}     = $dbh->quote($json->{'ice_diag_size'});
     $pp_fields{'ice_diagnostics'}{'path'}     = $dbh->quote($json->{'ice_diag_path'});
     $pp_fields{'ice_diagnostics'}{'dates'}    = $dbh->quote($json->{'ice_diag_dates'});
-    $pp_fields{'ice_diagnostics'}{'total_time'}  = $dbh->quote('');
 
     $pp_fields{'ocn_averages'}{'status'}      = $json->{'ocn_avg_status'};
     $pp_fields{'ocn_averages'}{'size'}        = $dbh->quote($json->{'ocn_avg_size'});
     $pp_fields{'ocn_averages'}{'path'}        = $dbh->quote($json->{'ocn_avg_path'});
     $pp_fields{'ocn_averages'}{'dates'}       = $dbh->quote($json->{'ocn_avg_dates'});
-    $pp_fields{'ocn_averages'}{'total_time'}  = $dbh->quote('');
     $pp_fields{'ocn_diagnostics'}{'status'}   = $json->{'ocn_diag_status'};
     $pp_fields{'ocn_diagnostics'}{'size'}     = $dbh->quote($json->{'ocn_diag_size'});
     $pp_fields{'ocn_diagnostics'}{'path'}     = $dbh->quote($json->{'ocn_diag_path'});
     $pp_fields{'ocn_diagnostics'}{'dates'}    = $dbh->quote($json->{'ocn_diag_dates'});
-    $pp_fields{'ocn_diagnostics'}{'total_time'}  = $dbh->quote('');
 
     $pp_fields{'timeseries'}{'status'}        = $json->{'timeseries_status'};
     $pp_fields{'timeseries'}{'size'}          = $dbh->quote($json->{'timeseries_size'});
     $pp_fields{'timeseries'}{'path'}          = $dbh->quote($json->{'timeseries_path'});
     $pp_fields{'timeseries'}{'dates'}         = $dbh->quote($json->{'timeseries_dates'});
-    $pp_fields{'timeseries'}{'total_time'}    = $dbh->quote($json->{'timeseries_total_time'});
+    $pp_fields{'timeseries'}{'total_time'}    = $dbh->quote($json->{'timeseries_time'});
 
     $pp_fields{'iconform'}{'status'}          = $json->{'iconform_status'};
     $pp_fields{'iconform'}{'size'}            = $dbh->quote($json->{'iconform_size'});
     $pp_fields{'iconform'}{'path'}            = $dbh->quote($json->{'iconform_path'});
     $pp_fields{'iconform'}{'dates'}           = $dbh->quote($json->{'iconform_dates'});
-    $pp_fields{'iconform'}{'total_time'}      = $dbh->quote('');
 
     $pp_fields{'xconform'}{'status'}          = $json->{'xconform_status'};
     $pp_fields{'xconform'}{'size'}            = $dbh->quote($json->{'xconform_size'});
     $pp_fields{'xconform'}{'path'}            = $dbh->quote($json->{'xconform_path'});
     $pp_fields{'xconform'}{'dates'}           = $dbh->quote($json->{'xconform_dates'});
-    $pp_fields{'xconform'}{'total_time'}      = $dbh->quote($json->{'xconform_total_time'});
+    $pp_fields{'xconform'}{'total_time'}      = $dbh->quote($json->{'xconform_time'});
 }
 
 my $svnlogin = $dbh->quote($json->{'svnlogin'});
@@ -433,10 +424,9 @@ if ($json->{'postprocess'}) {
           
 	if (!$count) {
 	    $sql = qq(insert into t2j_status (case_id, status_id, process_id, 
-                  last_update, model_date, disk_usage, disk_path, archive_method, total_time)
+                  last_update, model_date, disk_usage, disk_path, archive_method)
                   value ($item{'case_id'}, $pstat_id, $pid, NOW(), $pp_fields{$pname}{'dates'},
-                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}, 'archive_metadata', 
-                  $pp_fields{$pname}{'total_time'}));
+                  $pp_fields{$pname}{'size'}, $pp_fields{$pname}{'path'}, 'archive_metadata'));
 	    $logger->debug('insert t2j_status sql = ' . $sql);
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute() or die $dbh->errstr;
