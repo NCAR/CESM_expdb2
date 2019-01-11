@@ -235,7 +235,7 @@ sub showExpList
     my $tmplFile = '../templates/expList.tmpl';
 
     my $template = Template->new({
-	ENCODING => 'utf8',
+	#ENCODING => 'utf8',
 	RELATIVE => 1,
 	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
 				 });
@@ -298,7 +298,7 @@ sub showCaseDetail
     my $tmplFile = qq(../templates/expDetails.tmpl);
 
     my $template = Template->new({
-	ENCODING => 'utf8',
+	#ENCODING => 'utf8',
 	RELATIVE => 1,
 	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
 				 });
