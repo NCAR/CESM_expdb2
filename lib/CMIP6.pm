@@ -584,7 +584,7 @@ sub getCMIP6CaseByID
 	# construct the sub_experiment and sub_experiment_id
 	$globalAtts{'sub_experiment'} = '';
 	$globalAtts{'sub_experiment_id'} = '';
-	if ($case{'is_ens'}{'value'} eq "true")
+	if ($case{'is_ens'}{'value'} eq "true" && index($case{'cmip6_expName'}, 'dcpp') > 0)
 	{
 	    $globalAtts{'sub_experiment'} = qq(s$child_times[0]-$project{'cmip6_variant_label'}) ;
 	    $globalAtts{'sub_experiment_id'} = qq(s$child_times[0]);

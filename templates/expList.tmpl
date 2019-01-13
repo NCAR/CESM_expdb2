@@ -212,7 +212,7 @@
 				  <tbody>
 				    [% FOREACH exp IN DECKexp.exps %]
 				    <tr>
-				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
 				      <td>[% exp.request_date %]</td>
@@ -262,7 +262,7 @@
 				  <tbody>
 				    [% FOREACH exp IN MIPexp.exps.sort('expName') %]
 				    <tr>
-				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
 				      <td>[% exp.request_date %]</td>
@@ -323,7 +323,7 @@
 				  <tbody>
 				    [% FOREACH exp IN DCPPexp.exps %]
 				    <tr>
-				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% DCPPexp.uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
 				      <td>[% exp.request_date %]</td>
@@ -355,7 +355,7 @@
 			  <tbody>
 			    [% FOREACH exp IN CMIP6Exps %]
 			    <tr>
-			      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 			      <td>[% exp.designMIP %]</td>
 			      <td>[% exp.request_date %]</td>
@@ -768,7 +768,7 @@
 		      <tbody>
 			[% FOREACH exp IN cesm2tune %]
 			<tr>
-			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
 			  <td>[% exp.archive_date %]</td>
 			</tr>
@@ -791,7 +791,7 @@
 		      <tbody>
 			[% FOREACH exp IN cesm2exps %]
 			<tr>
-			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
 			  <td>[% exp.archive_date %]</td>
 			</tr>
@@ -814,7 +814,7 @@
 		      <tbody>
 			[% FOREACH exp IN projectA %]
 			<tr>
-			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
 			  <td>[% exp.archive_date %]</td>
 			</tr>
@@ -836,7 +836,7 @@
 		      <tbody>
 			[% FOREACH exp IN projectB %]
 			<tr>
-			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
 			  <td>[% exp.archive_date %]</td>
 			</tr>
