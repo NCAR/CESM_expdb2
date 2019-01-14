@@ -428,8 +428,9 @@ sub getCMIP6CaseByID
 	# TODO later loop through the field history and resolve the id's returned
 
 	# get CMIP6 fields 
-	$sql = qq(select e.name as expName, e.description as expDesc, m.name as mipName, m.description as mipDesc, j.variant_label, 
-                  j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
+	$sql = qq(select e.name as expName, e.description as expDesc, IFNULL(e.cesm_cmip6_id, 0) as cesm_cmip6_id,
+                  m.name as mipName, m.description as mipDesc, 
+                  j.variant_label, j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
 	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, IFNULL(j.parentExp_id, 0) as parentExp_id
 		  from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m
 		  where j.case_id = $id and j.exp_id = e.id and j.design_mip_id = m.id);
@@ -439,6 +440,7 @@ sub getCMIP6CaseByID
 	{
 	    $project{'cmip6_expName'} = $ref->{'expName'};
 	    $project{'cmip6_expDescription'} = $ref->{'expDesc'};
+	    $project{'cesm_cmip6_id'} = $ref->{'cesm_cmip6_id'};
 	    $project{'cmip6_mipName'} = $ref->{'mipName'};
 	    $project{'cmip6_mipDescription'} = $ref->{'mipDesc'};
 	    $project{'cmip6_variant_label'} = $ref->{'variant_label'};
@@ -497,7 +499,7 @@ sub getCMIP6CaseByID
 
 	# get process status
 	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
-                j.disk_usage, j.disk_path, j.archive_method, IFNULL(j.user_id, 0)
+                j.disk_usage, j.disk_path, j.archive_method
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
                 j.case_id = $id and
@@ -519,11 +521,6 @@ sub getCMIP6CaseByID
 	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
 	    my @fullstats = getProcessStats($dbh, $id, $process_name);
 	    $status{$process_name}{'history'} = \@fullstats;
-	    $status{$process_name}{'user_id'} = $ref->{'user_id'};
-	    if ( $status{$process_name}{'user_id'} ) {
-		my %procUser = getUserByID($status{$process_name}{'user'});
-		$status{$process_name}{'user'} = \%procUser;
-	    }
 	}
 	$sth->finish();
 
@@ -575,8 +572,21 @@ sub getCMIP6CaseByID
 	if ($project{'cmip6_mipName'} eq 'DECK') {
 	    $globalAtts{'parent_activity_id'} = 'CMIP6';
 	}
+
 	$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_expname'};
 	$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
+	if ($project{'cesm_cmip6_id'} > 0) 
+	{
+	    $sql = qq(select e.parent_experiment_id from t2_cmip6_exps as e
+                      where e.id = $project{'cesm_cmip6_id'});
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    ($globalAtts{'parent_experiment_id'}) = $sth->fetchrow();
+	    if ($globalAtts{'parent_experiment_id'} eq "no parent") {
+		$globalAtts{'parent_variant_label'} = '';
+	    }
+	    $sth->finish();
+	}
 	$globalAtts{'source_type'} = $project{'cmip6_source_type'};
 	$globalAtts{'variant_info'} = $project{'cmip6_variant_info'};
 	$globalAtts{'variant_label'} = $project{'cmip6_variant_label'};

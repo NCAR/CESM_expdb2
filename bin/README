@@ -15,3 +15,6 @@ Then load the database tables with the CMIP6 info
 >./load_cmip6_mips.py
 >./load_cmip6_join.py
 >./load_cmip6_cesm.py
+
+To match and load the WRCP CV CMIP6_experiment_id.json fields in the t2_cmip6_exps tables;
+>./parseCMIP6JSON.pl
