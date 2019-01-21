@@ -152,6 +152,18 @@
 								<small class="text-muted"><strong>forcing_index =</strong> an integer (>=1) used to distinguish runs conforming to the protocol of a single CMIP6 experiment, but with different variants of forcing applied. One can, for example, distinguish between two historical simulations, one forced with the CMIP6-recommended forcing data sets and another forced by a different dataset, which might yield information about how forcing uncertainty affects the simulation.</small> 
 							</div>
 						</div>
+
+						<br><br>
+						<div class="form-group">
+							<label><label><span class="text-danger">*</span>Model source_id:</label>
+							<select required name="source_id_num">
+								[% FOREACH source_id IN CMIP6SourceIDs %]
+								<option value="[% source_id.source_id %]">[% source_id.value %] : [% source_id.description %]</option>				           [% END %]
+							</select>
+							<br>
+						</div>
+
+
 						<br><br>
 						<div class="form-group">
 							<div class="row">

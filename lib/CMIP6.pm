@@ -18,7 +18,7 @@ use expdb2_0;
 @ISA = qw(Exporter);
 @EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCMIP6Sources 
 getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6Inits getCMIP6Physics
-getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher);
+getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher getCMIP6SourceIDs);
 
 sub getCMIP6Experiments
 {
@@ -431,9 +431,10 @@ sub getCMIP6CaseByID
 	$sql = qq(select e.name as expName, e.description as expDesc, IFNULL(e.cesm_cmip6_id, 0) as cesm_cmip6_id,
                   m.name as mipName, m.description as mipDesc, 
                   j.variant_label, j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
-	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, IFNULL(j.parentExp_id, 0) as parentExp_id
-		  from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m
-		  where j.case_id = $id and j.exp_id = e.id and j.design_mip_id = m.id);
+	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, 
+                  IFNULL(j.parentExp_id, 0) as parentExp_id, s.value
+		  from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m, t2_cmip6_source_id as s
+		  where j.case_id = $id and j.exp_id = e.id and j.design_mip_id = m.id and j.source_id = s.id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
@@ -450,6 +451,7 @@ sub getCMIP6CaseByID
 	    $project{'cmip6_nyears'} = $ref->{'nyears'};
 	    $project{'cmip6_request_date'} = $ref->{'req_date'};
 	    $project{'cmip6_source_type'} = $ref->{'source_type'};
+	    $project{'cmip6_source_id'} = $ref->{'value'};
 
 	    # get the DECK name if deck_id defined
 	    $project{'cmip6_deckName'} = '';
@@ -588,6 +590,7 @@ sub getCMIP6CaseByID
 	    $sth->finish();
 	}
 	$globalAtts{'source_type'} = $project{'cmip6_source_type'};
+	$globalAtts{'source_id'} = $project{'cmip6_source_id'};
 	$globalAtts{'variant_info'} = $project{'cmip6_variant_info'};
 	$globalAtts{'variant_label'} = $project{'cmip6_variant_label'};
 
@@ -1171,3 +1174,24 @@ sub isCMIP6Publisher
 
     return $is_cmip6_pub;
 }
+
+sub getCMIP6SourceIDs
+{
+    my $dbh = shift;
+    my @CMIP6SourceIDs;
+
+    my $sql = qq(select * from t2_cmip6_source_id); 
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while(my $ref = $sth->fetchrow_hashref())
+    {
+	my %CMIP6SourceID;
+	$CMIP6SourceID{'source_id'} = $ref->{'id'};
+	$CMIP6SourceID{'value'} = $ref->{'value'};
+	$CMIP6SourceID{'description'} = $ref->{'description'};
+	push(@CMIP6SourceIDs, \%CMIP6SourceID);
+    }
+    $sth->finish();
+    return @CMIP6SourceIDs;
+}
+

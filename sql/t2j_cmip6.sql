@@ -16,6 +16,7 @@ create table t2j_cmip6(
        `request_date` DATETIME,
        `source_type` VARCHAR(100),
        `nyears` INTEGER,
+       `source_id` INTEGER,
        primary key (exp_id, variant_label));
 
 
