@@ -223,6 +223,7 @@ sub showExpList
     my @CMIP6DECKs    = getCMIP6DECKs($dbh);
     my @CMIP6DCPPs    = getCMIP6DCPPs($dbh);
     my @CMIP6Sources  = getCMIP6Sources($dbh);
+    my @CMIP6SourceIDs= getCMIP6SourceIDs($dbh);
     my @CMIP6Status   = getCMIP6Status($dbh);
     my @CMIP6Inits    = getCMIP6Inits($dbh);
     my @CMIP6Physics  = getCMIP6Physics($dbh);
@@ -244,6 +245,7 @@ sub showExpList
 	CMIP6DECKs    => \@CMIP6DECKs,
 	CMIP6DCPPs    => \@CMIP6DCPPs,
 	CMIP6Sources  => \@CMIP6Sources,
+	CMIP6SourceIDs=> \@CMIP6SourceIDs,
 	CMIP6Status   => \@CMIP6Status,
 	CMIP6Inits    => \@CMIP6Inits,
 	CMIP6Physics  => \@CMIP6Physics,
@@ -416,6 +418,9 @@ sub reserveCaseCMIP6
     my $force_num = $item{'force_num'};
     my $variant_label = "r" . $real_num . "i" . $init_num . "p" . $phys_num . "f" . $force_num;
 
+    # get the model source_id
+    my $source_id = $item{'source_id_num'};
+
     # reserve this CMIP6 case
     if ($validstatus{'status'} == 1)
     {
@@ -471,7 +476,8 @@ sub reserveCaseCMIP6
                   variant_label = $variant_label, assign_id = $item{'assignUser'},
                   science_id = $item{'scienceUser'}, ensemble_size = $ensemble_size,
                   ensemble_num = 1, nyears = $item{'nyears'},
-                  source_type = $source_type, request_date = NOW()
+                  source_type = $source_type, request_date = NOW(),
+                  source_id = $source_id
                   where exp_id = $item{'expName'});
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
