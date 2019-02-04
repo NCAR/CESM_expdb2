@@ -134,7 +134,7 @@
 								<label>physics_index:</label>
 								<select required name="phys_num">
 									[% FOREACH physic IN CMIP6Physics %]
-									<option value="[% physic.physic_id %]">[% physic.value %] : CESM2-1-[% physic.description %]</option>
+									<option value="[% physic.physic_id %]">[% physic.value %] : [% physic.description %]</option>
 									[% END %]
 								</select>
 								<br>

@@ -431,7 +431,7 @@ sub getCMIP6CaseByID
 	$sql = qq(select e.name as expName, e.description as expDesc, IFNULL(e.cesm_cmip6_id, 0) as cesm_cmip6_id,
                   m.name as mipName, m.description as mipDesc, 
                   j.variant_label, j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
-	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, j.deck_id, 
+	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, IFNULL(j.deck_id, 0) as deck_id,
                   IFNULL(j.parentExp_id, 0) as parentExp_id, s.value
 		  from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m, t2_cmip6_source_id as s
 		  where j.case_id = $id and j.exp_id = e.id and j.design_mip_id = m.id and j.source_id = s.id);
@@ -455,12 +455,12 @@ sub getCMIP6CaseByID
 
 	    # get the DECK name if deck_id defined
 	    $project{'cmip6_deckName'} = '';
-	    if( defined($ref->{'deck_id'}) and ($ref->{'deck_id'} > 0) )
+	    if( $ref->{'deck_id'} > 0) 
 	    {
 		$sql1 = qq(select name, description from t2_cmip6_DECK_types where id = $ref->{'deck_id'});
 		$sth1 = $dbh->prepare($sql1);
 		$sth1->execute();
-		($project{'cmip6_expName'}, $project{'cmip6_deckDescription'}) = $sth1->fetchrow();
+		($project{'cmip6_deckName'}, $project{'cmip6_deckDescription'}) = $sth1->fetchrow();
 		$sth1->finish();
 	    }
 
@@ -568,7 +568,9 @@ sub getCMIP6CaseByID
 	    $globalAtts{'branch_time_in_child'} = $temp_time . ".0DO";
 	}       
 	$globalAtts{'case_id'} = $id;
+
 	$globalAtts{'branch_method'} = $case{'run_type'}{'value'};
+
 	$globalAtts{'experiment_id'} = $project{'cmip6_expName'};
 	$globalAtts{'parent_activity_id'} = $project{'cmip6_mipName'};
 	if ($project{'cmip6_mipName'} eq 'DECK') {
@@ -576,27 +578,38 @@ sub getCMIP6CaseByID
 	}
 
 	$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_expname'};
-	$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
-	if ($project{'cesm_cmip6_id'} > 0) 
-	{
-	    $sql = qq(select e.parent_experiment_id from t2_cmip6_exps as e
-                      where e.id = $project{'cesm_cmip6_id'});
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute();
-	    ($globalAtts{'parent_experiment_id'}) = $sth->fetchrow();
-	    if ($globalAtts{'parent_experiment_id'} eq "no parent") {
-		$globalAtts{'parent_variant_label'} = '';
-	    }
-	    $sth->finish();
+	if (length($project{'cmip6_parent_expname'}) == 0) {
+	    $globalAtts{'parent_experiment_id'} = "no parent";
 	}
+	$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
+	if (length($project{'cmip6_parent_variant_label'}) == 0) {
+	    $globalAtts{'parent_variant_label'} = "no parent";
+	}
+
+	# START HERE to get the WACCM parents correct
+##	if ($project{'cesm_cmip6_id'} > 0) 
+##	{
+##	    $sql = qq(select IFNULL(e.parent_experiment_id, 0) as parent_experiment_id from t2_cmip6_exps as e
+##                      where e.id = $project{'cesm_cmip6_id'});
+##	    $sth = $dbh->prepare($sql);
+##	    $sth->execute();
+##	    ($globalAtts{'parent_experiment_id'}) = $sth->fetchrow();
+##	    if ($globalAtts{'parent_experiment_id'} eq "no parent" ||
+##		$globalAtts{'parent_experiment_id'} == 0) {
+##		$globalAtts{'parent_experiment_id'} = "no parent";
+##		$globalAtts{'parent_variant_label'} = "no parent";
+##	    }
+##	    $sth->finish();
+##	}
+
 	$globalAtts{'source_type'} = $project{'cmip6_source_type'};
 	$globalAtts{'source_id'} = $project{'cmip6_source_id'};
 	$globalAtts{'variant_info'} = $project{'cmip6_variant_info'};
 	$globalAtts{'variant_label'} = $project{'cmip6_variant_label'};
 
 	# construct the sub_experiment and sub_experiment_id
-	$globalAtts{'sub_experiment'} = '';
-	$globalAtts{'sub_experiment_id'} = '';
+	$globalAtts{'sub_experiment'} = "none";
+	$globalAtts{'sub_experiment_id'} = "none";
 	if ($case{'is_ens'}{'value'} eq "true" && index($case{'cmip6_expName'}, 'dcpp') > 0)
 	{
 	    $globalAtts{'sub_experiment'} = qq(s$child_times[0]-$project{'cmip6_variant_label'}) ;
@@ -875,7 +888,8 @@ sub getCMIP6Status
 	}
 
 	# get the case_run status
-	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+	$sql1 = qq(select IFNULL(j.disk_usage,0) as disk_usage, 
+                      IFNULL(j.model_date,0) as model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
                       s.code, s.color, j.archive_method
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
@@ -889,29 +903,12 @@ sub getCMIP6Status
 	 $case{'run_code'}, $case{'run_color'}, $case{'run_archive_method'}) = $sth1->fetchrow();
 	$sth1->finish();
 
-	# get the most non-zero current run disk usage
-	if ( length($case{'run_disk_usage'} ) <= 1 ) {
-	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
-                       j.case_id = $ref->{'id'} and
-                       j.process_id = 1 and 
-                       j.status_id = s.id and
-                       j.disk_usage is not null and
-                       j.disk_usage <> '0' and
-                       j.archive_method = 'archive_metadata'
-                       order by last_update desc
-                       limit 1);
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    $case{'run_disk_usage'} = $sth1->fetchrow();
-	    $sth1->finish();
-	}
-
 	# compute the run percentage complete
-
 	$case{'run_percent_complete'} = getPercentComplete($case{'run_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
 	# get the case_st_archive status
-	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+	$sql1 = qq(select IFNULL(j.disk_usage,0) as disk_usage, 
+                      IFNULL(j.model_date,0) as model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
                       s.code, s.color, j.archive_method
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
@@ -926,28 +923,12 @@ sub getCMIP6Status
 	 $case{'sta_code'}, $case{'sta_color'}, $case{'sta_archive_method'}) = $sth1->fetchrow();
 	$sth1->finish();
 
-	# get the most non-zero current sta disk usage
-	if ( length($case{'sta_disk_usage'} ) <= 1 ) {
-	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
-                       j.case_id = $ref->{'id'} and
-                       j.process_id = 2 and 
-                       j.status_id = s.id and
-                       j.disk_usage is not null and
-                       j.disk_usage <> '0' and
-                       j.archive_method = 'archive_metadata'
-                       order by last_update desc
-                       limit 1);
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    $case{'sta_disk_usage'} = $sth1->fetchrow();
-	    $sth1->finish();
-	}
-
 	# compute the sta percentage complete
 	$case{'sta_percent_complete'} = getPercentComplete($case{'sta_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
 	# get the timeseries status
-	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+	$sql1 = qq(select IFNULL(j.disk_usage,0) as disk_usage, 
+                      IFNULL(j.model_date,0) as model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
                       j.total_time, s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
@@ -961,24 +942,6 @@ sub getCMIP6Status
 	 $case{'ts_process_time'}, $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
-	# get the most non-zero current timeseries disk usage
-	if ( length($case{'ts_disk_usage'} ) <= 1 ) {
-	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
-                       j.case_id = $ref->{'id'} and
-                       j.process_id = 3 and 
-                       j.status_id = s.id and
-                       j.disk_usage is not null and
-                       j.disk_usage <> '0' and
-                       j.archive_method = 'archive_metadata'
-                       order by last_update desc
-                       limit 1);
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    $case{'ts_disk_usage'} = $sth1->fetchrow();
-	    $sth1->finish();
-	}
-
-
 	# compute the timeseries percentage complete
 	$case{'ts_percent_complete'} = 0;
 	if (index($case{'ts_model_date'}, "-") != -1 ) {
@@ -989,7 +952,8 @@ sub getCMIP6Status
 	    
 
 	# get the conform status
-	$sql1 = qq(select j.disk_usage, j.model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+	$sql1 = qq(select IFNULL(j.disk_usage,0) as disk_usage, 
+                      IFNULL(j.model_date,0) as model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
                       j.total_time, s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
@@ -1002,23 +966,6 @@ sub getCMIP6Status
 	($case{'conform_disk_usage'}, $case{'conform_model_date'}, $case{'conform_last_update'},
 	 $case{'conform_process_time'}, $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
 	$sth1->finish();
-
-	# get the most non-zero current conform disk usage
-	if ( length($case{'conform_disk_usage'} ) <= 1 ) {
-	    $sql1 = qq(select j.disk_usage from t2j_status as j, t2_status as s  where
-                       j.case_id = $ref->{'id'} and
-                       j.process_id = 17 and 
-                       j.status_id = s.id and
-                       j.disk_usage is not null and
-                       j.disk_usage <> '0' and
-                       j.archive_method = 'archive_metadata'
-                       order by last_update desc
-                       limit 1);
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    $case{'conform_disk_usage'} = $sth1->fetchrow();
-	    $sth1->finish();
-	}
 
 
 	# compute the conform percentage complete
@@ -1111,7 +1058,7 @@ sub getCMIP6Physics
     my $dbh = shift;
     my @CMIP6Physics;
 
-    my $sql = qq(select * from t2_cmip6_physics where id != 2 order by description);
+    my $sql = qq(select * from t2_cmip6_physics);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())

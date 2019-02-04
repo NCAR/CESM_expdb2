@@ -74,7 +74,7 @@ if ($count > 0) {
 
     if ($expType_id == 1) {
 	# get the record info from the t2j_cmip6 table for updating
-	$sql = qq(select exp_id, design_mip_id from t2j_cmip6 where case_id = $case_id);
+	$sql = qq(select IFNULL(exp_id,0) as exp_id, IFNULL(design_mip_id,0) as design_mip_id from t2j_cmip6 where case_id = $case_id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	my ($exp_id, $design_mip_id) = $sth->fetchrow;

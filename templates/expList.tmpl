@@ -203,6 +203,7 @@
 			      <div class="panel-body">
 				<table class="table table-striped table-condensed" id="[% DECKexp.cmip6_exp %]Table">
 				  <thead>
+				    <th>ID</th>
 				    <th>Case Name</th>
 				    <th>CESM Experiment Name</th>
 				    <th>Designing MIP</th>
@@ -212,6 +213,7 @@
 				  <tbody>
 				    [% FOREACH exp IN DECKexp.exps %]
 				    <tr>
+				      <td>[% exp.case_id %]</td>
 				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
@@ -253,6 +255,7 @@
 			      <div class="panel-body">
 				<table class="table table-striped table-condensed" id="[% MIPexp.name %]Table">
 				  <thead>
+				    <th>ID</th>
 				    <th>Case Name</th>
 				    <th>Experiment Name</th>
 				    <th>Designing MIP</th>
@@ -262,6 +265,7 @@
 				  <tbody>
 				    [% FOREACH exp IN MIPexp.exps.sort('expName') %]
 				    <tr>
+				      <td>[% exp.case_id %]</td>				      
 				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
@@ -313,6 +317,7 @@
 
 				<table class="table table-striped table-condensed" id="[% DCPPexp.name %]Table">
 				  <thead>
+				    <th>ID</th>
 				    <th>Case Name</th>
 				    <th>Experiment Name</th>
 				    <th>Designing MIP</th>
@@ -323,6 +328,7 @@
 				  <tbody>
 				    [% FOREACH exp IN DCPPexp.exps %]
 				    <tr>
+				      <td>[% exp.case_id %]</td>
 				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% DCPPexp.uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
@@ -344,6 +350,7 @@
 			<table id="cmip6ExpTable" class="table table-striped table-condensed" style="width: 100%;">
 			  <thead>
 			    <tr>
+			      <th>ID</th>
 			      <th>Case Name</th>
 			      <th>Experiment Name</th>
 			      <th>Designing MIP</th>
@@ -355,6 +362,7 @@
 			  <tbody>
 			    [% FOREACH exp IN CMIP6Exps %]
 			    <tr>
+			      <td>[% exp.case_id %]</td>
 			      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 			      <td>[% exp.designMIP %]</td>
@@ -366,6 +374,7 @@
 
 			  <tfoot>
 			    <tr>
+			      <td>ID</td>
 			      <th>Case Name</th>
 			      <th>Experiment Name</th>
 			      <th>Designing MIP</th>
@@ -405,6 +414,7 @@
 			  <thead>
 			    <tr>
 			      <th></th>
+			      <th>ID</th>
 			      <th>Casename</th>
 			      <th>Experiment Name</th>
 			      <th>Overall Status Summary</th>
@@ -416,6 +426,7 @@
 			    [% FOREACH exp IN CMIP6Status %]
 			    <tr>
 			      <td></td>
+			      <td>[% exp.case_id %]</td>
 			      <td>
 				<a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a>
 			      </td>
@@ -673,6 +684,7 @@
 			  <tfoot>
 			    <tr>
 			      <th></th>
+			      <th>ID</th>
 			      <th>Casename</th>
 			      <th>Experiment Name</th>
 			      <th>Overall Status Summary</th>
@@ -701,6 +713,7 @@
 			  <thead>
 			    <tr>
 			      <th></th>
+			      <th>ID</th>
 			      <th>Casename</th>
 			      <th>Experiment Name</th>
 			      <th class="none">Title</th>
@@ -712,6 +725,7 @@
 			    [% FOREACH exp IN CMIP6Diags %]
 			    <tr>
 			      <td></td>
+			      <td>[% exp.case_id %]</td>
 			      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 			      <td style="white-space:normal;">[% exp.title %]</td>
@@ -741,6 +755,7 @@
 			  <tfoot>
 			    <tr>
 			      <th></th>
+			      <th>ID</th>
 			      <th>Case Name</th>
 			      <th>Experiment Name</th>
 			      <th class="none">Title</th>
