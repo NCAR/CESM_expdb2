@@ -459,8 +459,8 @@ sub getCMIP6CaseByID
 	    $project{'cmip6_expName'} = $ref->{'expName'};
 	    $globalAtts{'experiment_id'} = $ref->{'expName'};
 
-	    $project{'cmip6_expDescription'} = $ref->{'expDesc'};
-	    $globalAtts{'experiment'} = $ref->{'expDesc'};
+	    $project{'cmip6_variant_info'} = $ref->{'expDesc'};
+	    $globalAtts{'variant_info'} = $ref->{'expDesc'};
 
 	    $project{'cmip6_activity_id'} = $ref->{'activity_id'};
 	    $globalAtts{'activity_id'} = $ref->{'activity_id'};
@@ -570,8 +570,8 @@ sub getCMIP6CaseByID
 		$project{'cmip6_expName'} = $ref->{'name'};
 		$globalAtts{'experiment_id'} = $ref->{'name'};
 
-		$project{'cmip6_expDescription'} = $ref->{'description'};
-		$globalAtts{'experiment'} = $ref->{'description'};
+		$project{'cmip6_variant_info'} = $ref->{'description'};
+		$globalAtts{'variant_info'} = $ref->{'description'};
 
 		##print STDERR ">>> activity_id = " . $ref->{'activity_id'};
 		$project{'cmip6_activity_id'} = $ref->{'activity_id'};
