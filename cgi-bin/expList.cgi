@@ -978,7 +978,7 @@ sub addLinkProcess
     }
     my $link = $dbh->quote($item{'link'});
     my $description = $dbh->quote($item{'description'});
-    my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, user_id) 
+    my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, approver_id) 
                value ($case_id, $item{'processName'}, $item{'linkType'}, $link, $description, NOW(), $item{luser_id}));
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -1007,7 +1007,7 @@ sub updateLinkProcess
     my $link = $dbh->quote($item{'link'});
     my $description = $dbh->quote($item{'description'});
     my $sql = qq(update t2j_links set link = $link, description = $description, last_update = NOW(),
-                 process_id = $item{'processName'}, linkType_id = $item{'linkType'}, user_id = $item{luser_id}
+                 process_id = $item{'processName'}, linkType_id = $item{'linkType'}, approver_id = $item{luser_id}
                  where id = $link_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();

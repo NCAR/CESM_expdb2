@@ -318,9 +318,11 @@ sub getCMIP6CaseByID
     my $dbh = shift;
     my $id = shift;
     my (%case, %status, %project, %user, %globalAtts) = ();
+    my ($index, $exp_id, $cesm_cmip6_id);
     my @notes;
     my @links;
     my @sorted;
+    my @subs;
     my $value;
     my $count = 0;
     my ($firstname, $lastname, $email);
@@ -427,31 +429,70 @@ sub getCMIP6CaseByID
 	$case{'archiver'}{'history'} = \@field_history;
 	# TODO later loop through the field history and resolve the id's returned
 
+	# first check if this is a CESM specific experiment mapped into a CMIP6 experiment
+	$sql = qq(select IFNULL(e.cesm_cmip6_id, 0) as cesm_cmip6_id 
+                  from t2_cmip6_exps as e, t2j_cmip6 as j
+                  where j.case_id = $id and j.exp_id = e.id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	($cesm_cmip6_id) = $sth->fetchrow();
+	##print STDERR ">>> cesm_cmip6_id = " . $cesm_cmip6_id;
+	$sth->finish();
+
 	# get CMIP6 fields 
-	$sql = qq(select e.name as expName, e.description as expDesc, IFNULL(e.cesm_cmip6_id, 0) as cesm_cmip6_id,
+	$sql = qq(select e.name as expName, e.description as expDesc, e.activity_id,
+                  e.branch_method, e.branch_time_in_parent, e.branch_time_in_child, 
+                  IFNULL(e.sub_experiment_id, 'none') as sub_experiment_id,
                   m.name as mipName, m.description as mipDesc, 
                   j.variant_label, j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
 	          DATE_FORMAT(j.request_date, '%Y-%m-%d %H:%i') as req_date, IFNULL(j.deck_id, 0) as deck_id,
-                  IFNULL(j.parentExp_id, 0) as parentExp_id, s.value
+                  IFNULL(j.parentExp_id, 0) as parentExp_id, s.value, j.exp_id
 		  from t2j_cmip6 as j, t2_cmip6_exps as e, t2_cmip6_MIP_types as m, t2_cmip6_source_id as s
 		  where j.case_id = $id and j.exp_id = e.id and j.design_mip_id = m.id and j.source_id = s.id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
 	{
+	    $globalAtts{'case_id'} = $id;
+	    $project{'cesm_cmip6_id'} = $cesm_cmip6_id;
+
 	    $project{'cmip6_expName'} = $ref->{'expName'};
+	    $globalAtts{'experiment_id'} = $ref->{'expName'};
+
 	    $project{'cmip6_expDescription'} = $ref->{'expDesc'};
-	    $project{'cesm_cmip6_id'} = $ref->{'cesm_cmip6_id'};
+	    $globalAtts{'experiment'} = $ref->{'expDesc'};
+
+	    $project{'cmip6_activity_id'} = $ref->{'activity_id'};
+	    $globalAtts{'activity_id'} = $ref->{'activity_id'};
+
+	    $project{'cmip6_branch_method'} = $ref->{'branch_method'};
+	    $globalAtts{'branch_method'} = $ref->{'branch_method'};
+
+	    $project{'cmip6_branch_time_in_parent'} = $ref->{'branch_branch_time_in_parent'};
+	    $globalAtts{'branch_time_in_parent'} = $ref->{'branch_branch_time_in_parent'};
+
+	    $project{'cmip6_branch_time_in_child'} = $ref->{'branch_branch_time_in_child'};
+	    $globalAtts{'branch_time_in_child'} = $ref->{'branch_branch_time_in_child'};
+
 	    $project{'cmip6_mipName'} = $ref->{'mipName'};
 	    $project{'cmip6_mipDescription'} = $ref->{'mipDesc'};
+
 	    $project{'cmip6_variant_label'} = $ref->{'variant_label'};
+	    $globalAtts{'variant_label'} = $ref->{'variant_label'};
+
 	    $project{'cmip6_variant_info'} = $case{'title'}{'value'};
 	    $project{'cmip6_ensemble_num'} = $ref->{'ensemble_num'};
 	    $project{'cmip6_ensemble_size'} = $ref->{'ensemble_size'};
 	    $project{'cmip6_nyears'} = $ref->{'nyears'};
 	    $project{'cmip6_request_date'} = $ref->{'req_date'};
+
 	    $project{'cmip6_source_type'} = $ref->{'source_type'};
+	    $globalAtts{'source_type'} = $ref->{'source_type'};
+
 	    $project{'cmip6_source_id'} = $ref->{'value'};
+	    $globalAtts{'source_id'} = $ref->{'value'};
+
+	    $project{'cmip6_exp_id'} = $ref->{'exp_id'};
 
 	    # get the DECK name if deck_id defined
 	    $project{'cmip6_deckName'} = '';
@@ -465,10 +506,13 @@ sub getCMIP6CaseByID
 	    }
 
 	    # get the parent name if there is one
-	    $project{'cmip6_parent_casename'} = '';
-	    if( $ref->{'parentExp_id'} )
+	    $project{'cmip6_parent_casename'} = 'no parent';
+	    $globalAtts{'parent_experiment_id'} = 'no parent';
+	    $globalAtts{'parent_variant_label'} = 'no parent';
+	    $globalAtts{'parent_activity_id'} = 'no parent';
+	    if( $ref->{'parentExp_id'} > 0)
 	    {
-		$sql1 = qq(select e.name, c.title, c.casename, j.variant_label, e.description
+		$sql1 = qq(select e.name, c.title, c.casename, j.variant_label, e.description, e.activity_id
                            from t2_cmip6_exps as e, t2_cases as c,
                            t2j_cmip6 as j 
                            where c.id = j.case_id
@@ -478,8 +522,20 @@ sub getCMIP6CaseByID
 		$sth1->execute();
 		($project{'cmip6_parent_expname'}, $project{'cmip6_parent_variant_info'},
 		 $project{'cmip6_parent_casename'}, $project{'cmip6_parent_variant_label'},
-		 $project{'cmip6_parent_description'}) = $sth1->fetchrow();
+		 $project{'cmip6_parent_description'}, $project{'cmip6_parent_activity_id'}) = $sth1->fetchrow();
 		$sth1->finish();
+		$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_expname'};
+		$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
+		$globalAtts{'parent_activity_id'} = $project{'cmip6_parent_activity_id'};
+	    }
+
+	    # work on the sub_experiment_id 
+	    $globalAtts{'sub_experiment_id'} = $ref->{'sub_experiment_id'};
+	    if ($ref->{'sub_experiment_id'} ne 'none')
+	    {
+		@subs = split(',', $ref->{'sub_experiment_id'});
+		$index = $project{'cmip6_ensemble_num'} - 1;
+		$globalAtts{'sub_experiment_id'} = qq($subs[$index]-$globalAtts{'variant_label'}) ;
 	    }
 
 	    if( $ref->{'assign_id'} > 0 )
@@ -495,6 +551,79 @@ sub getCMIP6CaseByID
 	    }
 	}
 	$sth->finish();
+
+	# handle the case where casename does not match an experiment name directly
+	if ($cesm_cmip6_id > 0) {
+	    # first get the correct fields from the t2_cmip6_exps table
+	    $sql = qq(select name, description, activity_id,
+                             branch_method, branch_time_in_parent, branch_time_in_child, 
+                             parent_activity_id, parent_experiment_id,
+                             IFNULL(sub_experiment_id, 'none') as sub_experiment_id
+                      from t2_cmip6_exps where id = $cesm_cmip6_id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    while (my $ref = $sth->fetchrow_hashref())
+	    {
+		$globalAtts{'case_id'} = $id;
+		$project{'cesm_cmip6_id'} = $cesm_cmip6_id;
+
+		$project{'cmip6_expName'} = $ref->{'name'};
+		$globalAtts{'experiment_id'} = $ref->{'name'};
+
+		$project{'cmip6_expDescription'} = $ref->{'description'};
+		$globalAtts{'experiment'} = $ref->{'description'};
+
+		##print STDERR ">>> activity_id = " . $ref->{'activity_id'};
+		$project{'cmip6_activity_id'} = $ref->{'activity_id'};
+		$globalAtts{'activity_id'} = $ref->{'activity_id'};
+
+		$project{'cmip6_branch_method'} = $ref->{'branch_method'};
+		$globalAtts{'branch_method'} = $ref->{'branch_method'};
+
+		$project{'cmip6_branch_time_in_parent'} = $ref->{'branch_branch_time_in_parent'};
+		$globalAtts{'branch_time_in_parent'} = $ref->{'branch_branch_time_in_parent'};
+
+		$project{'cmip6_branch_time_in_child'} = $ref->{'branch_branch_time_in_child'};
+		$globalAtts{'branch_time_in_child'} = $ref->{'branch_branch_time_in_child'};
+
+		##print STDERR ">>> parent_activity_id = " . $ref->{'parent_activity_id'};
+		$project{'cmip6_parent_activity_id'} = $ref->{'parent_activity_id'};
+		$globalAtts{'parent_activity_id'} = $ref->{'parent_activity_id'};
+
+		$project{'cmip6_parent_experiment_id'} = $ref->{'parent_experiment_id'};
+		$globalAtts{'parent_experiment_id'} = $ref->{'parent_experiment_id'};
+
+		if ($ref->{'parent_experiment_id'} eq "no parent") 
+		{
+		    $project{'cmip6_parent_variant_label'} = "no parent";
+		    $globalAtts{'parent_variant_label'} = "no parent";
+		}
+		
+		# work on the sub_experiment_id 
+		$globalAtts{'sub_experiment_id'} = $ref->{'sub_experiment_id'};
+		if ($ref->{'sub_experiment_id'} ne 'none')
+		{
+		    @subs = split(',', $ref->{'sub_experiment_id'});
+		    $index = $project{'cmip6_ensemble_num'} - 1;
+		    $globalAtts{'sub_experiment_id'} = qq($subs[$index]-$globalAtts{'variant_label'}) ;
+		}
+	    }
+	    $sth->finish();
+
+	    # next, get the correct fields from the t2j_cmip6 table
+	    $sql = qq(select j.variant_label, j.source_type
+                      from t2j_cmip6 as j where case_id = $id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    while (my $ref = $sth->fetchrow_hashref())
+	    {
+		$globalAtts{'variant_label'} = $ref->{'variant_label'};
+		$globalAtts{'source_type'} = $ref->{'source_type'};
+	    }
+	    $sth->finish();
+	}
+
+	# get the branch times in child and parent
 
 	# get case notes
 	@notes = getCaseNotes($dbh, $id);
@@ -540,81 +669,6 @@ sub getCMIP6CaseByID
 	# sort on process_id key
 	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
 
-	# get the global Attributes
-	$globalAtts{'branch_time_in_child'} = '';
-	$globalAtts{'branch_time_in_parent'} = '';
-
-	# run_startdate and run_refdate are set in the caseroot and
-	# loaded into the database with archive_metadata
-	my @temp = split(' ',$case{'run_startdate'}{'value'});
-	my @child_times = split('-',$temp[0]);
-
-	@temp = split(' ',$case{'run_refdate'}{'value'});
-	my @parent_times = split('-',$temp[0]);
-
-	my $child_times = @child_times;
-	my $parent_times = @parent_times;
-
-	if ($parent_times > 0 && $child_times > 0) 
-	{
-	    my $temp_time = ($child_times[0] - $parent_times[0]) * 365;
-	    $globalAtts{'branch_time_in_child'} = $temp_time . ".0DO";
-	    $temp_time = $parent_times[0] * 365;
-	    $globalAtts{'branch_time_in_parent'} = $temp_time . ".0DO";
-	}
-	elsif ($parent_times == 0 && $child_times > 0) 
-	{
-	    my $temp_time = $child_times[0] * 365;
-	    $globalAtts{'branch_time_in_child'} = $temp_time . ".0DO";
-	}       
-	$globalAtts{'case_id'} = $id;
-
-	$globalAtts{'branch_method'} = $case{'run_type'}{'value'};
-
-	$globalAtts{'experiment_id'} = $project{'cmip6_expName'};
-	$globalAtts{'parent_activity_id'} = $project{'cmip6_mipName'};
-	if ($project{'cmip6_mipName'} eq 'DECK') {
-	    $globalAtts{'parent_activity_id'} = 'CMIP6';
-	}
-
-	$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_expname'};
-	if (length($project{'cmip6_parent_expname'}) == 0) {
-	    $globalAtts{'parent_experiment_id'} = "no parent";
-	}
-	$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
-	if (length($project{'cmip6_parent_variant_label'}) == 0) {
-	    $globalAtts{'parent_variant_label'} = "no parent";
-	}
-
-	# START HERE to get the WACCM parents correct
-##	if ($project{'cesm_cmip6_id'} > 0) 
-##	{
-##	    $sql = qq(select IFNULL(e.parent_experiment_id, 0) as parent_experiment_id from t2_cmip6_exps as e
-##                      where e.id = $project{'cesm_cmip6_id'});
-##	    $sth = $dbh->prepare($sql);
-##	    $sth->execute();
-##	    ($globalAtts{'parent_experiment_id'}) = $sth->fetchrow();
-##	    if ($globalAtts{'parent_experiment_id'} eq "no parent" ||
-##		$globalAtts{'parent_experiment_id'} == 0) {
-##		$globalAtts{'parent_experiment_id'} = "no parent";
-##		$globalAtts{'parent_variant_label'} = "no parent";
-##	    }
-##	    $sth->finish();
-##	}
-
-	$globalAtts{'source_type'} = $project{'cmip6_source_type'};
-	$globalAtts{'source_id'} = $project{'cmip6_source_id'};
-	$globalAtts{'variant_info'} = $project{'cmip6_variant_info'};
-	$globalAtts{'variant_label'} = $project{'cmip6_variant_label'};
-
-	# construct the sub_experiment and sub_experiment_id
-	$globalAtts{'sub_experiment'} = "none";
-	$globalAtts{'sub_experiment_id'} = "none";
-	if ($case{'is_ens'}{'value'} eq "true" && index($case{'cmip6_expName'}, 'dcpp') > 0)
-	{
-	    $globalAtts{'sub_experiment'} = qq(s$child_times[0]-$project{'cmip6_variant_label'}) ;
-	    $globalAtts{'sub_experiment_id'} = qq(s$child_times[0]);
-	}
     }
     return \%case, \%status, \%project, \@notes, \@sorted, \%globalAtts;
 }

@@ -195,11 +195,11 @@ sub getLinkByID
    my %link;
 
    my $sql = qq(select j.id, j.case_id, j.process_id, j.linkType_id, j.link, j.description, 
-                DATE_FORMAT(j.last_update, '%Y-%m-%d'), c.casename, p.name, t.name, 
+                DATE_FORMAT(j.last_update, '%Y-%m-%d') as last_update, c.casename, p.name, t.name, 
                 u.firstname, u.lastname, u.email 
                 from t2j_links as j, t2_cases as c, t2_process as p, t2_linkType as t, t_svnusers as u
                 where j.id = $link_id and j.case_id = c.id and j.process_id = p.id and 
-                j.linkType_id = t.id and j.user_id = u.user_id);
+                j.linkType_id = t.id and j.approver_id = u.user_id);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
    ($link{'link_id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},
