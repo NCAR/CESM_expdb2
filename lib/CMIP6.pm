@@ -459,8 +459,8 @@ sub getCMIP6CaseByID
 	    $project{'cmip6_expName'} = $ref->{'expName'};
 	    $globalAtts{'experiment_id'} = $ref->{'expName'};
 
-	    $project{'cmip6_variant_info'} = $ref->{'expDesc'};
-	    $globalAtts{'variant_info'} = $ref->{'expDesc'};
+	    $project{'cmip6_experiment'} = $ref->{'expDesc'};
+	    $globalAtts{'experiment'} = $ref->{'expDesc'};
 
 	    $project{'cmip6_activity_id'} = $ref->{'activity_id'};
 	    $globalAtts{'activity_id'} = $ref->{'activity_id'};
@@ -481,6 +481,8 @@ sub getCMIP6CaseByID
 	    $globalAtts{'variant_label'} = $ref->{'variant_label'};
 
 	    $project{'cmip6_variant_info'} = $case{'title'}{'value'};
+	    $globalAtts{'variant_info'} = $case{'title'}{'value'};
+
 	    $project{'cmip6_ensemble_num'} = $ref->{'ensemble_num'};
 	    $project{'cmip6_ensemble_size'} = $ref->{'ensemble_size'};
 	    $project{'cmip6_nyears'} = $ref->{'nyears'};
@@ -531,11 +533,13 @@ sub getCMIP6CaseByID
 
 	    # work on the sub_experiment_id 
 	    $globalAtts{'sub_experiment_id'} = $ref->{'sub_experiment_id'};
+	    $globalAtts{'sub_experiment'} = 'none';
 	    if ($ref->{'sub_experiment_id'} ne 'none')
 	    {
 		@subs = split(',', $ref->{'sub_experiment_id'});
 		$index = $project{'cmip6_ensemble_num'} - 1;
 		$globalAtts{'sub_experiment_id'} = qq($subs[$index]-$globalAtts{'variant_label'}) ;
+		$globalAtts{'sub_experiment'} = qq($subs[$index]);
 	    }
 
 	    if( $ref->{'assign_id'} > 0 )
@@ -570,8 +574,8 @@ sub getCMIP6CaseByID
 		$project{'cmip6_expName'} = $ref->{'name'};
 		$globalAtts{'experiment_id'} = $ref->{'name'};
 
-		$project{'cmip6_variant_info'} = $ref->{'description'};
-		$globalAtts{'variant_info'} = $ref->{'description'};
+		$project{'cmip6_experiment'} = $ref->{'description'};
+		$globalAtts{'experiment'} = $ref->{'description'};
 
 		##print STDERR ">>> activity_id = " . $ref->{'activity_id'};
 		$project{'cmip6_activity_id'} = $ref->{'activity_id'};
@@ -601,11 +605,13 @@ sub getCMIP6CaseByID
 		
 		# work on the sub_experiment_id 
 		$globalAtts{'sub_experiment_id'} = $ref->{'sub_experiment_id'};
+		$globalAtts{'sub_experiment'} = 'none';
 		if ($ref->{'sub_experiment_id'} ne 'none')
 		{
 		    @subs = split(',', $ref->{'sub_experiment_id'});
 		    $index = $project{'cmip6_ensemble_num'} - 1;
 		    $globalAtts{'sub_experiment_id'} = qq($subs[$index]-$globalAtts{'variant_label'}) ;
+		    $globalAtts{'sub_experiment'} = qq($subs[$index]);
 		}
 	    }
 	    $sth->finish();
