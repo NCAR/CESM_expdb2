@@ -18,7 +18,7 @@ use expdb2_0;
 @ISA = qw(Exporter);
 @EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCMIP6Sources 
 getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6Inits getCMIP6Physics
-getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher getCMIP6SourceIDs);
+getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher getCMIP6SourceIDs convertToCMIP6Time);
 
 sub getCMIP6Experiments
 {
@@ -468,11 +468,11 @@ sub getCMIP6CaseByID
 	    $project{'cmip6_branch_method'} = $ref->{'branch_method'};
 	    $globalAtts{'branch_method'} = $ref->{'branch_method'};
 
-	    $project{'cmip6_branch_time_in_parent'} = $ref->{'branch_branch_time_in_parent'};
-	    $globalAtts{'branch_time_in_parent'} = $ref->{'branch_branch_time_in_parent'};
+	    $project{'cmip6_branch_time_in_parent'} = $ref->{'branch_time_in_parent'};
+	    $globalAtts{'branch_time_in_parent'} = $ref->{'branch_time_in_parent'};
 
-	    $project{'cmip6_branch_time_in_child'} = $ref->{'branch_branch_time_in_child'};
-	    $globalAtts{'branch_time_in_child'} = $ref->{'branch_branch_time_in_child'};
+	    $project{'cmip6_branch_time_in_child'} = $ref->{'branch_time_in_child'};
+	    $globalAtts{'branch_time_in_child'} = $ref->{'branch_time_in_child'};
 
 	    $project{'cmip6_mipName'} = $ref->{'mipName'};
 	    $project{'cmip6_mipDescription'} = $ref->{'mipDesc'};
@@ -584,11 +584,11 @@ sub getCMIP6CaseByID
 		$project{'cmip6_branch_method'} = $ref->{'branch_method'};
 		$globalAtts{'branch_method'} = $ref->{'branch_method'};
 
-		$project{'cmip6_branch_time_in_parent'} = $ref->{'branch_branch_time_in_parent'};
-		$globalAtts{'branch_time_in_parent'} = $ref->{'branch_branch_time_in_parent'};
+		$project{'cmip6_branch_time_in_parent'} = $ref->{'branch_time_in_parent'};
+		$globalAtts{'branch_time_in_parent'} = $ref->{'branch_time_in_parent'};
 
-		$project{'cmip6_branch_time_in_child'} = $ref->{'branch_branch_time_in_child'};
-		$globalAtts{'branch_time_in_child'} = $ref->{'branch_branch_time_in_child'};
+		$project{'cmip6_branch_time_in_child'} = $ref->{'branch_time_in_child'};
+		$globalAtts{'branch_time_in_child'} = $ref->{'branch_time_in_child'};
 
 		##print STDERR ">>> parent_activity_id = " . $ref->{'parent_activity_id'};
 		$project{'cmip6_parent_activity_id'} = $ref->{'parent_activity_id'};
@@ -1202,3 +1202,27 @@ sub getCMIP6SourceIDs
     return @CMIP6SourceIDs;
 }
 
+sub convertToCMIP6Time
+{
+    my $time = shift;
+    my %months = (
+	"01" => 31,
+	"02" => 28,
+	"03" => 31,
+	"04" => 30,
+	"05" => 31,
+	"06" => 30,
+	"07" => 31,
+	"08" => 31,
+	"09" => 30,
+	"10" => 31,
+	"11" => 30,
+	"12" => 31
+    );
+
+    my @parts = split('-', $time);
+    my $CMIP6time = ($parts[0]-1)*365 + $months{$parts[1]} + $parts[2];
+    $CMIP6time = $CMIP6time . ".0DO";
+    print STDERR ">>> CMIP6tIme = " . $CMIP6time;
+    return $CMIP6time;
+}

@@ -1,5 +1,5 @@
 <div class="container-fluid">
-     <div class="row">
+    <div class="row">
      	<div class="col-lg-12">
 
 
@@ -23,36 +23,12 @@
 					</div>
 					<div class="panel-body">
 						<div class="form-group">
-							<label><span class="text-danger">*</span> Unique Case Name</label>
+							<label><span class="text-danger">*</span>CESM Unique Case Name</label>
 							<input class="form-control" type="text" name="case" maxlength="128" size="64" required placeholder="...">
 						</div>
 						<div class="form-group">
 							<label><span class="text-danger">*</span> Brief Title/Description <small class="text-muted">(variant_info)</small></label>
 							<textarea class="form-control" name="case_title" rows="3" maxlength="256" cols="64" required placeholder="..."/></textarea>
-						</div>
-						<div class="row">
-							<div class="col-lg-6">
-								<div class="form-group form-inline">
-									<label><span class="text-danger">*</span> Run Type and Start Date <small class="text-muted">(branch_method) &amp; (branch_time_in_child)</small></label>
-									<br>
-									<div class="form-group text-center">
-										<input type="radio" name="runtype" value="startup"/> Startup <br> <input type="text" class="form-control" name="startup_startyear" maxlength="10" size="11" placeholder="YYYY-MM-DD" />
-									</div>
-									<div class="form-group text-center">
-										<input type="radio" name="runtype" value="branch"/> Branch <br> <input type="text" class="form-control" name="branch_startyear" maxlength="10" size="11" placeholder="YYYY-MM-DD" />
-									</div>
-									<div class="form-group text-center">
-										<input type="radio" name="runtype" value="hybrid"/> Hybrid <br> <input type="text" class="form-control" name="hybrid_startyear" maxlength="10" size="11" placeholder="YYYY-MM-DD" />
-									</div>
-								</div>
-							</div>
-							<div class="col-lg-6">
-								<div class="form-group form-inline">
-									<label>Total number of model years to be run</label>
-									<br>
-									<input type="number" class="form-control" name="nyears" min="1" max="10000" value="" required/>
-								</div>
-							</div>
 						</div>
 					</div>
 				</div>
@@ -87,9 +63,46 @@
 							</div>
 						</div>
 
-						<p class="text-muted"><small><strong>Note:</strong> Ensemble experiments need to only reserve one unique casename corresponding to the first ensemble name of the experiment. For example, "b.e20.dp.hd-1961.20C.1d.001" is the only case name that needs to be entered for the hindcast initialization of the 20th Century run starting at 1961. Subsequent ensemble member casenames will be automatically added to the database with the last numeric extension incremented for each ensemble member as well as the realization number.</small></p>
+						<p class="text-muted"><small><strong>Note:</strong> Ensemble experiments need to only reserve one unique casename corresponding to the first ensemble name of the experiment. For example, "b.e21.dp.hd-1961.20C.1d.001" is the only case name that needs to be entered for the hindcast initialization of the 20th Century run starting at 1961. Subsequent ensemble member casenames will be automatically added to the database with the last numeric extension incremented for each ensemble member as well as the realization number.</small></p>
 					</div>
 				</div>
+
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">CESM Case Specific Information</h3>
+					</div>
+					<div class="panel-body">
+						<div class="form-group">
+							<div class="row">
+								<div class="col-lg-6">
+									<label><span class="text-danger">*</span> Assigned To</label>
+									<select required name="assignUser">
+										<option value="">Select User</option>
+										[% FOREACH user IN CMIP6Users %]	
+										<option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
+										[% END %]
+									</select>
+								</div>
+								<div class="col-lg-6">
+									<label><span class="text-danger">*</span> Scientific Lead</label>
+									<select required name="scienceUser">
+										<option value="">Select User</option>
+										[% FOREACH user IN CMIP6Users %]	
+										<option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
+										[% END %]
+									</select>
+								</div>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label>Case Notes</label>
+							<br>
+							<textarea class="form-control" name="notes" cols="100" rows="5"></textarea>
+						</div>
+					</div>
+				</div>
+				
 
 				<div class="panel panel-default">
 					<div class="panel-heading">
@@ -105,6 +118,50 @@
 								<option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
 								[% END %]
 							</select>
+						</div>
+
+						<div class="form-group">
+							<label>CMIP6 Parent Experiment <small class="text-muted">(parent_experiment_id)</small></label>
+							<br>
+							<select name="parentExp">
+								<option value="0">Select Experiment</option>
+								[% FOREACH exp IN CMIP6Exps %]	
+								<option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
+								[% END %]
+							</select>
+						</div>
+
+
+						<div class="row">
+							<div class="col-lg-6">
+								<div class="form-group form-inline">
+									<label><span class="text-danger">*</span>CMIP6 Branch Method <small class="text-muted">(branch_method)</small></label>
+									<br/>
+									<textarea class="form-control" name="branch_method" rows="3" maxlength="500" cols="64" required placeholder="'standard' or 'no parent' or explanation text (see note below)"/></textarea>
+									<p class="text-muted"><small><strong>Note:</strong> branch_method examples: "perturbations to atmospheric fields were applied at the branch time, followed by a 50 year spin-up period under control conditions"; "fixed historical forcing from year 1850 was applied for a 20 year spin-up period, after which the historically-evolving forcing was imposed."  For a run that had not been spawned from a parent, this attribute should be omitted or set to "no parent".  For runs simply restarted from some point in the parent (without special procedures applied), branch_method should be set to "standard".</small></p>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="form-group form-inline">
+								        <label>Total number of model years to be run (approximately)</label>
+                                                                        <br/>
+                                                                        <input type="number" class="form-control" name="nyears" min="1" max\
+="10000" value="" required/>
+								        <br/>
+									<br/>
+
+									<label>CMIP6 Branch time in child <small class="text-muted">(branch_time_in_child)</small></label>
+									<br/>
+									<input class="form-control" type="text" name="branch_time_in_child" maxlength="10" size="12" placeholder="YYYY-MM-DD" value=""/>
+									<br/>
+									<br/>
+									<label>Branch time in parent <small class="text-muted">(branch_time_in_parent)</small></label>
+									<br>
+									<input class="form-control" type="text" name="branch_time_in_parent" maxlength="10" size="12" placeholder="YYYY-MM-DD" value=""/>
+									<br/>
+									<p class="text-muted"><small><strong>Note:</strong> For CESM, the branch_time_in_child value should be set to the CESM RUN_STARTDATE. If there is no CMIP6 Parent Experiment selected then the branch_time_in_parent should be left blank. See Note 5 of the <a href="https://www.earthsystemcog.org/site_media/projects/wip/CMIP6_global_attributes_filenames_CVs_v6.2.6.pdf">CMIP6 Global Attributes, DRS, Filenames, Directory Structure, and CV's</a> for more details and examples. All CESM CMIP6 experiments use parent_time_units = "days since 0001-01-01 (no leap)"</small></p>
+								</div>
+							</div>
 						</div>
 
 						<div class="form-group form-inline">
@@ -189,68 +246,10 @@
 								</div>
 							</div>
 						</div>
-
-						<div class="row">
-							<div class="col-lg-8">
-								<div class="form-group">
-									<label>CMIP6 Parent Experiment <small class="text-muted">(parent_experiment_id)</small></label>
-									<br>
-									<select name="parentExp">
-										<option value="0">Select Experiment</option>
-										[% FOREACH exp IN CMIP6Exps %]	
-										<option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
-										[% END %]
-									</select>
-								</div>
-							</div>
-							<div class="col-lg-4">
-								<div class="form-group form-inline">
-									<label>Parent Reference Date <small class="text-muted">(branch_time_in_parent)</small></label>
-									<br>
-									<input class="form-control" type="text" name="run_refdate" maxlength="10" size="11" placeholder="YYYY-MM-DD"/>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 
 
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h3 class="panel-title">Case Specific Information</h3>
-					</div>
-					<div class="panel-body">
-						<div class="form-group">
-							<div class="row">
-								<div class="col-lg-6">
-									<label><span class="text-danger">*</span> Assigned To</label>
-									<select required name="assignUser">
-										<option value="">Select User</option>
-										[% FOREACH user IN CMIP6Users %]	
-										<option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
-										[% END %]
-									</select>
-								</div>
-								<div class="col-lg-6">
-									<label><span class="text-danger">*</span> Scientific Lead</label>
-									<select required name="scienceUser">
-										<option value="">Select User</option>
-										[% FOREACH user IN CMIP6Users %]	
-										<option value="[% user.user_id %]">[% user.lastname %], [% user.firstname %]</option>
-										[% END %]
-									</select>
-								</div>
-							</div>
-						</div>
-
-						<div class="form-group">
-							<label>Case Notes</label>
-							<br>
-							<textarea class="form-control" name="notes" cols="100" rows="5"></textarea>
-						</div>
-					</div>
-				</div>
-				
 			    <input id="submit" class="btn btn-primary btn-lg btn-block" type="submit" value="Submit"/>
 		    </form>
 		</div>
