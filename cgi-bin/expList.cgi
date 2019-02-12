@@ -566,7 +566,7 @@ EOF
 		# insert notes
 		if (length($note) > 0)
 		{
-		    $sql = qq(insert into t2e_notes (case_id, note, last_update) value ($ens_case_id, $note, NOW()));
+		    $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id) value ($ens_case_id, $note, NOW(), $item{luser_id}));
 		    $sth = $dbh->prepare($sql);
 		    $sth->execute();
 		    $sth->finish();
