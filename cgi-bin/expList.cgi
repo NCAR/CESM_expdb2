@@ -427,26 +427,9 @@ sub reserveCaseCMIP6
 	# reserve the case
 	my $case_name = $dbh->quote($item{'case'});
 	my $title = $dbh->quote($item{'case_title'});
-	my $startyear = '';
-	if ($item{'runtype'} eq 'startup') {
-	    $startyear = $dbh->quote($item{'startup_startyear'}); 
-	} elsif ($item{'runtype'} eq 'branch') {
-	    $startyear = $dbh->quote($item{'branch_startyear'}); 
-	} elsif ($item{'runtype'} eq 'hybrid') {
-	    $startyear = $dbh->quote($item{'hybrid_startyear'}); 
-	}
 
-	$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
-                  run_type, run_startdate) 
-                  value ($case_name, 1, "$item{'ensemble'}", $title,
-                  "$item{'runtype'}", $startyear));
-	if ($item{'parentExp'} > 0) {
-	    my $run_refdate = $dbh->quote($item{'run_refdate'});
-	    $sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
-                      run_type, run_startdate, run_refdate)
-                      value ($case_name, 1, "$item{'ensemble'}", $title,
-                      "$item{'runtype'}", $startyear, $run_refdate));
-	}
+	$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title)
+                  value ($case_name, 1, "$item{'ensemble'}", $title));
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	$sth->finish();
@@ -466,16 +449,17 @@ sub reserveCaseCMIP6
 
 	# update values in the t2j_cmip6 table based on the experiment association
 	my $variant_label = $dbh->quote($variant_label);
-
 	my $ensemble_size = 0;
+	my $nyears = $item{'nyears'};
 	if(($item{'ensemble'} eq 'true') && defined ($item{'ensemble_size'}))
 	{
-	    $ensemble_size = $item{'ensemble_size'}
+	    $ensemble_size = $item{'ensemble_size'};
+	    $nyears = $item{'ensemble_years'};
 	}
 	$sql = qq(update t2j_cmip6 set case_id = $case_id,
                   variant_label = $variant_label, assign_id = $item{'assignUser'},
                   science_id = $item{'scienceUser'}, ensemble_size = $ensemble_size,
-                  ensemble_num = 1, nyears = $item{'nyears'},
+                  ensemble_num = 1, nyears = $nyears, 
                   source_type = $source_type, request_date = NOW(),
                   source_id = $source_id
                   where exp_id = $item{'expName'});
@@ -490,8 +474,28 @@ sub reserveCaseCMIP6
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
 	    $sth->finish();
-
 	}
+
+	# get the branch variables
+	my $branch_method = $dbh->quote($item{'branch_method'});
+	my $branch_child = $dbh->quote("0.0DO");
+	my $branch_parent = $dbh->quote("0.0DO");
+	if (length($item{'branch_time_in_child'}) > 0) 
+	{ 
+	    $branch_child = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_child'}));
+	}
+	if ($item{'parentExp'} > 0 && length($item{'branch_time_in_parent'}) > 0)
+	{
+	    $branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
+	}
+
+	# update the t2_cmip6_exps table with the branch variables
+	$sql = qq(update t2_cmip6_exps set branch_method = $branch_method,
+                  branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent
+                  where id = $item{'expName'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute() or die $dbh->errstr;
+	$sth->finish();
 
 	# insert pending entries in the t2j_status table for this case
 	$sql = qq(select id from t2_process);
@@ -538,17 +542,8 @@ EOF
 
 		my $ext = sprintf("%03d",$i);
 		my $ens_casename = $dbh->quote($base_name . "." . $ext);
-		$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title,
-                          run_type, run_startdate)
-                          value ($ens_casename, 1, "$item{'ensemble'}", $title,
-                          "$item{'runtype'}", $startyear));
-		if ($item{'parentExp'} > 0) {
-		    my $run_refdate = $dbh->quote($item{'run_refdate'});
-		    $sql = qq(insert into t2_cases (casename, expType_id, is_ens, title, 
-                              run_type, run_startdate, run_refdate)
-                              value ($ens_casename, 1, "$item{'ensemble'}", $title, 
-                              "$item{'runtype'}", $startyear, $run_refdate));
-		}
+		$sql = qq(insert into t2_cases (casename, expType_id, is_ens, title)
+                          value ($ens_casename, 1, "$item{'ensemble'}", $title));
 		$sth = $dbh->prepare($sql);
 		$sth->execute();
 		$sth->finish();
