@@ -210,6 +210,14 @@ sub doActions()
 	&publishDASHProcess();
 	&showCaseDetail($req->param('case_id'));
     }
+
+    # udpate CMIP6 file global attributes
+    if ($action eq "updateGlobalAttsProc" &&
+	$req->param('expType_id') == 1)
+    {
+	&updateGlobalAttsProcess();
+	&showCaseDetail($req->param('case_id'));
+    }
 }
 
 #--------------
@@ -695,7 +703,7 @@ EOF
         my $email = Email::Simple->create(
 	    header => [
 		From => $item{lemail},
-##		    To   => "gateway-publish@ucar.edu",
+##		    To   => "gateway-publish\@ucar.edu",
 		To   => "aliceb\@ucar.edu",
 		Subject => $subject,
 	    ],
@@ -805,7 +813,7 @@ EOF
         my $email = Email::Simple->create(
 	    header => [
 		From => $item{lemail},
-##		    To   => "gateway-publish@ucar.edu",
+##		    To   => "gateway-publish\@ucar.edu",
 		To   => "aliceb\@ucar.edu",
 		Subject => $subject,
 	    ],
@@ -1186,6 +1194,79 @@ sub publishDASHProcess
 
 }
 
+#---------------------------
+sub updateGlobalAttsProcess
+#---------------------------
+{
+    my $case_id = $req->param('case_id');
+    my $expType_id = $req->param('expType_id');
+
+    if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the CMIP6 file global attributes.<br/>);
+	return;
+    }
+
+    foreach my $key ( $req->param )  {
+	$item{$key} = ( $req->param( $key ) );
+    }
+
+    # get the experiment id from the t2_cmip6_exps for this case_id
+    my $sql = qq(select e.id, IFNULL(e.cesm_cmip6_id, 0) as cesm_cmip6_id,
+                 IFNULL(e.parent_experiment_id, "none") as parent_experiment_id
+                 from t2_cmip6_exps as e, t2j_cmip6 as j where
+                 j.exp_id = e.id and j.case_id = $case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute() or die $dbh->errstr;
+    my $ref = $sth->fetchrow_hashref();
+    my $exp_id = $ref->{'id'};
+    my $cesm_cmip6_id = $ref->{'cesm_cmip6_id'};
+    my $parent_exp_id = $ref->{'parent_experiment_id'};
+    $sth->finish();
+
+    # get the branch variables from the update form
+    my $branch_method = $dbh->quote($item{'branch_method'});
+    my $branch_child = $dbh->quote("0.0DO");
+    my $branch_parent = $dbh->quote("0.0DO");
+    if (length($item{'branch_time_in_child'}) > 0) 
+    { 
+	$branch_child = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_child'}));
+    }
+    if (($parent_exp_id ne "none" || $parent_exp_id ne "no parent")
+        && length($item{'branch_time_in_parent'}) > 0)
+    {
+	$branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
+    }
+
+    # get the parent_experiment_id when cesm_cmip6_id > 0
+    if ($cesm_cmip6_id > 0) {
+	$sql = qq(select IFNULL(e.parent_experiment_id, "none") as parent_experiment_id
+                  from t2_cmip6_exps where id = $cesm_cmip6_id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute() or die $dbh->errstr;
+	$ref = $sth->fetchrow_hashref();
+	$parent_exp_id = $ref->{'parent_experimentd_id'};
+	$sth->finish();
+	if (($parent_exp_id ne "none" || $parent_exp_id ne "no parent")
+             && length($item{'branch_time_in_parent'}) > 0)
+	{
+	    $branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
+	}
+    }
+
+    # update the t2_cmip6_exps table with the branch variables
+    $sql = qq(update t2_cmip6_exps set branch_method = $branch_method,
+              branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent
+              where id = $exp_id);
+    if ($cesm_cmip6_id > 0) {
+	$sql = qq(update t2_cmip6_exps set branch_method = $branch_method,
+                  branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent
+                  where id = $cesm_cmip6_id);
+    }
+    $sth = $dbh->prepare($sql);
+    $sth->execute() or die $dbh->errstr;
+    $sth->finish();
+}
 
 
 $dbh->disconnect;

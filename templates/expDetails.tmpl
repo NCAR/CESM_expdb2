@@ -235,7 +235,11 @@
 			</div>
 
 			<div class="col-lg-6">
-			  <div class="alert alert-info text-center" role="alert"><strong>CMIP6 File Global Attributes</strong></div>
+			  <div class="alert alert-info text-center" role="alert">
+			      <button type="button" class="btn btn-default btn-sm" data-toggle="modal" id="" data-target="#myModalCMIP6GlobalAtts">
+				<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+			      </button>
+			      <strong>CMIP6 File Global Attributes</strong></div>
 			  <table class="table table-striped table-condensed small" id="CMIP6Table">
 			    <thead>
 			      <th>Field Name</th>
@@ -254,6 +258,59 @@
 		      </div>
 		    </div>
 		  </div>
+
+		  <div class="modal fade" id="myModalCMIP6GlobalAtts" tabindex="-1" role="dialog" aria-labelledby="myModalCMIP6GlobalAttsLabel">
+		    <div class="modal-dialog" role="document">
+		      <div class="modal-content">
+			<div class="modal-header">
+			  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			  <h4 class="modal-title" id="myModalCMIP6GlobalAttsLabel">Update CMIP6 File Global Attributes for [% case.casename.value %]</h4>
+                          <span class="label label-danger">* Caution - these values MUST match the global attributes stored in each CMIP6 single variable netcdf file for this case.</span><br/>
+			</div>
+
+			<form id="updateGlobalAttsForm" method="POST">
+			  <div class="modal-body">
+			    <div class="form-group">
+			      <label>CMIP6 Branch Method <small class="text-muted">(branch_method)</small></label>
+			      <br/>
+			      <textarea class="form-control" name="branch_method" rows="3" maxlength="500" cols="64" required placeholder="'standard' or 'no parent' or explanation text (see note below)"></textarea>
+			      <p class="text-muted"><small><strong>Note:</strong> branch_method
+				  examples: "perturbations to atmospheric fields were applied at the
+				  branch time, followed by a 50 year spin-up period under control
+				  conditions"; "fixed historical forcing from year 1850 was applied for
+				  a 20 year spin-up period, after which the historically-evolving
+				  forcing was imposed."  For a run that had not been spawned from a
+				  parent, this attribute should be omitted or set to "no parent".  For
+				  runs simply restarted from some point in the parent (without special
+				  procedures applied), branch_method should be set to
+				  "standard".</small></p>
+			      <br/>
+			      <label>CMIP6 Branch time in child <small class="text-muted">(branch_time_in_child)</small></label>
+			      <br/>
+			      <input class="form-control" type="text" name="branch_time_in_child" maxlength="10" size="12" placeholder="YYYY-MM-DD" value=""/>
+			      <br/>
+			      <label>CMIP6 Branch time in parent <small class="text-muted">(branch_time_in_parent)</small></label>
+			      <br>
+			      <input class="form-control" type="text" name="branch_time_in_parent" maxlength="10" size="12" placeholder="YYYY-MM-DD" value=""/>
+			      <br/>
+
+			      <p class="text-muted"><small><strong>Note:</strong> For CESM, the branch_time_in_child value should be set to the CESM RUN_STARTDATE. The parent_time_in_parent can be set to the CESM RUN_REFDATE but only if the RUN_REFCASE is another CMIP6 experiment. If there is no CMIP6 Parent Experiment selected then the branch_time_in_parent should be left blank. See Note 5 of the <a href="https://www.earthsystemcog.org/site_media/projects/wip/CMIP6_global_attributes_filenames_CVs_v6.2.6.pdf">CMIP6 Global Attributes, DRS, Filenames, Directory Structure, and CV's</a> for more details and examples. All CESM CMIP6 experiments use parent_time_units = "days since 0001-01-01 (no leap)"</small></p>
+			    </div>
+
+			    <div class="modal-footer">
+			      <input type="hidden" name="action" value="updateGlobalAttsProc"/>
+			      <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+			      <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+			      <button type="submit" class="btn btn-primary" value="Submit">Update</button>
+			      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			    </div>
+			  </div>
+			</form>
+			
+		      </div>
+		    </div>
+		  </div>
+
 		  <!-- cmip6 sub panel end -->
 		  [% END %]
 

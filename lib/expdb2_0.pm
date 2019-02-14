@@ -48,8 +48,8 @@ sub getNCARUsers
 {
     my $dbh = shift;
     my @users;
-    my $sql = "select user_id, lastname, firstname from t_svnusers 
-               where status = 'active' and lastname is not null order by lastname";
+    my $sql = qq(select user_id, lastname, firstname from t_svnusers 
+               where status = 'active' and lastname is not null order by lastname);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -68,9 +68,9 @@ sub getCMIP6Users
 {
     my $dbh = shift;
     my @users;
-    my $sql = "select user_id, lastname, firstname from t_svnusers 
+    my $sql = qq(select user_id, lastname, firstname from t_svnusers 
                where status = 'active' and lastname is not null 
-               and is_cmip6 = 1 order by lastname";
+               and is_cmip6 = 1 order by lastname);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -129,7 +129,8 @@ sub getUserByID
     my $dbh = shift;
     my $user_id = shift;
     my %user = ();
-    my $sql = "select lastname, firstname, email from t_svnusers where user_id = $user_id";
+
+    my $sql = qq(select lastname, firstname, email from t_svnusers where user_id = $user_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while (my $ref = $sth->fetchrow_hashref())
@@ -156,10 +157,10 @@ sub getAllCases
 {
     my $dbh = shift;
     my @cases;
-    my $sql = "select c.id, c.casename, t.name as expType 
+    my $sql = qq(select c.id, c.casename, t.name as expType 
                from t2_cases as c, t2_expType as t 
                where c.expType_id = t.id
-               order by expType, casename";
+               order by expType, casename);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -406,22 +407,24 @@ sub getPercentComplete
     my $model_date = shift;
     my $nyears = shift;
     my $start_date = shift;
-
-    my @model_year = split(/-/, $model_date);
-    my @start_year = split(/-/, $start_date);
-
-    # check if the model year needs further parsing
-    my $model_year = @model_year;
-    my $model_yr = $model_year[0];
-    if ($model_year == 2) {
-	$model_yr = substr($model_year[0], 0, 4);
-    }
-
     my $percent_complete = 0;
-    if ($nyears && $model_yr && $start_year[0]) {
-	$percent_complete = (($model_yr - $start_year[0] + 0.0)/$nyears) * 100.0;
-    }
 
+    if (defined $model_date && defined $start_date)
+    {
+	my @model_year = split(/-/, $model_date);
+	my @start_year = split(/-/, $start_date);
+
+	# check if the model year needs further parsing
+	my $model_year = @model_year;
+	my $model_yr = $model_year[0];
+	if ($model_year == 2) {
+	    $model_yr = substr($model_year[0], 0, 4);
+	}
+
+	if ($nyears && $model_yr && $start_year[0]) {
+	    $percent_complete = (($model_yr - $start_year[0] + 0.0)/$nyears) * 100.0;
+	}
+    }
     return $percent_complete;
 }
 
