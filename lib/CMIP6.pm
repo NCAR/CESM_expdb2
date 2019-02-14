@@ -380,7 +380,7 @@ sub getCMIP6CaseByID
 
 	# get all the boolean fields and their history values
 	foreach my $field (@bool_fields) {
-	    $sql = qq(select $field from t2_cases where id = $id);
+	    $sql = qq(select IFNULL($field, 0) as $field from t2_cases where id = $id);
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
 	    $value = $sth->fetchrow;
@@ -1223,6 +1223,6 @@ sub convertToCMIP6Time
     my @parts = split('-', $time);
     my $CMIP6time = ($parts[0]-1)*365 + $months{$parts[1]} + $parts[2];
     $CMIP6time = $CMIP6time . ".0DO";
-    print STDERR ">>> CMIP6tIme = " . $CMIP6time;
+    ##print STDERR ">>> CMIP6tIme = " . $CMIP6time;
     return $CMIP6time;
 }
