@@ -695,8 +695,7 @@ EOF
         my $email = Email::Simple->create(
 	    header => [
 		From => $item{lemail},
-##		    To   => "gateway-publish@ucar.edu",
-		To   => "aliceb\@ucar.edu",
+		To   => "gateway-publish\@ucar.edu",
 		Subject => $subject,
 	    ],
 	    body => $msgbody,
@@ -805,8 +804,7 @@ EOF
         my $email = Email::Simple->create(
 	    header => [
 		From => $item{lemail},
-##		    To   => "gateway-publish@ucar.edu",
-		To   => "aliceb\@ucar.edu",
+		To   => "gateway-publish\@ucar.edu",
 		Subject => $subject,
 	    ],
 	    body => $msgbody,
