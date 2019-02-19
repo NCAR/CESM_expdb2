@@ -48,19 +48,19 @@ my ($loggedin, $session) = &checksessionlogin($sessionid);
 # Otherwise, show the login page. 
 if ($action eq 'logout')
 {
-	&logout($session);
+    &logout($session);
 }
 elsif($action eq 'login')
 {
-	&login($session);
+    &login($session);
 }
 elsif($loggedin)
 {
-        &loginsuccess($req, $session);
+    &loginsuccess($req, $session);
 }
 else
 {
-	&showloginpage($req, undef, $session);
+    &showloginpage($req, undef, $session);
 }
 
 #-------------------------------------------------------------------------------------
@@ -101,27 +101,27 @@ sub login
 # Logout.  Logout the session, delete everything from the req, and show the login page. 
 sub logout
 {
-	my ($session) = @_;
-	&sessionlogout($session);
-	$req->delete();
-	&showloginpage($req, undef);
+    my ($session) = @_;
+    &sessionlogout($session);
+    $req->delete();
+    &showloginpage($req, undef);
 }
 
 # Show the login page template.  If there is an error message, show that too. 
 sub showloginpage
 {
-	my ($req, $error) = @_;
+    my ($req, $error) = @_;
 	
-	my $vars = {
-                'cgi' => $req,
-		'error' => $error,
-	};
+    my $vars = {
+	'cgi' => $req,
+	'error' => $error,
+    };
 
-	#my $loginpage = "../templates/login.tmpl";
+    #my $loginpage = "../templates/login.tmpl";
     my $loginpage = "../templates/login.tt";
-	my $tt = Template->new(RELATIVE => 1, INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates');
-	print "Content-type: text/html \n\n";
-	$tt->process($loginpage, $vars) or die ("problem processing $loginpage,", $tt->error());
+    my $tt = Template->new(RELATIVE => 1, INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates');
+    print "Content-type: text/html \n\n";
+    $tt->process($loginpage, $vars) or die ("problem processing $loginpage,", $tt->error());
 }
 
 # Either the session is still valid, or someone just logged in.  Set the 
