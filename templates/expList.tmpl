@@ -481,17 +481,17 @@
 				      <td>
 					<small>
 					  conformer:<br>
-					  [% IF exp.pub_code == "Succeeded" %]
-					  <span class="label label-info">[% exp.pub_code %]</span>
+					  [% IF exp.conform_code == "Succeeded" %]
+					  <span class="label label-info">[% exp.conform_code %]</span>
 					  [% END %]
-					  [% IF exp.pub_code == "Unknown" %]
-					  <span class="label label-default">[% exp.pub_code %]</span>
+					  [% IF exp.conform_code == "Unknown" %]
+					  <span class="label label-default">[% exp.conform_code %]</span>
 					  [% END %]
-					  [% IF exp.pub_code == "Started" %]
-					  <span class="label label-success">[% exp.pub_code %]</span>
+					  [% IF exp.conform_code == "Started" %]
+					  <span class="label label-success">[% exp.conform_code %]</span>
 					  [% END %]
-					  [% IF exp.pub_code == "Failed" %]
-					  <span class="label label-danger">[% exp.pub_code %]</span>
+					  [% IF exp.conform_code == "Failed" %]
+					  <span class="label label-danger">[% exp.conform_code %]</span>
 					  [% END %]
 					</small>
 				      </td>
@@ -500,7 +500,7 @@
 					<small>
 					  published:<br>
 					  [% IF exp.pub_code == "Verified" %]
-					  <span class="label label-info">[% exp.pub_code %]</span>
+					  <span class="label label-primary">[% exp.pub_code %]</span>
 					  [% END %]
 					  [% IF exp.pub_code == "Succeeded" %]
 					  <span class="label label-info">[% exp.pub_code %]</span>
