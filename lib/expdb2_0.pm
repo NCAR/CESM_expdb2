@@ -611,7 +611,7 @@ sub updatePublishStatus
     my $user_id = shift;
 
     my $sql = qq(update t2j_status set status_id = $status_id,
-                 archive_method = 'user', user_id = $user_id
+                 archive_method = 'user', user_id = $user_id, last_update = NOW()
                  where case_id = $case_id and process_id = $process_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();

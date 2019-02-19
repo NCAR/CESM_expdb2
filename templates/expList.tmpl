@@ -382,10 +382,6 @@
 			[% INCLUDE reserveCaseCMIP6.tmpl %]
 		      </div>
 
-
-
-
-
 		      <!-- overall experiment status start -->
 		      <div class="tab-pane fade" role="tabpanel" id="STATUS" aria-labelledby="STATUS-tab">
 			<div class="row" style="margin-bottom: 10px;">
@@ -399,7 +395,6 @@
 			    </button>
 			  </div>
 			</div>
-
 
 
 			<table id="statusTable" class="table table-striped table-condensed" style="width: 100%;">
@@ -486,17 +481,17 @@
 				      <td>
 					<small>
 					  conformer:<br>
-					  [% IF exp.conform_code == "Succeeded" %]
-					  <span class="label label-info">[% exp.conform_code %]</span>
+					  [% IF exp.pub_code == "Succeeded" %]
+					  <span class="label label-info">[% exp.pub_code %]</span>
 					  [% END %]
-					  [% IF exp.conform_code == "Unknown" %]
-					  <span class="label label-default">[% exp.conform_code %]</span>
+					  [% IF exp.pub_code == "Unknown" %]
+					  <span class="label label-default">[% exp.pub_code %]</span>
 					  [% END %]
-					  [% IF exp.conform_code == "Started" %]
-					  <span class="label label-success">[% exp.conform_code %]</span>
+					  [% IF exp.pub_code == "Started" %]
+					  <span class="label label-success">[% exp.pub_code %]</span>
 					  [% END %]
-					  [% IF exp.conform_code == "Failed" %]
-					  <span class="label label-danger">[% exp.conform_code %]</span>
+					  [% IF exp.pub_code == "Failed" %]
+					  <span class="label label-danger">[% exp.pub_code %]</span>
 					  [% END %]
 					</small>
 				      </td>
@@ -504,6 +499,9 @@
 				      <td>
 					<small>
 					  published:<br>
+					  [% IF exp.pub_code == "Verified" %]
+					  <span class="label label-info">[% exp.pub_code %]</span>
+					  [% END %]
 					  [% IF exp.pub_code == "Succeeded" %]
 					  <span class="label label-info">[% exp.pub_code %]</span>
 					  [% END %]

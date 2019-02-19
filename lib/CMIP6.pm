@@ -1038,7 +1038,21 @@ sub getCMIP6Status
 
 	# compute total disk usage
 	$case{'total_disk_usage'} = $case{'run_disk_usage'} + $case{'sta_disk_usage'} + $case{'ts_disk_usage'} + $case{'conform_disk_usage'};
-        
+
+	# get publication status
+	$sql1 = qq(select DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+                      s.code, s.color 
+                      from t2j_status as j, t2_status as s where
+                      j.case_id = $ref->{'id'} and
+                      j.process_id = 18 and 
+                      j.status_id = s.id
+                      order by last_update desc
+                      limit 1);
+	$sth1 = $dbh->prepare($sql1);
+	$sth1->execute();
+	($case{'pub_last_update'}, $case{'pub_code'}, $case{'pub_color'}) = $sth1->fetchrow();
+	$sth1->finish();
+
         push(@cases, \%case);
     }            
     $sth->finish();
