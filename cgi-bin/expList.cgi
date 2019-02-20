@@ -1243,7 +1243,7 @@ sub updateGlobalAttsProcess
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	$ref = $sth->fetchrow_hashref();
-	$parent_exp_id = $ref->{'parent_experimentd_id'};
+	$parent_exp_id = $ref->{'parent_experiment_id'};
 	$sth->finish();
 	if (($parent_exp_id ne "none" || $parent_exp_id ne "no parent")
              && length($item{'branch_time_in_parent'}) > 0)

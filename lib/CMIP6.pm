@@ -1218,24 +1218,24 @@ sub getCMIP6SourceIDs
 
 sub convertToCMIP6Time
 {
+    # CMIP6 time always relative to 0001-01-01 model start time
     my $time = shift;
     my %months = (
-	"01" => 31,
-	"02" => 28,
-	"03" => 31,
-	"04" => 30,
-	"05" => 31,
-	"06" => 30,
-	"07" => 31,
+	"01" => 0,
+	"02" => 31,
+	"03" => 28,
+	"04" => 31,
+	"05" => 30,
+	"06" => 31,
+	"07" => 30,
 	"08" => 31,
-	"09" => 30,
-	"10" => 31,
-	"11" => 30,
-	"12" => 31
+	"09" => 31,
+	"10" => 30,
+	"11" => 31,
+	"12" => 30
     );
-
     my @parts = split('-', $time);
-    my $CMIP6time = ($parts[0]-1)*365 + $months{$parts[1]} + $parts[2];
+    my $CMIP6time = ($parts[0]-1)*365 + $months{$parts[1]} + ($parts[2]-1);
     $CMIP6time = $CMIP6time . ".0DO";
     ##print STDERR ">>> CMIP6tIme = " . $CMIP6time;
     return $CMIP6time;
