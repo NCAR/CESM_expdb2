@@ -23,12 +23,18 @@ getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher getCMIP6SourceIDs co
 sub getCMIP6Experiments
 {
     my $dbh = shift;
+    my $restrict = shift;
     my ($sql1, $sth1);
     my ($sql2, $sth2);
     my ($count, $case_id);
     my @CMIP6Exps;
 
     my $sql = "select * from t2_cmip6_exps order by name";
+    if ($restrict eq 'cmip6') {
+	# restrict the list to only the WRCP CV defined experiments
+	$sql = "select * from t2_cmip6_exps where cesm_cmip6_id is null order by name";	
+    }
+
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -441,7 +447,7 @@ sub getCMIP6CaseByID
 
 	# get CMIP6 fields 
 	$sql = qq(select e.name as expName, e.description as expDesc, e.activity_id,
-                  e.branch_method, e.branch_time_in_parent, e.branch_time_in_child, 
+                  j.branch_method, j.branch_time_in_parent, j.branch_time_in_child, 
                   IFNULL(e.sub_experiment_id, 'none') as sub_experiment_id,
                   m.name as mipName, m.description as mipDesc, 
                   j.variant_label, j.nyears, j.ensemble_num, j.ensemble_size, j.assign_id, j.science_id, j.source_type,
@@ -453,10 +459,10 @@ sub getCMIP6CaseByID
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
 	{
-	    $globalAtts{'case_id'} = $id;
 	    $project{'cesm_cmip6_id'} = $cesm_cmip6_id;
+	    $globalAtts{'case_id'} = $id;
 
-	    $project{'cmip6_expName'} = $ref->{'expName'};
+	    $project{'cmip6_experiment_id'} = $ref->{'expName'};
 	    $globalAtts{'experiment_id'} = $ref->{'expName'};
 
 	    $project{'cmip6_experiment'} = $ref->{'expDesc'};
@@ -514,21 +520,17 @@ sub getCMIP6CaseByID
 	    $globalAtts{'parent_activity_id'} = 'no parent';
 	    if( $ref->{'parentExp_id'} > 0)
 	    {
-		$sql1 = qq(select e.name, c.title, c.casename, j.variant_label, e.description, e.activity_id
-                           from t2_cmip6_exps as e, t2_cases as c,
-                           t2j_cmip6 as j 
-                           where c.id = j.case_id
-                           and j.exp_id = $ref->{'parentExp_id'}
-                           and e.id = j.exp_id);
+		$sql1 = qq(select e.activity_id, e.experiment_id, j.variant_label 
+                           from t2_cmip6_exps as e, t2j_cmip6 as j 
+                           where j.exp_id = $ref->{'parentExp_id'} and e.id = j.exp_id);
 		$sth1 = $dbh->prepare($sql1);
 		$sth1->execute();
-		($project{'cmip6_parent_expname'}, $project{'cmip6_parent_variant_info'},
-		 $project{'cmip6_parent_casename'}, $project{'cmip6_parent_variant_label'},
-		 $project{'cmip6_parent_description'}, $project{'cmip6_parent_activity_id'}) = $sth1->fetchrow();
+		($project{'cmip6_parent_activity_id'}, $project{'cmip6_parent_experiment_id'},
+                 $project{'cmip6_parent_variant_label'}) = $sth1->fetchrow();
 		$sth1->finish();
-		$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_expname'};
-		$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
 		$globalAtts{'parent_activity_id'} = $project{'cmip6_parent_activity_id'};
+		$globalAtts{'parent_experiment_id'} = $project{'cmip6_parent_experiment_id'};
+		$globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
 	    }
 
 	    # work on the sub_experiment_id 
@@ -559,38 +561,27 @@ sub getCMIP6CaseByID
 	# handle the case where casename does not match an experiment name directly
 	if ($cesm_cmip6_id > 0) {
 	    # first get the correct fields from the t2_cmip6_exps table
-	    $sql = qq(select name, description, activity_id,
-                             branch_method, branch_time_in_parent, branch_time_in_child, 
-                             parent_activity_id, parent_experiment_id,
-                             IFNULL(sub_experiment_id, 'none') as sub_experiment_id
-                      from t2_cmip6_exps where id = $cesm_cmip6_id);
+	    $sql = qq(select e.name, e.description, e.activity_id,
+                             e.parent_activity_id, e.parent_experiment_id,
+                             IFNULL(e.sub_experiment_id, 'none') as sub_experiment_id
+                      from t2_cmip6_exps as e
+                      where e.id = $cesm_cmip6_id);
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
 	    while (my $ref = $sth->fetchrow_hashref())
 	    {
-		$globalAtts{'case_id'} = $id;
 		$project{'cesm_cmip6_id'} = $cesm_cmip6_id;
+		$globalAtts{'case_id'} = $id;
 
-		$project{'cmip6_expName'} = $ref->{'name'};
+		$project{'cmip6_experiment_id'} = $ref->{'name'};
 		$globalAtts{'experiment_id'} = $ref->{'name'};
 
 		$project{'cmip6_experiment'} = $ref->{'description'};
 		$globalAtts{'experiment'} = $ref->{'description'};
 
-		##print STDERR ">>> activity_id = " . $ref->{'activity_id'};
 		$project{'cmip6_activity_id'} = $ref->{'activity_id'};
 		$globalAtts{'activity_id'} = $ref->{'activity_id'};
 
-		$project{'cmip6_branch_method'} = $ref->{'branch_method'};
-		$globalAtts{'branch_method'} = $ref->{'branch_method'};
-
-		$project{'cmip6_branch_time_in_parent'} = $ref->{'branch_time_in_parent'};
-		$globalAtts{'branch_time_in_parent'} = $ref->{'branch_time_in_parent'};
-
-		$project{'cmip6_branch_time_in_child'} = $ref->{'branch_time_in_child'};
-		$globalAtts{'branch_time_in_child'} = $ref->{'branch_time_in_child'};
-
-		##print STDERR ">>> parent_activity_id = " . $ref->{'parent_activity_id'};
 		$project{'cmip6_parent_activity_id'} = $ref->{'parent_activity_id'};
 		$globalAtts{'parent_activity_id'} = $ref->{'parent_activity_id'};
 
@@ -601,6 +592,17 @@ sub getCMIP6CaseByID
 		{
 		    $project{'cmip6_parent_variant_label'} = "no parent";
 		    $globalAtts{'parent_variant_label'} = "no parent";
+		}
+		else
+		{
+		    $sql1 = qq(select variant_label from t2j_cmip6 
+                               where exp_id = (select id from t2_cmip6_exps
+                               where name = "$ref->{'parent_experiment_id'}"));
+		    $sth1 = $dbh->prepare($sql1);
+		    $sth1->execute();
+		    $project{'cmip6_parent_variant_label'} = $sth1->fetchrow();
+		    $globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'};
+		    $sth1->finish();
 		}
 		
 		# work on the sub_experiment_id 
@@ -617,8 +619,8 @@ sub getCMIP6CaseByID
 	    $sth->finish();
 
 	    # next, get the correct fields from the t2j_cmip6 table
-	    $sql = qq(select j.variant_label, j.source_type
-                      from t2j_cmip6 as j where case_id = $id);
+	    $sql = qq(select variant_label, source_type
+                      from t2j_cmip6 where case_id = $id);
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
 	    while (my $ref = $sth->fetchrow_hashref())
@@ -628,8 +630,6 @@ sub getCMIP6CaseByID
 	    }
 	    $sth->finish();
 	}
-
-	# get the branch times in child and parent
 
 	# get case notes
 	@notes = getCaseNotes($dbh, $id);

@@ -121,11 +121,11 @@
 						</div>
 
 						<div class="form-group">
-							<label>CMIP6 Parent Experiment <small class="text-muted">(parent_experiment_id)</small></label>
+							<label>CMIP6 Parent Experiment - leave unselected if no parent exists <small class="text-muted">(parent_experiment_id)</small></label>
 							<br>
 							<select name="parentExp">
 								<option value="0">Select Experiment</option>
-								[% FOREACH exp IN CMIP6Exps %]	
+								[% FOREACH exp IN CMIP6ParentExps %]	
 								<option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
 								[% END %]
 							</select>

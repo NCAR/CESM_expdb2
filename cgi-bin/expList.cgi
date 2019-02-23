@@ -50,7 +50,7 @@ my ($loggedin, $session) = &checksession($req);
 my $cookie = $req->cookie(CGISESSID => $session->id);
 my $sid = $req->cookie('CGISESSID');
 # DEBUG
-##$loggedin = 1;
+##my $loggedin = 1;
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
 
@@ -226,48 +226,50 @@ sub showExpList
 {
     my $validstatus = shift;
 
-    my @CMIP6Exps     = getCMIP6Experiments($dbh);
-    my @CMIP6MIPs     = getCMIP6MIPs($dbh);
-    my @CMIP6DECKs    = getCMIP6DECKs($dbh);
-    my @CMIP6DCPPs    = getCMIP6DCPPs($dbh);
-    my @CMIP6Sources  = getCMIP6Sources($dbh);
-    my @CMIP6SourceIDs= getCMIP6SourceIDs($dbh);
-    my @CMIP6Status   = getCMIP6Status($dbh);
-    my @CMIP6Inits    = getCMIP6Inits($dbh);
-    my @CMIP6Physics  = getCMIP6Physics($dbh);
-    my @CMIP6Forcings = getCMIP6Forcings($dbh);
-    my @CMIP6Diags    = getCMIP6Diags($dbh);
+    my @CMIP6Exps        = getCMIP6Experiments($dbh, '');
+    my @CMIP6ParentExps  = getCMIP6Experiments($dbh, 'cmip6');
+    my @CMIP6MIPs        = getCMIP6MIPs($dbh);
+    my @CMIP6DECKs       = getCMIP6DECKs($dbh);
+    my @CMIP6DCPPs       = getCMIP6DCPPs($dbh);
+    my @CMIP6Sources     = getCMIP6Sources($dbh);
+    my @CMIP6SourceIDs   = getCMIP6SourceIDs($dbh);
+    my @CMIP6Status      = getCMIP6Status($dbh);
+    my @CMIP6Inits       = getCMIP6Inits($dbh);
+    my @CMIP6Physics     = getCMIP6Physics($dbh);
+    my @CMIP6Forcings    = getCMIP6Forcings($dbh);
+    my @CMIP6Diags       = getCMIP6Diags($dbh);
 
-    my @cesm2exps     = getCasesByType($dbh, 2);
-    my @projectA      = getCasesByType($dbh, 3);
-    my @projectB      = getCasesByType($dbh, 4);
-    my @cesm2tune     = getCasesByType($dbh, 5);
-    my @allCases      = getAllCases($dbh);
-    my @NCARUsers     = getNCARUsers($dbh);
-    my @CMIP6Users    = getCMIP6Users($dbh);
+    my @cesm2exps        = getCasesByType($dbh, 2);
+    my @projectA         = getCasesByType($dbh, 3);
+    my @projectB         = getCasesByType($dbh, 4);
+    my @cesm2tune        = getCasesByType($dbh, 5);
+    my @allCases         = getAllCases($dbh);
+    my @NCARUsers        = getNCARUsers($dbh);
+    my @CMIP6Users       = getCMIP6Users($dbh);
 
 
     my $vars = {
-	CMIP6Exps     => \@CMIP6Exps,
-	CMIP6MIPs     => \@CMIP6MIPs,
-	CMIP6DECKs    => \@CMIP6DECKs,
-	CMIP6DCPPs    => \@CMIP6DCPPs,
-	CMIP6Sources  => \@CMIP6Sources,
-	CMIP6SourceIDs=> \@CMIP6SourceIDs,
-	CMIP6Status   => \@CMIP6Status,
-	CMIP6Inits    => \@CMIP6Inits,
-	CMIP6Physics  => \@CMIP6Physics,
-	CMIP6Forcings => \@CMIP6Forcings,
-	CMIP6Diags    => \@CMIP6Diags,
-	CMIP6Users    => \@CMIP6Users,
-	cesm2exps     => \@cesm2exps,
-	projectA      => \@projectA,
-	projectB      => \@projectB,
-	cesm2tune     => \@cesm2tune,
-	allCases      => \@allCases,
-	NCARUsers     => \@NCARUsers,
-	authUser      => \%item,
-	validstatus   => $validstatus,
+	CMIP6Exps        => \@CMIP6Exps,
+	CMIP6ParentExps  => \@CMIP6ParentExps,
+	CMIP6MIPs        => \@CMIP6MIPs,
+	CMIP6DECKs       => \@CMIP6DECKs,
+	CMIP6DCPPs       => \@CMIP6DCPPs,
+	CMIP6Sources     => \@CMIP6Sources,
+	CMIP6SourceIDs   => \@CMIP6SourceIDs,
+	CMIP6Status      => \@CMIP6Status,
+	CMIP6Inits       => \@CMIP6Inits,
+	CMIP6Physics     => \@CMIP6Physics,
+	CMIP6Forcings    => \@CMIP6Forcings,
+	CMIP6Diags       => \@CMIP6Diags,
+	CMIP6Users       => \@CMIP6Users,
+	cesm2exps        => \@cesm2exps,
+	projectA         => \@projectA,
+	projectB         => \@projectB,
+	cesm2tune        => \@cesm2tune,
+	allCases         => \@allCases,
+	NCARUsers        => \@NCARUsers,
+	authUser         => \%item,
+	validstatus      => $validstatus,
     };
 	
     print $req->header(-cookie=>$cookie);
@@ -305,6 +307,8 @@ sub showCaseDetail
     }
 
     # get all the DASH publication select options
+    my @CMIP6Exps             = getCMIP6Experiments($dbh, '');
+    my @CMIP6ParentExps       = getCMIP6Experiments($dbh, 'cmip6');
     my @horizontalResolutions = getHorizontalResolutions($dbh);
     my @temporalResolutions   = getTemporalResolutions($dbh);
     my @expAttributes         = getExpAttributes($dbh);
@@ -345,6 +349,8 @@ sub showCaseDetail
         expTypes              => \@expTypes,
         expPeriods            => \@expPeriods,
 	components            => \@components,
+	CMIP6Exps             => \@CMIP6Exps,
+	CMIP6ParentExps       => \@CMIP6ParentExps,
     };
 
     print $req->header(-cookie=>$cookie);
@@ -497,10 +503,11 @@ sub reserveCaseCMIP6
 	    $branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
 	}
 
-	# update the t2_cmip6_exps table with the branch variables
-	$sql = qq(update t2_cmip6_exps set branch_method = $branch_method,
+	# update the t2j_cmip6 table with the branch variables
+	$sql = qq(update t2j_cmip6 set branch_method = $branch_method,
                   branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent
-                  where id = $item{'expName'});
+                  where exp_id = $item{'expName'}
+                  and case_id = $case_id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	$sth->finish();
@@ -1198,6 +1205,7 @@ sub updateGlobalAttsProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
+    my $sql;
 
     if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -1209,20 +1217,7 @@ sub updateGlobalAttsProcess
 	$item{$key} = ( $req->param( $key ) );
     }
 
-    # get the experiment id from the t2_cmip6_exps for this case_id
-    my $sql = qq(select e.id, IFNULL(e.cesm_cmip6_id, 0) as cesm_cmip6_id,
-                 IFNULL(e.parent_experiment_id, "none") as parent_experiment_id
-                 from t2_cmip6_exps as e, t2j_cmip6 as j where
-                 j.exp_id = e.id and j.case_id = $case_id);
-    my $sth = $dbh->prepare($sql);
-    $sth->execute() or die $dbh->errstr;
-    my $ref = $sth->fetchrow_hashref();
-    my $exp_id = $ref->{'id'};
-    my $cesm_cmip6_id = $ref->{'cesm_cmip6_id'};
-    my $parent_exp_id = $ref->{'parent_experiment_id'};
-    $sth->finish();
-
-    # get the branch variables from the update form
+    # get the variables quoted from the update form
     my $branch_method = $dbh->quote($item{'branch_method'});
     my $branch_child = $dbh->quote("0.0DO");
     my $branch_parent = $dbh->quote("0.0DO");
@@ -1230,42 +1225,31 @@ sub updateGlobalAttsProcess
     { 
 	$branch_child = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_child'}));
     }
-    if (($parent_exp_id ne "none" || $parent_exp_id ne "no parent")
-        && length($item{'branch_time_in_parent'}) > 0)
+    if (length($item{'branch_time_in_parent'}) > 0)
     {
 	$branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
     }
-
-    # get the parent_experiment_id when cesm_cmip6_id > 0
-    if ($cesm_cmip6_id > 0) {
-	$sql = qq(select IFNULL(e.parent_experiment_id, "none") as parent_experiment_id
-                  from t2_cmip6_exps where id = $cesm_cmip6_id);
-	$sth = $dbh->prepare($sql);
-	$sth->execute() or die $dbh->errstr;
-	$ref = $sth->fetchrow_hashref();
-	$parent_exp_id = $ref->{'parent_experiment_id'};
-	$sth->finish();
-	if (($parent_exp_id ne "none" || $parent_exp_id ne "no parent")
-             && length($item{'branch_time_in_parent'}) > 0)
-	{
-	    $branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
-	}
+    my $variant_label = $dbh->quote($item{'variant_label'});
+    if ($item{'parentExp'} > 0) 
+    {
+	$sql = qq(update t2j_cmip6 set branch_method = $branch_method,
+                  branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent,
+                  variant_label = $variant_label, parentExp_id = $item{'parentExp'}
+                  where case_id = $case_id);
+    }
+    else
+    {
+	$sql = qq(update t2j_cmip6 set branch_method = $branch_method,
+                  branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent,
+                  variant_label = $variant_label, parentExp_id = NULL
+                  where case_id = $case_id);
     }
 
-    # update the t2_cmip6_exps table with the branch variables
-    $sql = qq(update t2_cmip6_exps set branch_method = $branch_method,
-              branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent
-              where id = $exp_id);
-    if ($cesm_cmip6_id > 0) {
-	$sql = qq(update t2_cmip6_exps set branch_method = $branch_method,
-                  branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent
-                  where id = $cesm_cmip6_id);
-    }
-    $sth = $dbh->prepare($sql);
+    # update the t2j_cmip6 table with the branch variables
+    my $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
     $sth->finish();
 }
-
 
 $dbh->disconnect;
 exit;
