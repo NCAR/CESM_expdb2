@@ -520,9 +520,10 @@ sub getCMIP6CaseByID
 	    $globalAtts{'parent_activity_id'} = 'no parent';
 	    if( $ref->{'parentExp_id'} > 0)
 	    {
-		$sql1 = qq(select e.activity_id, e.experiment_id, j.variant_label 
+		$sql1 = qq(select e.activity_id, e.experiment_id, j.variant_label, j.case_id
                            from t2_cmip6_exps as e, t2j_cmip6 as j 
-                           where j.exp_id = $ref->{'parentExp_id'} and e.id = j.exp_id);
+                           where j.exp_id = $ref->{'parentExp_id'} and e.id = j.exp_id
+                           order by case_id);
 		$sth1 = $dbh->prepare($sql1);
 		$sth1->execute();
 		($project{'cmip6_parent_activity_id'}, $project{'cmip6_parent_experiment_id'},
@@ -597,7 +598,8 @@ sub getCMIP6CaseByID
 		{
 		    $sql1 = qq(select variant_label from t2j_cmip6 
                                where exp_id = (select id from t2_cmip6_exps
-                               where name = "$ref->{'parent_experiment_id'}"));
+                               where name = "$ref->{'parent_experiment_id'}")
+                               order by case_id);
 		    $sth1 = $dbh->prepare($sql1);
 		    $sth1->execute();
 		    $project{'cmip6_parent_variant_label'} = $sth1->fetchrow();
