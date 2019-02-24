@@ -1205,7 +1205,7 @@ sub updateGlobalAttsProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
-    my $sql;
+    my ($branch_child, $branch_parent, $variant_label) = "";
 
     if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -1219,36 +1219,36 @@ sub updateGlobalAttsProcess
 
     # get the variables quoted from the update form
     my $branch_method = $dbh->quote($item{'branch_method'});
-    my $branch_child = $dbh->quote("0.0DO");
-    my $branch_parent = $dbh->quote("0.0DO");
+    my $sql =  qq(update t2j_cmip6 set branch_method = $branch_method );
     if (length($item{'branch_time_in_child'}) > 0) 
     { 
 	$branch_child = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_child'}));
+	$sql .= qq(, branch_time_in_child = $branch_child );
     }
     if (length($item{'branch_time_in_parent'}) > 0)
     {
 	$branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
+	$sql .= qq(, branch_time_in_parent = $branch_parent );
     }
-    my $variant_label = $dbh->quote($item{'variant_label'});
+    if (length($item{'variant_laebl'}) > 0)
+    {
+	$variant_label = $dbh->quote($item{'variant_label'});
+	$sql .= qq(, variant_label = $variant_label );
+    }
     if ($item{'parentExp'} > 0) 
     {
-	$sql = qq(update t2j_cmip6 set branch_method = $branch_method,
-                  branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent,
-                  variant_label = $variant_label, parentExp_id = $item{'parentExp'}
-                  where case_id = $case_id);
+	$sql .= qq(, parentExp_id = $item{'parentExp'} );
+
     }
-    else
-    {
-	$sql = qq(update t2j_cmip6 set branch_method = $branch_method,
-                  branch_time_in_child = $branch_child, branch_time_in_parent = $branch_parent,
-                  variant_label = $variant_label, parentExp_id = NULL
-                  where case_id = $case_id);
-    }
+    $sql .= qq(where case_id = $case_id);
 
     # update the t2j_cmip6 table with the branch variables
     my $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
     $sth->finish();
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(CMIP6 File Global Attributes successfully updated.<br/>)
 }
 
 $dbh->disconnect;
