@@ -651,7 +651,7 @@ sub updateTitleProcess
 
     if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
+	$validstatus{'message'} .= qq(Only CMIP6 authorized users are allowed to modify the case details.<br/>);
 	return;
     }
 
@@ -676,14 +676,13 @@ sub publishESGFProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
+    my ($case, $status, $project, $notes, $links, $globalAtts);
 
-    if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}) ) {
+    if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to publish case details to the ESGF.<br/>);
+	$validstatus{'message'} .= qq(Only CMIP6 authorized data managers are allowed to publish case details to the ESGF.<br/>);
 	return;
     }
-
-    my ($case, $status, $project, $notes, $links, $globalAtts);
 
     if ($expType_id == '1') 
     {
@@ -711,6 +710,7 @@ EOF
 	    header => [
 		From => $item{lemail},
 		To   => "gateway-publish\@ucar.edu",
+		Cc   => $item{lemail},
 		Subject => $subject,
 	    ],
 	    body => $msgbody,
@@ -740,14 +740,13 @@ sub updateESGFProcess
     my $expType_id = $req->param('expType_id');
     my $pub_radio = $req->param('esgf_published');
     my $verify_radio = $req->param('esgf_verified');
+    my ($case, $status, $project, $notes, $links, $globalAtts);
 
     if (!isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the ESGF publication options.<br/>);
+	$validstatus{'message'} .= qq(Only CMIP6 authorized data managers are allowed to modify the ESGF publication options.<br/>);
 	return;
     }
-
-    my ($case, $status, $project, $notes, $links, $globalAtts);
 
     if ($expType_id == '1') 
     {
@@ -785,9 +784,9 @@ sub publishCDGProcess
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
 
-    if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}) ) {
+    if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to publish case details to the CDG.<br/>);
+	$validstatus{'message'} .= qq(Only CMIP6 authorized data managers are allowed to publish case details to the CDG.<br/>);
 	return;
     }
 
@@ -820,6 +819,7 @@ EOF
 	    header => [
 		From => $item{lemail},
 		To   => "gateway-publish\@ucar.edu",
+		Cc   => $item{lemail},
 		Subject => $subject,
 	    ],
 	    body => $msgbody,

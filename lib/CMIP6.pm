@@ -1188,14 +1188,27 @@ sub isCMIP6Publisher
 {
     my $dbh = shift;
     my $user_id = shift;
+    my $case_id = shift;
 
+    # first check if this is a non-science lead CMIP6 publisher
     my $sql = qq(select is_cmip6_pub from t_svnusers 
                  where user_id = $user_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     my ($is_cmip6_pub) = $sth->fetchrow();
 
-    return $is_cmip6_pub;
+    # check if this user_id matches the case science_id lead
+    $sql = qq(select IFNULL(science_id, 0) as science_id from t2j_cmip6 
+              where $user_id = science_id and case_id = $case_id);
+    $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my ($science_id) = $sth->fetchrow();
+
+    
+    if ($is_cmip6_pub || ($science_id > 0)) {
+	return 1;
+    }
+    return 0;
 }
 
 sub getCMIP6SourceIDs

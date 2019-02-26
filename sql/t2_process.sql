@@ -33,6 +33,7 @@ values ('case_run','model run'),
        ('cmat_diagnostics', 'climate model analysis tool diagnostics'),
        ('ccr_diagnostics', 'climate change research diagnostics'),
        ('atmv_diagnostics', 'atmosphere variability diagnostics'),
-       ('publish_science', 'scientifically validated publication'),
-       ('publish_timing', 'timing data publication');
+       ('publish_science', 'scientific journal publication'),
+       ('publish_timing', 'timing data publication'),
+       ('NCAR_opensky', 'NCAR Opensky repository');
 
