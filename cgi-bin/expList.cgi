@@ -105,7 +105,9 @@ sub doActions()
     # call the function corresponding to the requested action
     if ( length($action) == 0)
     {
+        print STDERR ">>> before showExpList call";
 	&showExpList(\%validstatus);
+	print STDERR ">>> after showExpList call";
     }
     if ($action eq "showCaseDetail")
     {
@@ -225,26 +227,48 @@ sub showExpList
 #--------------
 {
     my $validstatus = shift;
+    print STDERR ">>> before header call";
+    print $req->header(-cookie=>$cookie);
+    print STDERR ">>> after header call";
 
+    print STDERR ">>> before getCMIP6Experiments '' call";
     my @CMIP6Exps        = getCMIP6Experiments($dbh, '');
+    print STDERR ">>> before getCMIP6Experiments 'cmip6' call";
     my @CMIP6ParentExps  = getCMIP6Experiments($dbh, 'cmip6');
+    print STDERR ">>> before getCMIP6MIPs call";
     my @CMIP6MIPs        = getCMIP6MIPs($dbh);
+    print STDERR ">>> before getCMIP6DECKs call";
     my @CMIP6DECKs       = getCMIP6DECKs($dbh);
+    print STDERR ">>> before getCMIP6DCPPs call";
     my @CMIP6DCPPs       = getCMIP6DCPPs($dbh);
+    print STDERR ">>> before getCMIP6Sources call";
     my @CMIP6Sources     = getCMIP6Sources($dbh);
+    print STDERR ">>> before getCMIP6SourceIDs call";
     my @CMIP6SourceIDs   = getCMIP6SourceIDs($dbh);
+    print STDERR ">>> before getCMIP6Status call";
     my @CMIP6Status      = getCMIP6Status($dbh);
+    print STDERR ">>> before getCMIP6Inits call";
     my @CMIP6Inits       = getCMIP6Inits($dbh);
+    print STDERR ">>> before getCMIP6Physics call";
     my @CMIP6Physics     = getCMIP6Physics($dbh);
+    print STDERR ">>> before getCMIP6Forcings call";
     my @CMIP6Forcings    = getCMIP6Forcings($dbh);
+    print STDERR ">>> before getCMIP6Diags call";
     my @CMIP6Diags       = getCMIP6Diags($dbh);
 
+    print STDERR ">>> before getCasesByType 2 call";
     my @cesm2exps        = getCasesByType($dbh, 2);
+    print STDERR ">>> before getCasesByType 3 call";
     my @projectA         = getCasesByType($dbh, 3);
+    print STDERR ">>> before getCasesByType 4 call";
     my @projectB         = getCasesByType($dbh, 4);
+    print STDERR ">>> before getCasesByType 5 call";
     my @cesm2tune        = getCasesByType($dbh, 5);
+    print STDERR ">>> before getAllCases call";
     my @allCases         = getAllCases($dbh);
+    print STDERR ">>> before getNCARUsers call";
     my @NCARUsers        = getNCARUsers($dbh);
+    print STDERR ">>> before getCMIP6Users call";
     my @CMIP6Users       = getCMIP6Users($dbh);
 
 
@@ -271,8 +295,7 @@ sub showExpList
 	authUser         => \%item,
 	validstatus      => $validstatus,
     };
-	
-    print $req->header(-cookie=>$cookie);
+
     my $tmplFile = '../templates/expList.tmpl';
 
     my $template = Template->new({
@@ -281,7 +304,9 @@ sub showExpList
 	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
 				 });
 
+    print STDERR ">>> before process call";
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
+    print STDERR ">>> after process call";
 
 }
 

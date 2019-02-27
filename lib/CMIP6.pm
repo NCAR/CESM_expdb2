@@ -381,7 +381,6 @@ sub getCMIP6CaseByID
 	    if ($field_history > 0) {
 		$case{$field}{'value'} = $field_history[0]{'field_value'};
 	    }
-	    
 	}
 
 	# get all the boolean fields and their history values
@@ -431,6 +430,8 @@ sub getCMIP6CaseByID
 	if ($count) {
 	    $case{'archiver'}{'value'} = $firstname . ' ' . $lastname . ': ' . $email
 	}
+	$sth->finish();
+
 	my @field_history = getCaseFieldByName($dbh, $id, "svnuser_id");
 	$case{'archiver'}{'history'} = \@field_history;
 	# TODO later loop through the field history and resolve the id's returned
@@ -676,7 +677,6 @@ sub getCMIP6CaseByID
 
 	# sort on process_id key
 	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
-
     }
     return \%case, \%status, \%project, \@notes, \@sorted, \%globalAtts;
 }
@@ -931,6 +931,8 @@ sub getCMIP6Status
 	$case{'expName'} = $ref->{'name'};
 	$case{'cmip6_exp_uid'} = $ref->{'uid'};
 
+        print STDERR ">>> ID run: $case{'case_id'}";
+
 	# get the most current value for cost 
 	$case{'run_model_cost'} = $ref->{'model_cost'};
 	my @field_history = getCaseFieldByName($dbh, $case{'case_id'}, 'model_cost');
@@ -1179,6 +1181,7 @@ sub isCMIP6User
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     my ($is_cmip6) = $sth->fetchrow();
+    $sth->finish();
 
     return $is_cmip6;
 }
@@ -1196,6 +1199,7 @@ sub isCMIP6Publisher
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     my ($is_cmip6_pub) = $sth->fetchrow();
+    $sth->finish();
 
     # check if this user_id matches the case science_id lead
     $sql = qq(select IFNULL(science_id, 0) as science_id from t2j_cmip6 
@@ -1203,7 +1207,7 @@ sub isCMIP6Publisher
     $sth = $dbh->prepare($sql);
     $sth->execute();
     my ($science_id) = $sth->fetchrow();
-
+    $sth->finish();
     
     if ($is_cmip6_pub || ($science_id > 0)) {
 	return 1;
