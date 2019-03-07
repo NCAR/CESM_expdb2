@@ -225,6 +225,11 @@ sub showExpList
 #--------------
 {
     my $validstatus = shift;
+    print $req->header(-cookie=>$cookie);
+
+    print STDERR ">>> before getCMIP6Status call";
+    my @CMIP6Status      = getCMIP6Status($dbh);
+    print STDERR ">>> before getCMIP6Inits call";
 
     my @CMIP6Exps        = getCMIP6Experiments($dbh, '');
     my @CMIP6ParentExps  = getCMIP6Experiments($dbh, 'cmip6');
@@ -233,7 +238,6 @@ sub showExpList
     my @CMIP6DCPPs       = getCMIP6DCPPs($dbh);
     my @CMIP6Sources     = getCMIP6Sources($dbh);
     my @CMIP6SourceIDs   = getCMIP6SourceIDs($dbh);
-    my @CMIP6Status      = getCMIP6Status($dbh);
     my @CMIP6Inits       = getCMIP6Inits($dbh);
     my @CMIP6Physics     = getCMIP6Physics($dbh);
     my @CMIP6Forcings    = getCMIP6Forcings($dbh);
@@ -246,7 +250,6 @@ sub showExpList
     my @allCases         = getAllCases($dbh);
     my @NCARUsers        = getNCARUsers($dbh);
     my @CMIP6Users       = getCMIP6Users($dbh);
-
 
     my $vars = {
 	CMIP6Exps        => \@CMIP6Exps,
@@ -271,8 +274,7 @@ sub showExpList
 	authUser         => \%item,
 	validstatus      => $validstatus,
     };
-	
-    print $req->header(-cookie=>$cookie);
+
     my $tmplFile = '../templates/expList.tmpl';
 
     my $template = Template->new({
@@ -282,7 +284,6 @@ sub showExpList
 				 });
 
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
-
 }
 
 #------------------

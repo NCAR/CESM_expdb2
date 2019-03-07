@@ -139,6 +139,7 @@ sub getUserByID
 	$user{'firstname'} = $ref->{'firstname'};
 	$user{'email'} = $ref->{'email'};
     }
+    $sth->finish();
 
     return %user;
 }
@@ -547,6 +548,7 @@ sub getCaseByID
 	if ($count) {
 	    $case{'archiver'}{'value'} = $firstname . ' ' . $lastname . ': ' . $email
 	}
+	$sth->finish();
 	my @field_history = getCaseFieldByName($dbh, $id, "svnuser_id");
 	$case{'archiver'}{'history'} = \@field_history;
 

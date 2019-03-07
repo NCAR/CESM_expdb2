@@ -1,6 +1,7 @@
 package CMIP6;
 use warnings;
 use strict;
+##use DBIx::Profile;
 use DBI;
 use DBD::mysql;
 use Time::localtime;
@@ -381,7 +382,6 @@ sub getCMIP6CaseByID
 	    if ($field_history > 0) {
 		$case{$field}{'value'} = $field_history[0]{'field_value'};
 	    }
-	    
 	}
 
 	# get all the boolean fields and their history values
@@ -431,6 +431,8 @@ sub getCMIP6CaseByID
 	if ($count) {
 	    $case{'archiver'}{'value'} = $firstname . ' ' . $lastname . ': ' . $email
 	}
+	$sth->finish();
+
 	my @field_history = getCaseFieldByName($dbh, $id, "svnuser_id");
 	$case{'archiver'}{'history'} = \@field_history;
 	# TODO later loop through the field history and resolve the id's returned
@@ -523,7 +525,7 @@ sub getCMIP6CaseByID
 		$sql1 = qq(select e.activity_id, e.experiment_id, j.variant_label, j.case_id
                            from t2_cmip6_exps as e, t2j_cmip6 as j 
                            where j.exp_id = $ref->{'parentExp_id'} and e.id = j.exp_id
-                           order by case_id);
+                           order by j.case_id);
 		$sth1 = $dbh->prepare($sql1);
 		$sth1->execute();
 		($project{'cmip6_parent_activity_id'}, $project{'cmip6_parent_experiment_id'},
@@ -676,7 +678,6 @@ sub getCMIP6CaseByID
 
 	# sort on process_id key
 	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
-
     }
     return \%case, \%status, \%project, \@notes, \@sorted, \%globalAtts;
 }
@@ -931,6 +932,8 @@ sub getCMIP6Status
 	$case{'expName'} = $ref->{'name'};
 	$case{'cmip6_exp_uid'} = $ref->{'uid'};
 
+        ##print STDERR ">>> id = $case{'case_id'}";
+
 	# get the most current value for cost 
 	$case{'run_model_cost'} = $ref->{'model_cost'};
 	my @field_history = getCaseFieldByName($dbh, $case{'case_id'}, 'model_cost');
@@ -957,7 +960,7 @@ sub getCMIP6Status
                       j.case_id = $ref->{'id'} and
                       j.process_id = 1 and 
                       j.status_id = s.id
-                      order by last_update desc
+                      order by j.last_update desc
                       limit 1);
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
@@ -976,7 +979,7 @@ sub getCMIP6Status
                       j.case_id = $ref->{'id'} and
                       j.process_id = 2 and 
                       j.status_id = s.id
-                      order by last_update desc
+                      order by j.last_update desc
                       limit 1);
 
 	$sth1 = $dbh->prepare($sql1);
@@ -991,12 +994,12 @@ sub getCMIP6Status
 	# get the timeseries status
 	$sql1 = qq(select IFNULL(j.disk_usage,0) as disk_usage, 
                       IFNULL(j.model_date,0) as model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      j.total_time, s.code, s.color 
+                      IFNULL(j.total_time,'Unknown') as total_time, s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 3 and 
                       j.status_id = s.id
-                      order by last_update desc
+                      order by j.last_update desc
                       limit 1);
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
@@ -1016,12 +1019,12 @@ sub getCMIP6Status
 	# get the conform status
 	$sql1 = qq(select IFNULL(j.disk_usage,0) as disk_usage, 
                       IFNULL(j.model_date,0) as model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      j.total_time, s.code, s.color 
+                      IFNULL(j.total_time,'Unknown') as total_time, s.code, s.color 
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 17 and 
                       j.status_id = s.id
-                      order by last_update desc
+                      order by j.last_update desc
                       limit 1);
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
@@ -1048,7 +1051,7 @@ sub getCMIP6Status
                       j.case_id = $ref->{'id'} and
                       j.process_id = 18 and 
                       j.status_id = s.id
-                      order by last_update desc
+                      order by j.last_update desc
                       limit 1);
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
@@ -1058,7 +1061,12 @@ sub getCMIP6Status
         push(@cases, \%case);
     }            
     $sth->finish();
+
+##    $dbh->setLogFile("ProfileOutput.txt");
+##    $dbh->printProfile();
+
     return @cases;
+
 }
 
 sub getCMIP6Diags
@@ -1179,6 +1187,7 @@ sub isCMIP6User
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     my ($is_cmip6) = $sth->fetchrow();
+    $sth->finish();
 
     return $is_cmip6;
 }
@@ -1196,6 +1205,7 @@ sub isCMIP6Publisher
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     my ($is_cmip6_pub) = $sth->fetchrow();
+    $sth->finish();
 
     # check if this user_id matches the case science_id lead
     $sql = qq(select IFNULL(science_id, 0) as science_id from t2j_cmip6 
@@ -1203,7 +1213,7 @@ sub isCMIP6Publisher
     $sth = $dbh->prepare($sql);
     $sth->execute();
     my ($science_id) = $sth->fetchrow();
-
+    $sth->finish();
     
     if ($is_cmip6_pub || ($science_id > 0)) {
 	return 1;
