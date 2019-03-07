@@ -68,6 +68,12 @@ while (my $ref = $sth0->fetchrow_hashref())
     $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
     $sth->finish;
+
+    # insert a new single entry for exp_id = 120 (piSST-pdSIC) in t2j_cmip6
+    $sql = qq(insert into t2j_cmip6 (exp_id, design_mip_id, variant_label) value (120, 13, "r0i0p0f0"));
+    $sth = $dbh->prepare($sql);
+    $sth->execute() or die $dbh->errstr;
+    $sth->finish;
 }
 
 $sth0->finish;
