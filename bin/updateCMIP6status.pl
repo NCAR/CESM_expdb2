@@ -34,7 +34,8 @@ my $dsn = $config{'dsn'};
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
 
-my @CMIP6Status      = getCMIP6Status($dbh);
+my ($sql, $sth);
+my @CMIP6Status  = getCMIP6Status($dbh);
 
 #
 # loop through the CMIP6status array of hashes and update or insert 
@@ -45,9 +46,9 @@ foreach my $ref (@CMIP6Status)
 {
     # see if an insert or update is required based on the 
     # existence of the case_id in the t2v_cmip6_status table
-    my $sql = qq(select COUNT(case_id) from t2v_cmip6_status 
+    $sql = qq(select COUNT(case_id) from t2v_cmip6_status 
                  where case_id = $ref->{'case_id'});
-    my $sth = $dbh->prepare($sql);
+    $sth = $dbh->prepare($sql);
     $sth->execute() or die $dbh->errstr;
     my ($count) = $sth->fetchrow;
     $sth->finish;
@@ -106,6 +107,14 @@ foreach my $ref (@CMIP6Status)
 	$sth->finish;
     }
 }
+
+# make sure to delete any cases that are in the t2v_cmip6_status table but are no longer in the t2_cases table
+# this should only be the case if removeCase.pl has been run manually
+$sql = qq(delete from t2v_cmip6_status where case_id not in (select id from t2_cases));
+$sth = $dbh->prepare($sql);
+$sth->execute() or die $dbh->errstr;
+$sth->finish;
+
 $dbh->disconnect;
 
 exit 0;
