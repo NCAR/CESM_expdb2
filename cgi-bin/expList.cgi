@@ -227,10 +227,11 @@ sub showExpList
     my $validstatus = shift;
     print $req->header(-cookie=>$cookie);
 
-    print STDERR ">>> before getCMIP6Status call";
-    my @CMIP6Status      = getCMIP6Status($dbh);
-    print STDERR ">>> before getCMIP6Inits call";
+    print STDERR ">>> before getCMIP6StatusFast call";
+##    my @CMIP6Status      = getCMIP6Status($dbh);
+    my @CMIP6Status      = getCMIP6StatusFast($dbh);
 
+    print STDERR ">>> before getCMIP6Inits call";
     my @CMIP6Exps        = getCMIP6Experiments($dbh, '');
     my @CMIP6ParentExps  = getCMIP6Experiments($dbh, 'cmip6');
     my @CMIP6MIPs        = getCMIP6MIPs($dbh);

@@ -18,7 +18,7 @@ use expdb2_0;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(getCMIP6Experiments getCMIP6MIPs getCMIP6DECKs getCMIP6DCPPs getCMIP6Sources 
-getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6Inits getCMIP6Physics
+getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6StatusFast getCMIP6Inits getCMIP6Physics
 getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher getCMIP6SourceIDs convertToCMIP6Time);
 
 sub getCMIP6Experiments
@@ -1062,12 +1062,70 @@ sub getCMIP6Status
     }            
     $sth->finish();
 
+    return @cases;
+
+}
+
+sub getCMIP6StatusFast
+{
+    # query the off-line pre-loaded t2v_cmip6_status table for faster response
+    my $dbh = shift;
+    my @cases;
+    
+    my $sql = qq(select * from t2v_cmip6_status);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while (my $ref = $sth->fetchrow_hashref())
+    {
+	my %case;
+	# load up this case hash
+	$case{'case_id'} = $ref->{'case_id'};
+	$case{'casename'} = $ref->{'casename'};
+	$case{'cmip6_exp_uid'} = $ref->{'cmip6_exp_uid'};
+	$case{'conform_code'} = $ref->{'conform_code'};
+	$case{'conform_color'} = $ref->{'conform_color'};
+	$case{'conform_disk_usage'} = $ref->{'conform_disk_usage'};
+	$case{'conform_last_update'} = $ref->{'conform_last_update'};
+	$case{'conform_model_date'} = $ref->{'conform_model_date'};
+	$case{'conform_percent_complete'} = $ref->{'conform_percent_complete'};
+	$case{'conform_process_time'} = $ref->{'conform_process_time'};
+	$case{'expName'} = $ref->{'expName'};
+	$case{'pub_code'} = $ref->{'pub_code'};
+	$case{'pub_color'} = $ref->{'pub_color'};
+	$case{'pub_last_update'} = $ref->{'pub_last_update'};
+	$case{'run_archive_method'} = $ref->{'run_archive_method'};
+	$case{'run_code'} = $ref->{'run_code'};
+	$case{'run_color'} = $ref->{'run_color'};
+	$case{'run_disk_usage'} = $ref->{'run_disk_usage'};
+	$case{'run_last_update'} = $ref->{'run_last_update'};
+	$case{'run_model_cost'} = $ref->{'run_model_cost'};
+	$case{'run_model_date'} = $ref->{'run_model_date'};
+	$case{'run_model_throughput'} = $ref->{'run_model_throughput'};
+	$case{'run_percent_complete'} = $ref->{'run_percent_complete'};
+	$case{'sta_archive_method'} = $ref->{'sta_archive_method'};
+	$case{'sta_code'} = $ref->{'sta_code'};
+	$case{'sta_color'} = $ref->{'sta_color'};
+	$case{'sta_disk_usage'} = $ref->{'sta_disk_usage'};
+	$case{'sta_last_update'} = $ref->{'sta_last_update'};
+	$case{'sta_model_date'} = $ref->{'sta_model_date'};
+	$case{'sta_percent_complete'} = $ref->{'sta_percent_complete'},
+	$case{'total_disk_usage'} = $ref->{'total_disk_usage'};
+	$case{'ts_code'} = $ref->{'ts_code'};
+	$case{'ts_color'} = $ref->{'ts_color'};
+	$case{'ts_disk_usage'} = $ref->{'ts_disk_usage'};
+	$case{'ts_last_update'} = $ref->{'ts_last_update'};
+	$case{'ts_model_date'} = $ref->{'ts_model_date'};
+	$case{'ts_percent_complete'} = $ref->{'ts_percent_complete'};
+	$case{'ts_process_time'} = $ref->{'ts_process_time'};
+
+        push(@cases, \%case);
+    }
 ##    $dbh->setLogFile("ProfileOutput.txt");
 ##    $dbh->printProfile();
 
     return @cases;
-
 }
+
 
 sub getCMIP6Diags
 {
