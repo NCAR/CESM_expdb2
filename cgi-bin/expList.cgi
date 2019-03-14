@@ -686,13 +686,13 @@ sub publishESGFProcess
 	return;
     }
 
-    if ($expType_id == '1') 
-    {
-	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-    }
-    else {
-	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
-    }
+##    if ($expType_id == '1') 
+##    {
+##	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+##    }
+##    else {
+##	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
+##    }
 
     # check current publish status for process_id = 18 (publish_esgf)
     my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
@@ -742,6 +742,7 @@ sub updateESGFProcess
     my $expType_id = $req->param('expType_id');
     my $pub_radio = $req->param('esgf_published');
     my $verify_radio = $req->param('esgf_verified');
+    my $esgf_size = $req->param('esgf_size');
     my ($case, $status, $project, $notes, $links, $globalAtts);
 
     if (!isCMIP6User($dbh, $item{luser_id}) ) {
@@ -750,21 +751,21 @@ sub updateESGFProcess
 	return;
     }
 
-    if ($expType_id == '1') 
-    {
-	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-    }
-    else 
-    {
-	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
-    }
+##    if ($expType_id == '1') 
+##    {
+##	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+##    }
+##    else 
+##    {
+##	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
+##    }
     
     # check current publish status for process_id = 18 (publish_esgf)
     my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
 
     if ($status_id == 2 && $pub_radio eq 'yes') {
 	# update the publish to ESGF status - process_id = 18 to status_id = 5 "succeeded"
-	updatePublishStatus($dbh, $case_id, 18, 5, $item{luser_id});
+	updatePublishStatus($dbh, $case_id, 18, 5, $item{luser_id}, $esgf_size);
 	$validstatus{'status'} = 1;
 	$validstatus{'message'} .= qq(ESGF publication successfully completed.<br/>)
     }
@@ -772,7 +773,7 @@ sub updateESGFProcess
 
     if ($status_id == 5 && $verify_radio eq 'yes') {
 	# update the publish to ESGF status - process_id = 18 to status_id = 6 "Verified"
-	updatePublishStatus($dbh, $case_id, 18, 6, $item{luser_id});
+	updatePublishStatus($dbh, $case_id, 18, 6, $item{luser_id}, $esgf_size);
 	$validstatus{'status'} = 1;
 	$validstatus{'message'} .= qq(ESGF publication verified.<br/>)
     }
@@ -851,6 +852,7 @@ sub updateCDGProcess
     my $expType_id = $req->param('expType_id');
     my $pub_radio = $req->param('cdg_published');
     my $verify_radio = $req->param('cdg_verified');
+    my $cdg_size = $req->param('cdg_size');
 
     if (!isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -874,7 +876,7 @@ sub updateCDGProcess
 
     if ($status_id == 2 && $pub_radio eq 'yes') {
 	# update the publish to CDG status - process_id = 20 to status_id = 5 "succeeded"
-	updatePublishStatus($dbh, $case_id, 20, 5, $item{luser_id});
+	updatePublishStatus($dbh, $case_id, 20, 5, $item{luser_id}, $cdg_size);
 	$validstatus{'status'} = 1;
 	$validstatus{'message'} .= qq(CDG publication successfully completed.<br/>)
     }
@@ -882,7 +884,7 @@ sub updateCDGProcess
 
     if ($status_id == 5 && $verify_radio eq 'yes') {
 	# update the publish to CDG status - process_id = 20 to status_id = 6 "Verified"
-	updatePublishStatus($dbh, $case_id, 20, 6, $item{luser_id});
+	updatePublishStatus($dbh, $case_id, 20, 6, $item{luser_id}, $cdg_size);
 	$validstatus{'status'} = 1;
 	$validstatus{'message'} .= qq(CDG publication verified.<br/>)
     }

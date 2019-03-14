@@ -1,7 +1,7 @@
 package CMIP6;
 use warnings;
 use strict;
-##use DBIx::Profile;
+use DBIx::Profile;
 use DBI;
 use DBD::mysql;
 use Time::localtime;
@@ -660,8 +660,8 @@ sub getCMIP6CaseByID
 	    $status{$process_name}{'disk_usage'} = $ref->{'disk_usage'};
 	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
 	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
-	    my @fullstats = getProcessStats($dbh, $id, $process_name);
-	    $status{$process_name}{'history'} = \@fullstats;
+##	    my @fullstats = getProcessStats($dbh, $id, $process_name);
+##	    $status{$process_name}{'history'} = \@fullstats;
 	}
 	$sth->finish();
 
@@ -679,6 +679,10 @@ sub getCMIP6CaseByID
 	# sort on process_id key
 	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
     }
+
+    $dbh->setLogFile("./ProfileOutput.txt");
+    $dbh->printProfile();
+
     return \%case, \%status, \%project, \@notes, \@sorted, \%globalAtts;
 }
 
@@ -1120,8 +1124,6 @@ sub getCMIP6StatusFast
 
         push(@cases, \%case);
     }
-##    $dbh->setLogFile("ProfileOutput.txt");
-##    $dbh->printProfile();
 
     return @cases;
 }

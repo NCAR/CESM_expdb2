@@ -963,6 +963,13 @@ Path:  /glade/collections/cdg/cmip6/[% case.case_id.value %]
 					</div>
 				      </div>
 				    </fieldset>
+
+				    <fieldset class="form-group">
+				      <div class="row">
+					<label class="col-form-label col-sm-8">Published dataset size in MB?</label>
+					<input type="number" class="form-control" name="esgf_size" min="1" max="999999999" value=[% pubkey = 'publish_esgf'; status.$pubkey.disk_usage %] required/>
+				      </div>
+				    </fieldset>
 				    
 				    <div class="modal-footer">
 				      <input type="hidden" name="action" value="updateESGFProcess"/>
@@ -1094,6 +1101,13 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      </div>
 				    </fieldset>
 				    
+				    <fieldset class="form-group">
+				      <div class="row">
+					<label class="col-form-label col-sm-8">Published dataset size in MB?</label>
+					<input type="number" class="form-control" name="cdg_size" min="1" max="999999999"  value=[% pubkey = 'publish_cdg'; status.$pubkey.disk_usage %] required/>
+				      </div>
+				    </fieldset>
+
 				    <div class="modal-footer">
 				      <input type="hidden" name="action" value="updateCDGProcess"/>
 				      <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
