@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 # updateCMIP6status
 #
-# updated the temporary t2t_CMIP6_status table 
-# usage : t2t_CMIP6_status
+# updated the temporary t2v_CMIP6_status table 
+# usage : updateCMIP6status.pl
 #
 
 use warnings;
@@ -13,10 +13,6 @@ use DBD::mysql;
 use Time::localtime;
 use DateTime::Format::MySQL;
 use Array::Utils qw(:all);
-##use vars qw(@ISA @EXPORT);
-##use Exporter;
-##use CGI::Carp qw(fatalsToBrowser warningsToBrowser); 
-##use CGI::Session qw/-ip-match/;
 use lib "/home/www/html/csegdb/lib";
 use config;
 use lib "/home/www/html/expdb2.0/lib";
@@ -39,7 +35,7 @@ my @CMIP6Status  = getCMIP6Status($dbh);
 
 #
 # loop through the CMIP6status array of hashes and update or insert 
-# values into the temporary t2t_CMIP6_status table
+# values into the temporary t2v_CMIP6_status table
 #
 
 foreach my $ref (@CMIP6Status)
