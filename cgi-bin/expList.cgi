@@ -547,7 +547,6 @@ EOF
 	{
 	    my %base;
 	    my ($base_name, $base_ext) = split(/\.([^\.]+)$/, $item{'case'});
-	    ## $base_name =~ s/^.//;
 	    $base_ext = substr $base_ext, 0, -1;
 
 	    # build up the casenames and add entries into the correct tables
@@ -569,10 +568,13 @@ EOF
 		# insert values in the t2j_cmip6 table based on the first ensemble experiment
 		$sql = qq(insert into t2j_cmip6 (case_id, exp_id, deck_id, design_mip_id,
                           parentExp_id, variant_label, ensemble_num, ensemble_size, assign_id,
-                          science_id, request_date, source_type, nyears) select
+                          science_id, request_date, source_type, nyears, 
+                          branch_method, branch_time_in_child, branch_time_in_parent) select
                           $ens_case_id, exp_id, deck_id, design_mip_id,
                           parentExp_id, $variant_label, $i, ensemble_size, assign_id,
-                          science_id, request_date, source_type, nyears from t2j_cmip6
+                          science_id, request_date, source_type, nyears,
+                          branch_method, branch_time_in_child, branch_time_in_parent 
+                          from t2j_cmip6 
                           where case_id = $case_id);
 		$sth = $dbh->prepare($sql);
 		$sth->execute();
@@ -684,14 +686,6 @@ sub publishESGFProcess
 	return;
     }
 
-##    if ($expType_id == '1') 
-##    {
-##	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-##    }
-##    else {
-##	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
-##    }
-
     # check current publish status for process_id = 18 (publish_esgf)
     my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
 
@@ -749,15 +743,6 @@ sub updateESGFProcess
 	return;
     }
 
-##    if ($expType_id == '1') 
-##    {
-##	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-##    }
-##    else 
-##    {
-##	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
-##    }
-    
     # check current publish status for process_id = 18 (publish_esgf)
     my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
 

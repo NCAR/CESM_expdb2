@@ -529,6 +529,7 @@
 				      <th class="active">st_archive</th>
 				      <th class="active">timeseries</th>
 				      <th class="active">conformer</th>
+				      <th class="active">ESGF published</th>
 				      <th class="active">overall status</th>
 				    </tr>
 				  </thead>
@@ -539,23 +540,21 @@
 					<tbody>
 					  <tr>
 					    <td id="details">Disk Usage</td>
-					    <td>[% exp.run_disk_usage %]</td>
+					    <td>[% exp.run_disk_usage %] MB</td>
 					  </tr>
 					  <tr>
 					    <td id="details">Last Run Date</td>
 					    <td>[% exp.run_model_date %]</td>
 					  </tr>
 					  <tr>
-					    <td id="details">Cost</td>
-					    <td>[% exp.run_model_cost %]</td>
-					  </tr>
-					  <tr>
-					    <td id="details">Throughput</td>
-					    <td>[% exp.run_model_throughput %]</td>
-					  </tr>
-					  <tr>
 					    <td id="details">Last Update</td>
 					    <td>[% exp.run_last_update %]</td>
+					  </tr>
+					  <tr>
+					    <td colspan="2"><b>[% exp.run_model_cost %]</b></td>
+					  </tr>
+					  <tr>
+					    <td colspan="2"><b>[% exp.run_model_throughput %]</b></td>
 					  </tr>
 					</tbody>
 				      </table>
@@ -565,7 +564,7 @@
 				      <table class="table table-condensed table-striped small">
 					<tr>
 					  <td id="details">Disk Usage</td>
-					  <td>[% exp.sta_disk_usage %]</td>
+					  <td>[% exp.sta_disk_usage %] MB</td>
 					</tr>
 					<tr>
 					  <td id="details">Last Archive Date</td>
@@ -586,7 +585,7 @@
 				      <table class="table table-condensed table-striped small">
 					<tr>
 					  <td id="details">Disk Usage</td>
-					  <td>[% exp.ts_disk_usage %]</td>
+					  <td>[% exp.ts_disk_usage %] MB</td>
 					</tr>
 					<tr>
 					  <td id="details">Last Timeseries Date</td>
@@ -607,7 +606,7 @@
 				      <table class="table table-condensed table-striped small">
 					<tr>
 					  <td id="details">Disk Usage</td>
-					  <td>[% exp.conform_disk_usage %]</td>
+					  <td>[% exp.conform_disk_usage %] MB</td>
 					</tr>
 					<tr>
 					  <td id="details">Last Conform Date</td>
@@ -627,8 +626,21 @@
 				    <td>
 				      <table class="table table-condensed table-striped small">
 					<tr>
-					  <td valign="top">Total Disk Usage</td>
-					  <td>[% exp.total_disk_usage %]</td>
+					  <td id="details">Disk Usage</td>
+					  <td>[% exp.pub_disk_usage %] MB</td>
+					</tr>
+					<tr>
+					  <td id="details">Last Update</td>
+					  <td>[% exp.pub_last_update %]</td>
+					</tr>
+				      </table>
+				    </td>
+
+				    <td>
+				      <table class="table table-condensed table-striped small">
+					<tr>
+					  <td valign="top">Total Disk Usage<br/>(excluding ESGF)</td>
+					  <td>[% exp.total_disk_usage %] MB</td>
 					</tr>
 					<tr>
 					  <td valign="top">Run Percent Complete</td>

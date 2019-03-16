@@ -1,7 +1,7 @@
 package CMIP6;
 use warnings;
 use strict;
-use DBIx::Profile;
+##use DBIx::Profile;
 use DBI;
 use DBD::mysql;
 use Time::localtime;
@@ -79,11 +79,9 @@ sub getCMIP6Experiments
 		$sql2 = qq(select casename, 
                            IFNULL(DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i'),'') as archive_date from t2_cases 
                            where id = $CMIP6EnsExp{'case_id'} and expType_id = 1);
-		##print STDERR ">>> sql2 = " . $sql2;
 		$sth2 = $dbh->prepare($sql2);
 		$sth2->execute();
 		($CMIP6EnsExp{'casename'}, $CMIP6EnsExp{'archive_date'}) = $sth2->fetchrow();
-		##print STDERR ">>> casname = " . $CMIP6EnsExp{'casename'};
 		$sth2->finish();
 		push(@CMIP6Exps, \%CMIP6EnsExp);
 	    }
@@ -444,7 +442,6 @@ sub getCMIP6CaseByID
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	($cesm_cmip6_id) = $sth->fetchrow();
-	##print STDERR ">>> cesm_cmip6_id = " . $cesm_cmip6_id;
 	$sth->finish();
 
 	# get CMIP6 fields 
@@ -657,11 +654,11 @@ sub getCMIP6CaseByID
 	    $status{$process_name}{'color'} = $ref->{'color'};
 	    $status{$process_name}{'last_update'} = $ref->{'last_update'};
 	    $status{$process_name}{'model_date'} = $ref->{'model_date'};
-	    $status{$process_name}{'disk_usage'} = $ref->{'disk_usage'};
+	    $status{$process_name}{'disk_usage'} = sprintf("%.0f", $ref->{'disk_usage'}/(1024 * 1024));
 	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
 	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
-##	    my @fullstats = getProcessStats($dbh, $id, $process_name);
-##	    $status{$process_name}{'history'} = \@fullstats;
+	    my @fullstats = getProcessStats($dbh, $id, $process_name);
+	    $status{$process_name}{'history'} = \@fullstats;
 	}
 	$sth->finish();
 
@@ -680,8 +677,8 @@ sub getCMIP6CaseByID
 	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
     }
 
-    $dbh->setLogFile("./ProfileOutput.txt");
-    $dbh->printProfile();
+##    $dbh->setLogFile("./ProfileOutput.txt");
+##    $dbh->printProfile();
 
     return \%case, \%status, \%project, \@notes, \@sorted, \%globalAtts;
 }
@@ -936,8 +933,6 @@ sub getCMIP6Status
 	$case{'expName'} = $ref->{'name'};
 	$case{'cmip6_exp_uid'} = $ref->{'uid'};
 
-        ##print STDERR ">>> id = $case{'case_id'}";
-
 	# get the most current value for cost 
 	$case{'run_model_cost'} = $ref->{'model_cost'};
 	my @field_history = getCaseFieldByName($dbh, $case{'case_id'}, 'model_cost');
@@ -972,6 +967,9 @@ sub getCMIP6Status
 	 $case{'run_code'}, $case{'run_color'}, $case{'run_archive_method'}) = $sth1->fetchrow();
 	$sth1->finish();
 
+	# convert disk usage to MB
+	$case{'run_disk_usage'} = sprintf("%.0f", $case{'run_disk_usage'}/(1024 * 1024));
+
 	# compute the run percentage complete
 	$case{'run_percent_complete'} = getPercentComplete($case{'run_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
@@ -992,6 +990,9 @@ sub getCMIP6Status
 	 $case{'sta_code'}, $case{'sta_color'}, $case{'sta_archive_method'}) = $sth1->fetchrow();
 	$sth1->finish();
 
+	# convert disk usage to MB
+	$case{'sta_disk_usage'} = sprintf("%.0f",$case{'sta_disk_usage'}/(1024 * 1024));
+
 	# compute the sta percentage complete
 	$case{'sta_percent_complete'} = getPercentComplete($case{'sta_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
@@ -1010,6 +1011,9 @@ sub getCMIP6Status
 	($case{'ts_disk_usage'}, $case{'ts_model_date'}, $case{'ts_last_update'},
 	 $case{'ts_process_time'}, $case{'ts_code'}, $case{'ts_color'}) = $sth1->fetchrow();
 	$sth1->finish();
+
+	# convert disk usage to MB
+	$case{'ts_disk_usage'} = sprintf("%.0f",$case{'ts_disk_usage'}/(1024 * 1024));
 
 	# compute the timeseries percentage complete
 	$case{'ts_percent_complete'} = 0;
@@ -1036,6 +1040,8 @@ sub getCMIP6Status
 	 $case{'conform_process_time'}, $case{'conform_code'}, $case{'conform_color'}) = $sth1->fetchrow();
 	$sth1->finish();
 
+	# convert disk usage to MB
+	$case{'conform_disk_usage'} = sprintf("%.0f", $case{'conform_disk_usage'}/(1024 * 1024));
 
 	# compute the conform percentage complete
 	$case{'conform_percent_complete'} = 0;
@@ -1046,11 +1052,11 @@ sub getCMIP6Status
 	}
 
 	# compute total disk usage
-	$case{'total_disk_usage'} = $case{'run_disk_usage'} + $case{'sta_disk_usage'} + $case{'ts_disk_usage'} + $case{'conform_disk_usage'};
+	$case{'total_disk_usage'} = sprintf("%.0f", ($case{'run_disk_usage'} + $case{'sta_disk_usage'} + $case{'ts_disk_usage'} + $case{'conform_disk_usage'}));
 
 	# get publication status
 	$sql1 = qq(select DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color 
+                      s.code, s.color, j.disk_usage
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 18 and 
@@ -1059,7 +1065,7 @@ sub getCMIP6Status
                       limit 1);
 	$sth1 = $dbh->prepare($sql1);
 	$sth1->execute();
-	($case{'pub_last_update'}, $case{'pub_code'}, $case{'pub_color'}) = $sth1->fetchrow();
+	($case{'pub_last_update'}, $case{'pub_code'}, $case{'pub_color'}, $case{'pub_disk_usage'}) = $sth1->fetchrow();
 	$sth1->finish();
 
         push(@cases, \%case);
@@ -1096,6 +1102,7 @@ sub getCMIP6StatusFast
 	$case{'expName'} = $ref->{'expName'};
 	$case{'pub_code'} = $ref->{'pub_code'};
 	$case{'pub_color'} = $ref->{'pub_color'};
+	$case{'pub_disk_usage'} = $ref->{'pub_disk_usage'};
 	$case{'pub_last_update'} = $ref->{'pub_last_update'};
 	$case{'run_archive_method'} = $ref->{'run_archive_method'};
 	$case{'run_code'} = $ref->{'run_code'};
@@ -1322,6 +1329,5 @@ sub convertToCMIP6Time
     my @parts = split('-', $time);
     my $CMIP6time = ($parts[0]-1)*365 + $months{$parts[1]} + ($parts[2]-1);
     $CMIP6time = $CMIP6time . ".0DO";
-    ##print STDERR ">>> CMIP6tIme = " . $CMIP6time;
     return $CMIP6time;
 }

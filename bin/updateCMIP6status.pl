@@ -51,8 +51,26 @@ foreach my $ref (@CMIP6Status)
     if ($count == 0) 
     {
 	# insert a record
-	$sql = qq(insert into t2v_cmip6_status (case_id, casename, cmip6_exp_uid, conform_code, conform_color, conform_disk_usage, conform_last_update, conform_model_date, conform_percent_complete, conform_process_time, expName, pub_code, pub_color, pub_last_update, run_archive_method, run_code, run_color, run_disk_usage, run_last_update, run_model_cost, run_model_date, run_model_throughput, run_percent_complete, sta_archive_method, sta_code, sta_color, sta_disk_usage, sta_last_update, sta_model_date, sta_percent_complete, total_disk_usage, ts_code, ts_color, ts_disk_usage, ts_last_update, ts_model_date, ts_percent_complete, ts_process_time) 
-                  value ($ref->{'case_id'}, "$ref->{'casename'}", "$ref->{'cmip6_exp_uid'}", "$ref->{'conform_code'}", "$ref->{'conform_color'}", "$ref->{'conform_disk_usage'}", "$ref->{'conform_last_update'}", "$ref->{'conform_model_date'}", $ref->{'conform_percent_complete'}, "$ref->{'conform_process_time'}", "$ref->{'expName'}", "$ref->{'pub_code'}", "$ref->{'pub_color'}", "$ref->{'pub_last_update'}", "$ref->{'run_archive_method'}", "$ref->{'run_code'}", "$ref->{'run_color'}", "$ref->{'run_disk_usage'}", "$ref->{'run_last_update'}", "$ref->{'run_model_cost'}", "$ref->{'run_model_date'}", "$ref->{'run_model_throughput'}", $ref->{'run_percent_complete'}, "$ref->{'sta_archive_method'}", "$ref->{'sta_code'}", "$ref->{'sta_color'}", "$ref->{'sta_disk_usage'}", "$ref->{'sta_last_update'}", "$ref->{'sta_model_date'}", $ref->{'sta_percent_complete'}, "$ref->{'total_disk_usage'}", "$ref->{'ts_code'}", "$ref->{'ts_color'}", "$ref->{'ts_disk_usage'}", "$ref->{'ts_last_update'}", "$ref->{'ts_model_date'}", $ref->{'ts_percent_complete'}, "$ref->{'ts_process_time'}"));
+	$sql = qq(insert into t2v_cmip6_status 
+                  (case_id, casename, cmip6_exp_uid, conform_code, conform_color, conform_disk_usage, 
+                   conform_last_update, conform_model_date, conform_percent_complete, conform_process_time, 
+                   expName, pub_code, pub_color, pub_disk_usage, pub_last_update, run_archive_method, run_code, run_color, 
+                   run_disk_usage, run_last_update, run_model_cost, run_model_date, run_model_throughput, 
+                   run_percent_complete, sta_archive_method, sta_code, sta_color, sta_disk_usage, sta_last_update, 
+                   sta_model_date, sta_percent_complete, total_disk_usage, ts_code, ts_color, ts_disk_usage, 
+                   ts_last_update, ts_model_date, ts_percent_complete, ts_process_time, last_update) 
+                  value ($ref->{'case_id'}, "$ref->{'casename'}", "$ref->{'cmip6_exp_uid'}", 
+                   "$ref->{'conform_code'}", "$ref->{'conform_color'}", "$ref->{'conform_disk_usage'}", 
+                   "$ref->{'conform_last_update'}", "$ref->{'conform_model_date'}", $ref->{'conform_percent_complete'}, 
+                   "$ref->{'conform_process_time'}", "$ref->{'expName'}", "$ref->{'pub_code'}", "$ref->{'pub_color'}", "$ref->{'pub_disk_usage'}",
+                   "$ref->{'pub_last_update'}", "$ref->{'run_archive_method'}", "$ref->{'run_code'}", 
+                   "$ref->{'run_color'}", "$ref->{'run_disk_usage'}", "$ref->{'run_last_update'}", 
+                   "$ref->{'run_model_cost'}", "$ref->{'run_model_date'}", "$ref->{'run_model_throughput'}", 
+                   $ref->{'run_percent_complete'}, "$ref->{'sta_archive_method'}", "$ref->{'sta_code'}", 
+                   "$ref->{'sta_color'}", "$ref->{'sta_disk_usage'}", "$ref->{'sta_last_update'}", 
+                   "$ref->{'sta_model_date'}", $ref->{'sta_percent_complete'}, "$ref->{'total_disk_usage'}", 
+                   "$ref->{'ts_code'}", "$ref->{'ts_color'}", "$ref->{'ts_disk_usage'}", "$ref->{'ts_last_update'}", 
+                   "$ref->{'ts_model_date'}", $ref->{'ts_percent_complete'}, "$ref->{'ts_process_time'}", NOW()));
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	$sth->finish;
@@ -72,6 +90,7 @@ foreach my $ref (@CMIP6Status)
                   expName = "$ref->{'expName'}",
                   pub_code = "$ref->{'pub_code'}",
                   pub_color = "$ref->{'pub_color'}",
+                  pub_disk_usage = "$ref->{'pub_disk_usage'}",
                   pub_last_update = "$ref->{'pub_last_update'}",
                   run_archive_method = "$ref->{'run_archive_method'}",
                   run_code = "$ref->{'run_code'}",
@@ -96,7 +115,8 @@ foreach my $ref (@CMIP6Status)
                   ts_last_update = "$ref->{'ts_last_update'}",
                   ts_model_date = "$ref->{'ts_model_date'}",
                   ts_percent_complete = $ref->{'ts_percent_complete'},
-                  ts_process_time = "$ref->{'ts_process_time'}"
+                  ts_process_time = "$ref->{'ts_process_time'}",
+                  last_update = NOW()
                   where case_id = $ref->{'case_id'});
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
