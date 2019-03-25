@@ -5,7 +5,7 @@
 # usage : updateCMIP6status.pl
 #
 
-use warnings;
+##use warnings;
 use strict;
 ##use DBIx::Profile;
 use DBI;
@@ -118,6 +118,7 @@ foreach my $ref (@CMIP6Status)
                   ts_process_time = "$ref->{'ts_process_time'}",
                   last_update = NOW()
                   where case_id = $ref->{'case_id'});
+	##print "update SQL = " . $sql . "\n";
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	$sth->finish;
