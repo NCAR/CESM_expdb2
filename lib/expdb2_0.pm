@@ -17,7 +17,7 @@ use config;
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers getCMIP6Users checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
 getCaseFields getCaseFieldByName getCaseNotes getPercentComplete getDiags getCaseByID
-updatePublishStatus getPublishStatus);
+updatePublishStatus getPublishStatus getEnsembles);
 
 sub getCasesByType
 {
@@ -129,18 +129,25 @@ sub getUserByID
     my $dbh = shift;
     my $user_id = shift;
     my %user = ();
+    my ($sql, $sth);
 
-    my $sql = qq(select lastname, firstname, email from t_svnusers where user_id = $user_id);
-    my $sth = $dbh->prepare($sql);
-    $sth->execute();
-    while (my $ref = $sth->fetchrow_hashref())
-    {
-	$user{'lastname'} = $ref->{'lastname'};
-	$user{'firstname'} = $ref->{'firstname'};
-	$user{'email'} = $ref->{'email'};
+    if ($user_id) {
+	$sql = qq(select lastname, firstname, email from t_svnusers where user_id = $user_id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	while (my $ref = $sth->fetchrow_hashref())
+	{
+	    $user{'lastname'} = $ref->{'lastname'};
+	    $user{'firstname'} = $ref->{'firstname'};
+	    $user{'email'} = $ref->{'email'};
+	}
+	$sth->finish();
     }
-    $sth->finish();
-
+    else {
+	$user{'lastname'} = 'Unknown';
+	$user{'firstname'} = '';
+	$user{'email'} = '';
+    }
     return %user;
 }
 
@@ -382,7 +389,8 @@ sub getCaseNotes
    my $case_id = shift;
    my @notes;
 
-   my $sql = qq(select * from t2e_notes where case_id = $case_id
+   my $sql = qq(select id, case_id, note, last_update, IFNULL(svnuser_id, 0) as svnuser_id 
+                from t2e_notes where case_id = $case_id
                 order by last_update asc);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
@@ -557,7 +565,7 @@ sub getCaseByID
 	
 	# get process status
 	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
-                j.disk_usage, j.disk_path, j.archive_method, IFNULL(j.user_id, 0)
+                j.disk_usage, j.disk_path, j.archive_method, IFNULL(j.user_id, 0) as user_id
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
                 j.case_id = $id and
@@ -580,10 +588,8 @@ sub getCaseByID
 	    my @fullstats = getProcessStats($dbh, $id, $process_name);
 	    $status{$process_name}{'history'} = \@fullstats;
 	    $status{$process_name}{'user_id'} = $ref->{'user_id'};
-	    if ( $status{$process_name}{'user_id'} ) {
-		my %procUser = getUserByID($status{$process_name}{'user'});
-		$status{$process_name}{'user'} = \%procUser;
-	    }
+	    my %procUser = getUserByID($status{$process_name}{'user_id'});
+	    $status{$process_name}{'user'} = \%procUser;
 	}
 	$sth->finish();
 
@@ -642,4 +648,38 @@ sub getPublishStatus
 
     return $statusCode, $status_id;
 }
-       
+
+sub getEnsembles
+{
+    # gather all the ensmeble case id's and casenames into an array of hash references
+    my $dbh = shift;
+    my $case_id = shift;
+    my (@cases);
+    my (%case);
+
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                  from t2_cases as c, t2j_cmip6 as j 
+                  where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
+
+    my ($base_name, $base_ext) = split(/\.([^\.]+)$/, $case{'casename'});
+    for (my $i = 1; $i <= $case{'ens_size'}; $i++) {
+	my %ca;
+	my $ext = sprintf("%03d",$i);
+	my $ens_casename = $dbh->quote($base_name . "." . $ext);
+	$sql = qq(select IFNULL(id, 0) from t2_cases where casename = $ens_casename);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	my ($ens_id) = $sth->fetchrow();
+	$sth->finish();
+	if ($ens_id > 0) {
+	    $ca{'casename'} = $ens_casename;
+	    $ca{'case_id'} = $ens_id;
+	    push (@cases, \%ca);
+	}
+    }
+    return @cases;
+}       

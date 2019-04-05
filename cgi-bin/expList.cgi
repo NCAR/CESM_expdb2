@@ -389,6 +389,7 @@ sub reserveCaseCMIP6
 
     # get the user assignments from the pulldown
     if ($item{'assignUser'} > 0) {
+	print STDERR "expList.cgi line 392";
 	%assignUser = getUserByID($dbh, $item{'assignUser'});
     }
     else {
@@ -398,6 +399,7 @@ sub reserveCaseCMIP6
     }
 
     if ($item{'scienceUser'} > 0) {
+	print STDERR "expList.cgi line 402";
 	%scienceUser = getUserByID($dbh, $item{'scienceUser'});
     }
     else {
@@ -528,9 +530,9 @@ sub reserveCaseCMIP6
 
 	$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.<br/>);
 
-	my $subject = "New CMIP6 experiment $case_name has been reserved in the CESM Experiments 2.0 Database";
+	my $subject = "New CMIP6 experiment $case_name has been reserved in the CESM2 Experiments Database";
 	my $msgbody = <<EOF;
-$item{lfirstname} $item{llastname} has reserved a CMIP6 casename in the CESM Experiments 2.0 Database.
+$item{lfirstname} $item{llastname} has reserved a CMIP6 casename in the CESM2 Experiments Database.
 Please follow this link to review the submission.
 
 http://csegweb.cgd.ucar.edu/expdb2.0 
@@ -538,7 +540,7 @@ http://csegweb.cgd.ucar.edu/expdb2.0
 1. Login using your CESM SVN developer login OR your UCAS login 
 2. Select or click on the unique case name, $case_name, to review. 
 
-This email is generated automatically by the Experiment Database. 
+This email is generated automatically by the CESM Experiment Database. 
 Replying to this email will go to $item{lfirstname} $item{llastname}.
 EOF
 
@@ -605,9 +607,9 @@ EOF
 
 		$validstatus{'message'} = qq(Success! CMIP6 $case_name is now reserved.<br/>);
 
-		$subject = "New CMIP6 Ensemble with first member $case_name has been reserved in the CESM Experiments 2.0 Database";
+		$subject = "New CMIP6 Ensemble with first member $case_name has been reserved in the CESM2 Experiments Database";
 		$msgbody = <<EOF;
-$item{lfirstname} $item{llastname} has reserved a CMIP6 DCPP Ensemble in the CESM Experiments 2.0 Database.
+$item{lfirstname} $item{llastname} has reserved a CMIP6 DCPP Ensemble in the CESM2 Experiments Database.
 Please follow this link to review the submission.
 
 http://csegweb.cgd.ucar.edu/expdb2.0 
@@ -615,7 +617,7 @@ http://csegweb.cgd.ucar.edu/expdb2.0
 1. Login using your CESM SVN developer login OR your UCAS login 
 2. Select or click on the unique case names, starting with the first ensemble member $case_name, to review. 
 
-This email is generated automatically by the Experiment Database. 
+This email is generated automatically by the CESM Experiment Database. 
 Replying to this email will go to $item{lfirstname} $item{llastname}.
 EOF
 	    }
@@ -678,7 +680,10 @@ sub publishESGFProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
-    my ($case, $status, $project, $notes, $links, $globalAtts);
+    my $pub_ens = $req->param('pub_ensemble_ESGF');
+    my ($statusCode, $status_id, $subject, $msgbody, $email);
+    my @cases;
+    my %case;
 
     if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
@@ -686,42 +691,64 @@ sub publishESGFProcess
 	return;
     }
 
-    # check current publish status for process_id = 18 (publish_esgf)
-    my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
+    # get the ensemble info about the case
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                 from t2_cases as c, t2j_cmip6 as j 
+                 where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
 
-    if ($status_id != 5 || $status_id != 2) {
-	# update the publish to ESGF status - process_id = 18 to status_id = 2 "started"
-	updatePublishStatus($dbh, $case_id, 18, 2, $item{luser_id});
-	    
-	my $subject = qq(CESM EXDB ESGF Publication Notification: $case_id);
-	my $msgbody = <<EOF;
-CESM EXDB ESGF Publication Notification
-Case_ID: $case_id
-Path:  /glade/collections/cdg/cmip6/$case_id
-EOF
-
-        my $email = Email::Simple->create(
-	    header => [
-		From => $item{lemail},
-		To   => "gateway-publish\@ucar.edu",
-		Cc   => $item{lemail},
-		Subject => $subject,
-	    ],
-	    body => $msgbody,
-	);
-
-	sendmail($email, 
-		 { from => $item{lemail},
-		   transport => Email::Sender::Transport::Sendmail->new}
-	    ) or die "can't send email!";
-
-	# refresh the current page
-	$validstatus{'status'} = 1;
-	$validstatus{'message'} .= qq(Email sent to ESGF publishers.<br/>);
+    # check if all ensemble members should be published or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
     }
     else {
-	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(This experiment data has already been published to ESGF.<br/>);
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
+    }
+
+    foreach my $ca (@cases) 
+    {
+	# check current publish status for process_id = 18 (publish_esgf)
+	($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 18);
+
+	if ($status_id != 5 || $status_id != 2) {
+	    # update the publish to ESGF status - process_id = 18 to status_id = 2 "started"
+	    updatePublishStatus($dbh, $ca->{'case_id'}, 18, 2, $item{luser_id});
+	    
+	    $subject = qq(CESM EXDB ESGF Publication Notification: $ca->{'case_id'});
+	    $msgbody = <<EOF;
+CESM EXDB ESGF Publication Notification
+Case_ID: $ca->{'case_id'}
+Path:  /glade/collections/cdg/cmip6/$ca->{'case_id'}
+EOF
+
+            $email = Email::Simple->create(
+		header => [
+		    From => $item{lemail},
+##		To   => "gateway-publish\@ucar.edu",
+		    To   => "aliceb\@ucar.edu",
+		    Cc   => $item{lemail},
+		    Subject => $subject,
+		],
+		body => $msgbody,
+	    );
+
+	    sendmail($email, 
+		     { from => $item{lemail},
+		       transport => Email::Sender::Transport::Sendmail->new}
+		) or die "publishESGFProcess can't send email!";
+
+	    # refresh the current page
+	    $validstatus{'status'} = 1;
+	    $validstatus{'message'} .= qq(Email sent to ESGF publishers (case_id = $ca->{'case_id'}).<br/>);
+	}
+	else {
+	    $validstatus{'status'} = 0;
+	    $validstatus{'message'} .= qq(This experiment data has already been published to ESGF (case_id = $ca->{'case_id'}).<br/>);
+	}
     }
 }
 
@@ -733,9 +760,10 @@ sub updateESGFProcess
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
     my $pub_radio = $req->param('esgf_published');
-    my $verify_radio = $req->param('esgf_verified');
-    my $esgf_size = $req->param('esgf_size');
-    my ($case, $status, $project, $notes, $links, $globalAtts);
+    my $pub_ens = $req->param('verify_ensemble_ESGF');
+    my $esgf_size = $req->param('esgf_size') * 1000000;
+    my @cases;
+    my %case;
 
     if (!isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -743,22 +771,40 @@ sub updateESGFProcess
 	return;
     }
 
-    # check current publish status for process_id = 18 (publish_esgf)
-    my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
+    # get the ensemble info about the case
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                 from t2_cases as c, t2j_cmip6 as j 
+                 where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
 
-    if ($status_id == 2 && $pub_radio eq 'yes') {
-	# update the publish to ESGF status - process_id = 18 to status_id = 5 "succeeded"
-	updatePublishStatus($dbh, $case_id, 18, 5, $item{luser_id}, $esgf_size);
-	$validstatus{'status'} = 1;
-	$validstatus{'message'} .= qq(ESGF publication successfully completed.<br/>)
+    # check if all ensemble members should be marked success or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
     }
-    ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 18);
+    else {
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
+    }
 
-    if ($status_id == 5 && $verify_radio eq 'yes') {
-	# update the publish to ESGF status - process_id = 18 to status_id = 6 "Verified"
-	updatePublishStatus($dbh, $case_id, 18, 6, $item{luser_id}, $esgf_size);
-	$validstatus{'status'} = 1;
-	$validstatus{'message'} .= qq(ESGF publication verified.<br/>)
+    foreach my $ca (@cases) 
+    {
+
+	# check current publish status for process_id = 18 (publish_esgf)
+	my ($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 18);
+
+	if ($status_id == 2 && $pub_radio eq 'yes') {
+	    # update the publish to ESGF status - process_id = 18 to status_id = 5 "succeeded"
+	    updatePublishStatus($dbh, $case_id, 18, 5, $item{luser_id}, $esgf_size);
+	    $validstatus{'status'} = 1;
+	    $validstatus{'message'} .= qq(ESGF successfully published and verified (case_id = $ca->{'case_id'}).<br/>)
+	}
+	else {
+	    $validstatus{'status'} = 0;
+	    $validstatus{'message'} .= qq(This experiment data has already been successfully published to ESGF (case_id = $ca->{'case_id'}).<br/>);
+	}
     }
 }
 
@@ -769,6 +815,10 @@ sub publishCDGProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
+    my $pub_ens = $req->param('pub_ensemble_CDG');
+    my ($statusCode, $status_id, $subject, $msgbody, $email);
+    my @cases;
+    my %case;
 
     if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
@@ -776,53 +826,65 @@ sub publishCDGProcess
 	return;
     }
 
-    my ($case, $status, $project, $notes, $links, $globalAtts);
+    # get the ensemble info about the case
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                 from t2_cases as c, t2j_cmip6 as j 
+                 where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
 
-    if ($expType_id == '1') 
-    {
-	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+    # check if all ensemble members should be published or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
     }
     else {
-	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
     }
 
-    # check current publish status for process_id = 20 (publish_cdg)
-    my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 20);
+    foreach my $ca (@cases) 
+    {
+	# check current publish status for process_id = 20 (publish_cdg)
+	my ($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 20);
 
-    if ($status_id != 5 || $status_id != 2) {
-	# update the publish to CDG status - process_id = 20 to status_id = 2 "started"
-	updatePublishStatus($dbh, $case_id, 20, 2, $item{luser_id});
-	my $casename = $case->{'casename'}{value};
+	if ($status_id != 5 || $status_id != 2) {
+	    # update the publish to CDG status - process_id = 20 to status_id = 2 "started"
+	    updatePublishStatus($dbh, $ca->{'case_id'}, 20, 2, $item{luser_id});
+	    my $casename = $ca->{'casename'};
 	    
-	my $subject = qq(CESM EXDB CDG Publication Notification: $casename);
-	my $msgbody = <<EOF;
+	    my $subject = qq(CESM EXDB CDG Publication Notification: $ca->{'casename'});
+	    my $msgbody = <<EOF;
 CESM EXDB CDG Publication Notification
-Casename: $casename
-Path:  /glade/collections/cdg/$casename
+Casename: $ca->{'casename'}
+Path:  /glade/collections/cdg/$ca->{'casename'}
 EOF
 
-        my $email = Email::Simple->create(
-	    header => [
-		From => $item{lemail},
-		To   => "gateway-publish\@ucar.edu",
-		Cc   => $item{lemail},
-		Subject => $subject,
-	    ],
-	    body => $msgbody,
-	);
+            my $email = Email::Simple->create(
+		header => [
+		    From => $item{lemail},
+##		To   => "gateway-publish\@ucar.edu",
+		    To   => "aliceb\@ucar.edu",
+		    Cc   => $item{lemail},
+		    Subject => $subject,
+		],
+		body => $msgbody,
+	    );
 
-	sendmail($email, 
-		 { from => $item{lemail},
-		   transport => Email::Sender::Transport::Sendmail->new}
-	    ) or die "can't send email!";
+	    sendmail($email, 
+		     { from => $item{lemail},
+		       transport => Email::Sender::Transport::Sendmail->new}
+		) or die "publishCDGProcess send email!";
 
-	# refresh the current page
-	$validstatus{'status'} = 1;
-	$validstatus{'message'} .= qq(Email sent to CDG data managers.<br/>);
-    }
-    else {
-	$validstatus{'status'} = 0;
-	$validstatus{'message'} .= qq(This experiment data has already been published to CDG.<br/>);
+	    # refresh the current page
+	    $validstatus{'status'} = 1;
+	    $validstatus{'message'} .= qq(Email sent to CDG data managers (casename = $ca->{'casename'}).<br/>);
+	}
+	else {
+	    $validstatus{'status'} = 0;
+	    $validstatus{'message'} .= qq(This experiment data has already been published to CDG (casename = $ca->{'casename'}).<br/>);
+	}
     }
 }
 
@@ -834,8 +896,10 @@ sub updateCDGProcess
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
     my $pub_radio = $req->param('cdg_published');
-    my $verify_radio = $req->param('cdg_verified');
-    my $cdg_size = $req->param('cdg_size');
+    my $pub_ens = $req->param('verify_ensemble_CDG');
+    my $cdg_size = $req->param('cdg_size') * 1000000;
+    my @cases;
+    my %case;
 
     if (!isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -843,33 +907,40 @@ sub updateCDGProcess
 	return;
     }
 
-    my ($case, $status, $project, $notes, $links, $globalAtts);
+    # get the ensemble info about the case
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                 from t2_cases as c, t2j_cmip6 as j 
+                 where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
 
-    if ($expType_id == '1') 
+    # check if all ensemble members should be marked success or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
+    }
+    else {
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
+    }
+
+    foreach my $ca (@cases) 
     {
-	($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-    }
-    else 
-    {
-	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
-    }
-    
-    # check current publish status for process_id = 20 (publish_cdg)
-    my ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 20);
 
-    if ($status_id == 2 && $pub_radio eq 'yes') {
-	# update the publish to CDG status - process_id = 20 to status_id = 5 "succeeded"
-	updatePublishStatus($dbh, $case_id, 20, 5, $item{luser_id}, $cdg_size);
-	$validstatus{'status'} = 1;
-	$validstatus{'message'} .= qq(CDG publication successfully completed.<br/>)
-    }
-    ($statusCode, $status_id) = getPublishStatus($dbh, $case_id, 20);
+	# check current publish status for process_id = 20 (publish_cdg)
+	my ($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 20);
 
-    if ($status_id == 5 && $verify_radio eq 'yes') {
-	# update the publish to CDG status - process_id = 20 to status_id = 6 "Verified"
-	updatePublishStatus($dbh, $case_id, 20, 6, $item{luser_id}, $cdg_size);
-	$validstatus{'status'} = 1;
-	$validstatus{'message'} .= qq(CDG publication verified.<br/>)
+	if ($status_id == 2 && $pub_radio eq 'yes') {
+	    # update the publish to CDG status - process_id = 20 to status_id = 5 "succeeded"
+	    updatePublishStatus($dbh, $case_id, 20, 5, $item{luser_id}, $cdg_size);
+	    $validstatus{'status'} = 1;
+	    $validstatus{'message'} .= qq(CDG successfully published and verified (casename = $ca->{'casename'}).<br/>)
+	}
+	else {
+	    $validstatus{'status'} = 0;
+	    $validstatus{'message'} .= qq(This experiment data has already been successfully published to CDG (casename = $ca->{'casename'}).<br/>);
+	}
     }
 }
 
@@ -1192,7 +1263,14 @@ sub updateGlobalAttsProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
-    my ($branch_child, $branch_parent, $variant_label) = "";
+    my $caseTitle = $req->param('caseTitle');
+    my ($branch_child, $branch_parent, $variant_label, $orig_variant_label) = "";
+    my ($ens_id, $base_name, $base_ext, $ens_casename, $ext, $real_num, $casename);
+    my ($sql1, $sth1);
+    my (@cases, @variant_parts);
+    my (%case);
+    my (%globalAtts, %project);
+    my ($subject, $msgbody, $email);
 
     if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -1204,38 +1282,114 @@ sub updateGlobalAttsProcess
 	$item{$key} = ( $req->param( $key ) );
     }
 
-    # get the variables quoted from the update form
-    my $branch_method = $dbh->quote($item{'branch_method'});
-    my $sql =  qq(update t2j_cmip6 set branch_method = $branch_method );
-    if (length($item{'branch_time_in_child'}) > 0) 
-    { 
-	$branch_child = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_child'}));
-	$sql .= qq(, branch_time_in_child = $branch_child );
-    }
-    if (length($item{'branch_time_in_parent'}) > 0)
-    {
-	$branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
-	$sql .= qq(, branch_time_in_parent = $branch_parent );
-    }
-    if (length($item{'variant_laebl'}) > 0)
-    {
-	$variant_label = $dbh->quote($item{'variant_label'});
-	$sql .= qq(, variant_label = $variant_label );
-    }
-    if ($item{'parentExp'} > 0) 
-    {
-	$sql .= qq(, parentExp_id = $item{'parentExp'} );
-
-    }
-    $sql .= qq(where case_id = $case_id);
-
-    # update the t2j_cmip6 table with the branch variables
+    # get the ensemble info about the case
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                 from t2_cases as c, t2j_cmip6 as j 
+                 where c.id = $case_id and c.id = j.case_id);
     my $sth = $dbh->prepare($sql);
-    $sth->execute() or die $dbh->errstr;
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
     $sth->finish();
 
+    # check if all ensemble members should be updated or not
+    if ($item{'update_ensemble_globalAtts'} eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
+    }
+    else {
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
+    }
+
+    for my $ca (@cases) 
+    {
+	# get the variables quoted from the update form
+	my $branch_method = $dbh->quote($item{'branch_method'});
+	$sql1 =  qq(update t2j_cmip6 set branch_method = $branch_method );
+	if (length($item{'branch_time_in_child'}) > 0) 
+	{ 
+	    $branch_child = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_child'}));
+	    $sql1 .= qq(, branch_time_in_child = $branch_child );
+	}
+	if (length($item{'branch_time_in_parent'}) > 0)
+	{
+	    $branch_parent = $dbh->quote(convertToCMIP6Time($item{'branch_time_in_parent'}));
+	    $sql1 .= qq(, branch_time_in_parent = $branch_parent );
+	}
+	if (length($item{'variant_label'}) > 0)
+	{
+	    # be sure to preserve the realization number for this casename
+	    $sql = qq(select variant_label from t2j_cmip6 where case_id = $ca->{'case_id'});
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    ($orig_variant_label) = $sth->fetchrow();
+	    $sth->finish();
+	    $real_num = substr($orig_variant_label, 0, index($orig_variant_label, 'i'));
+	    @variant_parts = split('i', $item{'variant_label'});
+	    $variant_label = $real_num . "i" . $variant_parts[1];
+	    $variant_label = $dbh->quote($variant_label);
+	    $sql1 .= qq(, variant_label = $variant_label );
+	}
+	if ($item{'parentExp'} > 0) 
+	{
+	    $sql1 .= qq(, parentExp_id = $item{'parentExp'} );
+	    
+	}
+	$sql1 .= qq(where case_id = $ca->{'case_id'});
+
+	# update the t2j_cmip6 table with the branch variables
+	$sth1 = $dbh->prepare($sql1);
+	$sth1->execute() or die $dbh->errstr;
+	$sth1->finish();
+
+	# get the globalAttributes for this case_id
+	my ($globalAtts, $project) = getCMIP6GlobalFileAtts($dbh, $ca->{'case_id'}, '');
+
+	# send an email with JSON attachment for new global attributes
+	my $subject = qq(CMIP6 File Global Attributes Updated in CESM2 Experiments Database for $ca->{'casename'});
+	my $msgbody = <<EOF;
+$item{lfirstname} $item{llastname} has updated the CMIP6 file global attributes for casename = $ca->{'casename'} (case_id = $ca->{'case_id'}).
+
+These are the updates:
+    branch_method         = $globalAtts->{'branch_method'} 
+    branch_time_in_child  = $globalAtts->{'branch_time_in_child'} 
+    branch_time_in_parent = $globalAtts->{'branch_time_in_parent'} 
+    parent_experiment_id  = $globalAtts->{'parent_experiment_id'}
+    variant_label         = $globalAtts->{'variant_label'}
+
+Please see the following experiment for more details:
+
+https://csegweb.cgd.ucar.edu/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=$ca->{'case_id'}
+
+1. Login using your CESM SVN developer login OR your UCAS login 
+2. Select or click on the unique case name, starting with the first ensemble member, to review. 
+
+You can access all the CMIP6 file global attributes output to a JSON file by running the following 
+command in the caseroot:
+
+>archive_metadata --user [SVN-user-login] --password --expType CMIP6 --query_cmip6 [casename] db.json --workdir [full-path-to-working-directory]
+
+This email is generated automatically by the CESM Experiment Database. 
+Replying to this email will go to $item{lfirstname} $item{llastname}.
+EOF
+	# send emails to svnuser login, Gary and Sheri
+        my $email = Email::Simple->create(
+	    header => [
+		From => $item{lemail},
+##		To   => "$item{lemail} mickelso\@ucar.edu strandwg\@ucar.edu",
+		To   => "aliceb\@ucar.edu",
+		Subject => $subject,
+	    ],
+	    body => $msgbody,
+	);
+
+	sendmail($email, 
+		 { from => $item{lemail},
+		   transport => Email::Sender::Transport::Sendmail->new}
+	    ) or die "can't send email!";
+    }
+
     $validstatus{'status'} = 1;
-    $validstatus{'message'} = qq(CMIP6 File Global Attributes successfully updated.<br/>)
+    $validstatus{'message'} = qq(CMIP6 File Global Attributes successfully updated.<br/>);
 }
 
 $dbh->disconnect;
