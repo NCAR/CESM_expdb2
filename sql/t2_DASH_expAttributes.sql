@@ -4,11 +4,11 @@ drop table if exists t2_DASH_expAttributes;
 
 create table t2_DASH_expAttributes(
        `id` INTEGER AUTO_INCREMENT NOT NULL,	
-       `name` VARCHAR(50),
-       `description` VARCHAR(200),
+       `short_name` VARCHAR(50),
+       `name` VARCHAR(200),
        primary key (id));	
 
-insert into t2_DASH_expAttributes (name, description)
+insert into t2_DASH_expAttributes (short_name, name)
 values 
 ('1pctCO2','1%/yr CO2 increase up to 4x'),
 ('abrupt-4xCO2','Abrupt 4xCO2 simulation'),
