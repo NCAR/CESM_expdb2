@@ -728,8 +728,7 @@ EOF
             $email = Email::Simple->create(
 		header => [
 		    From => $item{lemail},
-##		To   => "gateway-publish\@ucar.edu",
-		    To   => "aliceb\@ucar.edu",
+		    To   => "gateway-publish\@ucar.edu",
 		    Cc   => $item{lemail},
 		    Subject => $subject,
 		],
@@ -864,8 +863,7 @@ EOF
             my $email = Email::Simple->create(
 		header => [
 		    From => $item{lemail},
-##		To   => "gateway-publish\@ucar.edu",
-		    To   => "aliceb\@ucar.edu",
+		    To   => "gateway-publish\@ucar.edu",
 		    Cc   => $item{lemail},
 		    Subject => $subject,
 		],
@@ -1375,8 +1373,7 @@ EOF
         my $email = Email::Simple->create(
 	    header => [
 		From => $item{lemail},
-##		To   => "$item{lemail} mickelso\@ucar.edu strandwg\@ucar.edu",
-		To   => "aliceb\@ucar.edu",
+		To   => "$item{lemail} mickelso\@ucar.edu strandwg\@ucar.edu",
 		Subject => $subject,
 	    ],
 	    body => $msgbody,

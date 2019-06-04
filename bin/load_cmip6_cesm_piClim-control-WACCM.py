@@ -88,9 +88,12 @@ def main(options):
     version = dq.version
 
     # define a lookup data structures for MIP experiments that are CESM specific
-    mip_exps = { 'DAMIP'         : ['hist-nat-WACCM', 'hist-GHG-WACCM'],
-                 'ScenarioMIP'   : ['ssp585-WACCM', 'ssp370-WACCM', 'ssp245-WACCM', 'ssp126-WACCM', 'ssp534-over-WACCM'],
-                 'RFMIP'         : ['piClim-control-WACCM'] }
+##    mip_exps = { 'DAMIP'         : ['hist-nat-WACCM', 'hist-GHG-WACCM'],
+##                 'ScenarioMIP'   : ['ssp585-WACCM', 'ssp370-WACCM', 'ssp245-WACCM', 'ssp126-WACCM', 'ssp534-over-WACCM'],
+##                 'RFMIP'         : ['piClim-control-WACCM'] }
+
+    mip_exps = { 'RFMIP'         : ['piClim-control-WACCM'] }
+
 
     for mip, exps in mip_exps.iteritems():
         # get the design_mip_id from the t2_cmip6_MIP_types
