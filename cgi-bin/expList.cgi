@@ -31,6 +31,10 @@ $ENV{PATH} = '';
 
 my $req = CGI->new;
 my %config = &getconfig;
+
+print STDERR ">>> config expdb2username " . $config{'expdb2username'};
+print STDERR ">>> config expdb2password " . $config{'expdb2password'};
+
 my $dbname = $config{'dbname'};
 my $dbhost = $config{'dbhost'};
 my $dbuser = $config{'dbuser'};
@@ -211,6 +215,20 @@ sub doActions()
 	&showCaseDetail($req->param('case_id'));
     }
 
+    # reset DASH keywords and status
+    if ($action eq "resetDASHProcess")
+    {
+	&resetDASHProcess();
+	&showCaseDetail($req->param('case_id'));
+    }
+
+    # update DASH process
+    if ($action eq "updateDASHProcess")
+    {
+	&updateDASHProcess();
+	&showCaseDetail($req->param('case_id'));
+    }
+
     # udpate CMIP6 file global attributes
     if ($action eq "updateGlobalAttsProc" &&
 	$req->param('expType_id') == 1)
@@ -306,7 +324,7 @@ sub showCaseDetail
 	($case, $status, $notes, $links) = getCaseByID($dbh, $case_id);
     }
 
-    # get all the DASH publication select options
+    # get all the DASH publication keyword options
     my @CMIP6Exps             = getCMIP6Experiments($dbh, '');
     my @CMIP6ParentExps       = getCMIP6Experiments($dbh, 'cmip6');
     my @horizontalResolutions = getHorizontalResolutions($dbh);
@@ -315,6 +333,8 @@ sub showCaseDetail
     my @expTypes              = getExpTypes($dbh);
     my @expPeriods            = getExpPeriods($dbh);
     my @components            = getComponents($dbh);
+    my @wgs                   = getWorkingGroups($dbh);
+    my $DASHFields            = getDASHFields($dbh, $case_id, $case->{'expType_id'}{'value'});
 
     if ($case->{'case_id'} < 0)
     {
@@ -351,6 +371,8 @@ sub showCaseDetail
 	components            => \@components,
 	CMIP6Exps             => \@CMIP6Exps,
 	CMIP6ParentExps       => \@CMIP6ParentExps,
+	wgs                   => \@wgs,
+	DASHFields            => $DASHFields,
     };
 
     print $req->header(-cookie=>$cookie);
@@ -716,7 +738,7 @@ sub publishESGFProcess
 
 	if ($status_id != 5 || $status_id != 2) {
 	    # update the publish to ESGF status - process_id = 18 to status_id = 2 "started"
-	    updatePublishStatus($dbh, $ca->{'case_id'}, 18, 2, $item{luser_id});
+	    updatePublishStatus($dbh, $ca->{'case_id'}, 18, 2, $item{luser_id}, 0);
 	    
 	    $subject = qq(CESM EXDB ESGF Publication Notification: $ca->{'case_id'});
 	    $msgbody = <<EOF;
@@ -759,11 +781,13 @@ sub updateESGFProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
-    my $pub_radio = $req->param('esgf_published');
     my $pub_ens = $req->param('verify_ensemble_ESGF');
+    my $esgf_url = $req->param('esgf_url');
     my $esgf_size = $req->param('esgf_size') * 1000000;
     my @cases;
     my %case;
+    my $link;
+    my $esgf_link;
 
     if (!isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -791,20 +815,46 @@ sub updateESGFProcess
 
     foreach my $ca (@cases) 
     {
-
 	# check current publish status for process_id = 18 (publish_esgf)
 	my ($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 18);
 
-	if ($status_id == 2 && $pub_radio eq 'yes') {
-	    # update the publish to ESGF status - process_id = 18 to status_id = 5 "succeeded"
-	    updatePublishStatus($dbh, $case_id, 18, 5, $item{luser_id}, $esgf_size);
+	if ($status_id == 2) {
 	    $validstatus{'status'} = 1;
-	    $validstatus{'message'} .= qq(ESGF successfully published and verified (case_id = $ca->{'case_id'}).<br/>)
+	    $validstatus{'message'} .= qq(ESGF successfully published and verified (case_id = $ca->{'case_id'}).<br/>);
+	    # update or add a link to esgf
+	    $link = getLinkByTypeCaseID($dbh, $ca->{'case_id'}, 'publish_esgf', 1);
+	    if ($link->{'count'} == 0) {
+		# insert a new link into the t2j_links table
+		$esgf_link = $dbh->quote($esgf_url);
+		$sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, approver_id) 
+                          value ($case_id, 18, 1, $esgf_link, "ESGF experiment data URL", NOW(), $item{luser_id}));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+	    }
+	    else {
+		# update link in the t2j_links table
+		$esgf_link = $dbh->quote($esgf_url);
+		$sql = qq(update t2j_links set link = $esgf_link, last_update = NOW()
+                          where id = $link->{'link_id'});
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+	    }
+	}
+	elsif ($status_id == 1) {
+	    $validstatus{'status'} = 0;
+	    $validstatus{'message'} .= qq(This experiment dataset has not yet been published to ESGF (case_id = $ca->{'case_id'}). Select the "Publish Request to ESGF" button to submit a publication request.<br/>);
 	}
 	else {
 	    $validstatus{'status'} = 0;
-	    $validstatus{'message'} .= qq(This experiment data has already been successfully published to ESGF (case_id = $ca->{'case_id'}).<br/>);
+	    $validstatus{'message'} .= qq(This experiment dataset has already been successfully published to ESGF (case_id = $ca->{'case_id'}).<br/>);
 	}
+    }
+
+    # update the publish to ESGF status - process_id = 18 to status_id = 6 "published"
+    if ($validstatus{'status'} == 1) {
+	updatePublishStatus($dbh, $case_id, 18, 6, $item{luser_id}, $esgf_size);
     }
 }
 
@@ -851,7 +901,7 @@ sub publishCDGProcess
 
 	if ($status_id != 5 || $status_id != 2) {
 	    # update the publish to CDG status - process_id = 20 to status_id = 2 "started"
-	    updatePublishStatus($dbh, $ca->{'case_id'}, 20, 2, $item{luser_id});
+	    updatePublishStatus($dbh, $ca->{'case_id'}, 20, 2, $item{luser_id}, 0);
 	    my $casename = $ca->{'casename'};
 	    
 	    my $subject = qq(CESM EXDB CDG Publication Notification: $ca->{'casename'});
@@ -895,11 +945,13 @@ sub updateCDGProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
-    my $pub_radio = $req->param('cdg_published');
     my $pub_ens = $req->param('verify_ensemble_CDG');
+    my $cdg_url = $req->param('cdg_url');
     my $cdg_size = $req->param('cdg_size') * 1000000;
     my @cases;
     my %case;
+    my $link;
+    my $cdg_link;
 
     if (!isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -927,20 +979,46 @@ sub updateCDGProcess
 
     foreach my $ca (@cases) 
     {
-
 	# check current publish status for process_id = 20 (publish_cdg)
 	my ($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 20);
 
-	if ($status_id == 2 && $pub_radio eq 'yes') {
-	    # update the publish to CDG status - process_id = 20 to status_id = 5 "succeeded"
-	    updatePublishStatus($dbh, $case_id, 20, 5, $item{luser_id}, $cdg_size);
+	if ($status_id == 2) {
 	    $validstatus{'status'} = 1;
-	    $validstatus{'message'} .= qq(CDG successfully published and verified (casename = $ca->{'casename'}).<br/>)
+	    $validstatus{'message'} .= qq(CDG successfully published and verified (casename = $ca->{'casename'}).<br/>);
+	    # update or add a link to cdg
+	    $link = getLinkByTypeCaseID($dbh, $ca->{'case_id'}, 'publish_cdg', 1);
+	    if ($link->{'count'} == 0) {
+		# insert a new link into the t2j_links table
+		$cdg_link = $dbh->quote($cdg_url);
+		$sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, approver_id) 
+                          value ($case_id, 20, 1, $cdg_link, "CDG experiment data URL", NOW(), $item{luser_id}));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+	    }
+	    else {
+		# update link in the t2j_links table
+		$cdg_link = $dbh->quote($cdg_url);
+		$sql = qq(update t2j_links set link = $cdg_link, last_update = NOW()
+                          where id = $link->{'link_id'});
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+	    }
+	}
+	elsif ($status_id == 1) {
+	    $validstatus{'status'} = 0;
+	    $validstatus{'message'} .= qq(This experiment dataset has not yet been published to CDG (case_id = $ca->{'case_id'}). Select the "Publish Request to CDG" button to submit a publication request.<br/>);
 	}
 	else {
 	    $validstatus{'status'} = 0;
-	    $validstatus{'message'} .= qq(This experiment data has already been successfully published to CDG (casename = $ca->{'casename'}).<br/>);
+	    $validstatus{'message'} .= qq(This experiment dataset has already been successfully published to CDG (case_id = $ca->{'case_id'}).<br/>);
 	}
+    }
+
+    # update the publish to CDG status - process_id = 20 to status_id = 6 "Verified"
+    if ($validstatus{'status'} == 1) {
+	updatePublishStatus($dbh, $case_id, 20, 6, $item{luser_id}, $cdg_size);
     }
 }
 
@@ -1114,127 +1192,181 @@ sub addDASHProcess
 #----------------------
 {
     my $case_id = $req->param('case_id');
-    my ($sql, $sth);
+    my $pub_ens = $req->param('pub_ensemble_DASH');
+    my $dash_size = $req->param('dash_size') * 1000000;
     my $update = 0;
-    my (@comps, @eas, @eps, @ets, @hrs, @trs);
+    my (@comps, @eas, @eps, @ets, @hrs, @trs, @wgs);
+    my %case;
+    my @cases;
 
-
-    # loop through the components ID's array for t2_DASH_tables ID = 1
-    if ($req->param('components')) {
-	if (ref $req->param('components') eq 'ARRAY' ) {
-	    @comps = $req->param('components');
-	}
-	else {
-	    push @comps, $req->param('components');
-	}
-	foreach my $comp (@comps) {
-	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
-                      value ($case_id, 1, $comp));
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute();
-	    $sth->finish();
-	    $update = 1;
-	}
+    if (!isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the CDG publication options.<br/>);
+	return;
     }
 
-    # loop through the expAttributes ID's array for t2_DASH_tables ID = 2
-    if ($req->param('expAttributes')) {
-	if (ref $req->param('expAttributes') eq 'ARRAY' ) {
-	    @eas = $req->param('expAttributes');
-	}
-	else {
-	    push @eas, $req->param('expAttributes');
-	}
-	foreach my $ea (@eas) {
-	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
-                      value ($case_id, 2, $ea));
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute();
-	    $sth->finish();
-	    $update = 1;
-	}
+    # get the atm lat/lon spatial resolutions
+    my $atm_lat = $dbh->quote($req->param('atmlat_spatialResolution'));
+    my $atm_lon = $dbh->quote($req->param('atmlon_spatialResolution'));
+    my $ocn_lat = $dbh->quote($req->param('ocnlat_spatialResolution'));
+    my $ocn_lon = $dbh->quote($req->param('ocnlon_spatialResolution'));
+
+    # get the ensemble info about the case
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                 from t2_cases as c, t2j_cmip6 as j 
+                 where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
+
+    # check if all ensemble members should be marked success or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
+    }
+    else {
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
     }
 
-    # loop through the expPeriod ID's array for t2_DASH_tables ID = 3
-    if ($req->param('expPeriods')) {
-	if (ref $req->param('expPeriods') eq 'ARRAY' ) {
-	    @eps = $req->param('expPeriods');
-	}
-	else {
-	    push @eps, $req->param('expPeriods');
-	}
-	foreach my $ep (@eps) {
-	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
-                      value ($case_id, 3, $ep));
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute();
-	    $sth->finish();
-	    $update = 1;
-	}
-    }
-
-    # loop through the expTypes ID's array for t2_DASH_tables ID = 4
-    if ($req->param('expTypes')) {
-	if (ref $req->param('expTypes') eq 'ARRAY' ) {
-	    @ets = $req->param('expTypes');
-	}
-	else {
-	    push @ets, $req->param('expTypes');
-	}
-	foreach my $et (@ets) {
-	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
-                      value ($case_id, 4, $et));
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute();
-	    $sth->finish();
-	    $update = 1;
-	}
-    }
-
-    # loop through the horizontalResolution ID's array for t2_DASH_tables ID = 5
-    if ($req->param('horizontalResolution')) {
-	if (ref $req->param('horizontalResolution') eq 'ARRAY' ) {
-	    @hrs = $req->param('horizontalResolution');
-	}
-	else {
-	    push @hrs, $req->param('horizontalResolution');
-	}
-	foreach my $hr (@hrs) {
-	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
-                      value ($case_id, 5, $hr));
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute();
-	    $sth->finish();
-	    $update = 1;
-	}
-    }
-
-    # loop through the temporalResolution ID's array for t2_DASH_tables ID = 6
-    if ($req->param('temporalResolution')) {
-	if (ref $req->param('temporalResolution') eq 'ARRAY' ) {
-	    @trs = $req->param('temporalResolution');
-	}
-	else {
-	    push @trs, $req->param('temporalResolution');
-	}
-	foreach my $tr (@trs) {
-	    $sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
-                      value ($case_id, 6, $tr));
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute();
-	    $sth->finish();
-	    $update = 1;
-	}
-    }
-
-    # update the t2j_status for the publish_dash (process_id = 19) to Started (status_id = 2)
-    if ($update) {
-	$sql = qq(update t2j_status set status_id = 2, last_update = NOW(), archive_method = 'user',
-                  user_id =  $item{luser_id} where case_id = $case_id and process_id = 19);
+    foreach my $ca (@cases) 
+    {
+	$sql = qq(insert into t2_DASH_spatialResolution (case_id, atm_lat, atm_lon, ocn_lat, ocn_lon)
+                  value ($ca->{'case_id'}, $atm_lat, $atm_lon, $ocn_lat, $ocn_lon));
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	$sth->finish();
 
+	# loop through the components ID's array for t2_DASH_tables ID = 1
+	if ($req->param('components')) {
+	    if (ref $req->param('components') eq 'ARRAY' ) {
+		@comps = $req->param('components');
+	    }
+	    else {
+		push @comps, $req->param('components');
+	    }
+	    foreach my $comp (@comps) {
+		$sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                          value ($ca->{'case_id'}, 1, $comp));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+		$update = 1;
+	    }
+	}
+
+	# loop through the expAttributes ID's array for t2_DASH_tables ID = 2
+	if ($req->param('expAttributes')) {
+	    if (ref $req->param('expAttributes') eq 'ARRAY' ) {
+		@eas = $req->param('expAttributes');
+	    }
+	    else {
+		push @eas, $req->param('expAttributes');
+	    }
+	    foreach my $ea (@eas) {
+		$sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                           value ($ca->{'case_id'}, 2, $ea));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+		$update = 1;
+	    }
+	}
+
+	# loop through the expPeriod ID's array for t2_DASH_tables ID = 3
+	if ($req->param('expPeriods')) {
+	    if (ref $req->param('expPeriods') eq 'ARRAY' ) {
+		@eps = $req->param('expPeriods');
+	    }
+	    else {
+		push @eps, $req->param('expPeriods');
+	    }
+	    foreach my $ep (@eps) {
+		$sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                          value ($ca->{'case_id'}, 3, $ep));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+		$update = 1;
+	    }
+	}
+
+	# loop through the expTypes ID's array for t2_DASH_tables ID = 4
+	if ($req->param('expTypes')) {
+	    if (ref $req->param('expTypes') eq 'ARRAY' ) {
+		@ets = $req->param('expTypes');
+	    }
+	    else {
+		push @ets, $req->param('expTypes');
+	    }
+	    foreach my $et (@ets) {
+		$sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                           value ($ca->{'case_id'}, 4, $et));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+		$update = 1;
+	    }
+	}
+
+	# loop through the horizontalResolution ID's array for t2_DASH_tables ID = 5
+	if ($req->param('horizontalResolution')) {
+	    if (ref $req->param('horizontalResolution') eq 'ARRAY' ) {
+		@hrs = $req->param('horizontalResolution');
+	    }
+	    else {
+		push @hrs, $req->param('horizontalResolution');
+	    }
+	    foreach my $hr (@hrs) {
+		$sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                          value ($ca->{'case_id'}, 5, $hr));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+		$update = 1;
+	    }
+	}
+
+	# loop through the temporalResolution ID's array for t2_DASH_tables ID = 6
+	if ($req->param('temporalResolution')) {
+	    if (ref $req->param('temporalResolution') eq 'ARRAY' ) {
+		@trs = $req->param('temporalResolution');
+	    }
+	    else {
+		push @trs, $req->param('temporalResolution');
+	    }
+	    foreach my $tr (@trs) {
+		$sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                          value ($ca->{'case_id'}, 6, $tr));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+		$update = 1;
+	    }
+	}
+
+	# loop through the working group (wgs) ID's array for t2_DASH_tables ID = 7
+	if ($req->param('wgs')) {
+	    if (ref $req->param('wgs') eq 'ARRAY' ) {
+		@wgs = $req->param('wgs');
+	    }
+	    else {
+		push @wgs, $req->param('wgs');
+	    }
+	    foreach my $wg (@wgs) {
+		$sql = qq(insert into t2j_DASH (case_id, table_id, keyword_id)
+                          value ($ca->{'case_id'}, 7, $wg));
+		$sth = $dbh->prepare($sql);
+		$sth->execute();
+		$sth->finish();
+		$update = 1;
+	    }
+	}
+	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 2, $item{luser_id}, $dash_size);
+    }
+
+    # update the t2j_status for the publish_dash (process_id = 19) to Started (status_id = 2)
+    if ($update) {
 	$validstatus{'status'} = 1;
 	$validstatus{'message'} = qq(DASH keywords successfully added. Press the "Preview and Publish to DASH" button to continue.<br/>)
     }
@@ -1244,18 +1376,130 @@ sub addDASHProcess
     }
 }
 
-
 #----------------------
 sub publishDASHProcess
 #----------------------
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
+    my ($tmplFile);
 
-# START HERE and generate the ISO template and send it to the github repo
+    # gather all the required metadata fields
+    my $DASHFields = getDASHFields($dbh, $case_id, $expType_id);
 
+    # check to make sure the dataset size > 0
+    if ($DASHFields->{'asset_size_MB'} == 0) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(DASH records require the asset data size in MB. Please enter this value under the "Update Status of CDG" or "Update Status of ESGF" publication options.<br/>);
+	return;
+    }
 
+    # check to make sure the landing page link is set
+    if (length($DASHFields->{'landing_page'}) == 0) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(DASH records require a valid landing page URL. Please enter a valid links to ESGF and/or CDG in the "Case Diagnostics, Process and Journal Publication Links" accordion.<br/>);
+	return;
+    }
+
+    # TODO add more templates for other experiment types
+    if ($expType_id == 1) {
+	$tmplFile = qq(../templates/dash_cesm_cmip6.tmpl);
+    }
+
+    # load up the JSON template file with the DASHFields
+    my $vars = {
+	DASHFields => $DASHFields,
+    };
+
+    my $template = Template->new({
+	RELATIVE => 1,
+	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
+				 });
+    my $outfile = qq(../DASH-JSON-records/$DASHFields->{'casename'}.json);
+    $template->process($tmplFile, $vars, $outfile) || die ("Problem processing $tmplFile, ", $template->error());
+
+    # copy the last SVN trunk tag to the public repo at https://svn-cesm2-expdb.cgd.ucar.edu/public
+    my $rc = copySVNtrunkTag($dbh, $config{'expdb2username'}, $config{'expdb2password'}, $DASHFields->{'casename'});
+
+    # check return code
+
+    # system call to convert JSON to ISO
+
+    # push ISO record to github repo - call the python code to merge conflicts
+
+    # everything looks good - update the DASH publication (19) status (5) succeded 
+    updatePublishStatus($dbh, $case_id, 19, 5, $item{luser_id}, $DASHFields->{'asset_size_MB'});    
 }
+
+#----------------------
+sub resetDASHProcess
+#----------------------
+{
+    my $case_id = $req->param('case_id');
+    my $expType_id = $req->param('expType_id');
+
+    $validstatus{'status'} = 0;
+    $validstatus{'message'} = qq(DASH keywords and publish status reset.<br/>);
+    
+    # TODO reset the keywords and publish status to unknown
+       
+}
+
+#--------------------
+sub updateDASHProcess
+#--------------------
+{
+    my $case_id = $req->param('case_id');
+    my $expType_id = $req->param('expType_id');
+    my $pub_radio = $req->param('dash_published');
+    my $pub_ens = $req->param('verify_ensemble_DASH');
+    my $dash_size = $req->param('dash_size') * 1000000;
+    my @cases;
+    my %case;
+
+    if (!isCMIP6User($dbh, $item{luser_id}) ) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the DASH publication options.<br/>);
+	return;
+    }
+
+    # get the ensemble info about the case
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                 from t2_cases as c, t2j_cmip6 as j 
+                 where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
+
+    # check if all ensemble members should be marked success or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
+    }
+    else {
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
+    }
+
+    foreach my $ca (@cases) 
+    {
+
+	# check current publish status for process_id = 19 (publish_dash)
+	my ($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 19);
+
+	if ($status_id == 2 && $pub_radio eq 'yes') {
+	    # update the publish to DASH status - process_id = 19 to status_id = 5 "succeeded"
+	    updatePublishStatus($dbh, $case_id, 19, 5, $item{luser_id}, $dash_size);
+	    $validstatus{'status'} = 1;
+	    $validstatus{'message'} .= qq(DASH successfully published and verified (casename = $ca->{'casename'}).<br/>)
+	}
+	else {
+	    $validstatus{'status'} = 0;
+	    $validstatus{'message'} .= qq(This experiment data has already been successfully published to DASH (casename = $ca->{'casename'}).<br/>);
+	}
+    }
+}
+
 
 #---------------------------
 sub updateGlobalAttsProcess

@@ -17,7 +17,7 @@ use config;
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers getCMIP6Users checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
 getCaseFields getCaseFieldByName getCaseNotes getPercentComplete getDiags getCaseByID
-updatePublishStatus getPublishStatus getEnsembles);
+updatePublishStatus getPublishStatus getEnsembles getLinkByTypeCaseID);
 
 sub getCasesByType
 {
@@ -683,3 +683,28 @@ sub getEnsembles
     }
     return @cases;
 }       
+
+sub getLinkByTypeCaseID
+{
+   my $dbh = shift;
+   my $case_id = shift;
+   my $process_name = shift;
+   my $linkType_id = shift;
+   my %link;
+
+   my $sql = qq(select count(j.id), j.id, j.case_id, j.process_id, j.linkType_id, j.link, j.description, 
+                DATE_FORMAT(j.last_update, '%Y-%m-%d') as last_update, c.casename, p.name, t.name, 
+                u.firstname, u.lastname, u.email 
+                from t2j_links as j, t2_cases as c, t2_process as p, t2_linkType as t, t_svnusers as u
+                where j.case_id = c.id and j.process_id = p.id and 
+                j.linkType_id = t.id and j.approver_id = u.user_id and
+                p.name = "$process_name" and c.id = $case_id and j.linkType_id = $linkType_id);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   ($link{'count'}, $link{'link_id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},
+    $link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},
+    $link{'linkType_name'},$link{'firstname'},$link{'lastname'},$link{'email'})  = $sth->fetchrow();
+   $sth->finish();
+
+   return \%link;
+}
