@@ -10,7 +10,7 @@ use vars qw(@ISA @EXPORT);
 use Exporter;
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser); 
 use CGI::Session qw/-ip-match/;
-##use SVN::Client;
+use SVN::Client;
 use lib "/home/www/html/csegdb/lib";
 use config;
 use lib "/home/www/html/expdb2.0/lib";
@@ -377,9 +377,33 @@ sub copySVNtrunkTag
 
     # start here to setup authorization and SVN copy from source_url to dst_url
     # setup the SVN client object 
-##    my $client = new SVN::Client();
+    my $client = new SVN::Client();
 
+    # setup to handle authentication the same as the command line client
+    my $config_dir = undef; # use default location
+##    my $config = SVN:Core::config_get_config($config_dir);
+##    my $config_category = $config->{SVN::Core::CONFIG_CATEGORY_CONFIG};
+##    $client->auth(
+##      SVN::Core::cmdline_create_auth_baton(0,           #non_interactive
+##                                           $username,       #username
+##                                           $password,       #password
+##                                           $config_dir,
+##                                           0,           #no_auth_cache
+##                                           0,           #trust_server_cert
+##                                           $config_category,
+##                                           undef)       #cancel_callback
+##	);
 
+    # Use first argument as target and canonicalize it before using
+    my $target;
+##    if (SVN::Core::path_is_url($source_url)) {
+##	$target = SVN::Core::uri_canonicalize($source_url);
+##    } else {
+##	$target = SVN::Core::dirent_canonicalize($source_url);
+##    }
+
+    # fetch the head revision of the target
+##    $client->cat(\*STDERR, $target, 'HEAD');
 
     return $rc;
 }

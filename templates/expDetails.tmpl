@@ -390,7 +390,7 @@
 			      <span class="label label-danger">[% status.$key.code %]</span>
 			      [% END %]
 			      [% IF status.$key.code == "Verified" %]
-			      <span class="label label-danger">[% status.$key.code %]</span>
+			      <span class="label label-success">[% status.$key.code %]</span>
 			      [% END %]
 			    </td>
 			    <td>[% IF status.$key.model_date %]<pre>[% status.$key.model_date %]</pre>[% END %]</td>
@@ -1074,7 +1074,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="row">
 					<label class="col-form-label col-lg-12">Published dataset URL?</label>
 					<div class="col-lg-12">
-					  <textarea class="form-control" name="cdg_url" cols="100" rows="3" placeholder="https://www.earthsystemgrid.org/dataset/[% case.casename.value %]">https://www.earthsystem.grid/dataset/[% case.casename.value %]</textarea>
+					  <textarea class="form-control" name="cdg_url" cols="100" rows="3" placeholder="https://www.earthsystemgrid.org/dataset/[% case.casename.value %]">https://www.earthsystemgrid.org/dataset/[% case.casename.value %]</textarea>
 					</div>
 				      </div>
 				    </fieldset>

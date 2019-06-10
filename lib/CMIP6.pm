@@ -441,8 +441,7 @@ sub getCMIP6CaseByID
 	# get case notes
 	@notes = getCaseNotes($dbh, $id);
 
-	# get process status
-## debugging with for DASH with process_id = 19
+	# get all process status
 	$sql = qq(select p.name, p.description, s.id, s.code, s.color, j.last_update, j.model_date,
                 IFNULL(j.disk_usage, 0) as disk_usage, j.disk_path, j.archive_method
                 from t2_process as p, t2_status as s,
@@ -450,7 +449,6 @@ sub getCMIP6CaseByID
                 j.case_id = $id and
                 j.process_id = p.id and
                 j.status_id = s.id
-and j.process_id = 19
 		order by p.name, j.last_update asc);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
@@ -471,8 +469,10 @@ and j.process_id = 19
 	    }
 	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
 	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
-	    my @fullstats = getProcessStats($dbh, $id, $process_name);
-	    $status{$process_name}{'history'} = \@fullstats;
+## TODO - this needs to be an AJAX call initiated from a browser click		
+##		my @fullstats = getProcessStats($dbh, $id, $process_name);
+##	    $status{$process_name}{'history'} = \@fullstats;
+	    $status{$process_name}{'history'} = \();
 	}
 	$sth->finish();
 
