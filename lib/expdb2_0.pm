@@ -438,16 +438,6 @@ sub getPercentComplete
 }
 
 
-sub getDiags
-{
-   my $dbh = shift;
-   my @diags;
-
-   # get all the casenames and id's for published diags from the t2j_links table
-   return (@diags);
-}
-
-
 sub getCaseByID
 {
     my $dbh = shift;

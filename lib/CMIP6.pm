@@ -469,8 +469,10 @@ sub getCMIP6CaseByID
 	    }
 	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
 	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
-	    my @fullstats = getProcessStats($dbh, $id, $process_name);
-	    $status{$process_name}{'history'} = \@fullstats;
+## TODO - this needs to be an AJAX call initiated from a browser click		
+##		my @fullstats = getProcessStats($dbh, $id, $process_name);
+##	    $status{$process_name}{'history'} = \@fullstats;
+	    $status{$process_name}{'history'} = \();
 	}
 	$sth->finish();
 
