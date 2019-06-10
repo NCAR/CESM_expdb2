@@ -442,7 +442,6 @@ sub getCMIP6CaseByID
 	@notes = getCaseNotes($dbh, $id);
 
 	# get process status
-## debugging with for DASH with process_id = 19
 	$sql = qq(select p.name, p.description, s.id, s.code, s.color, j.last_update, j.model_date,
                 IFNULL(j.disk_usage, 0) as disk_usage, j.disk_path, j.archive_method
                 from t2_process as p, t2_status as s,
@@ -450,7 +449,6 @@ sub getCMIP6CaseByID
                 j.case_id = $id and
                 j.process_id = p.id and
                 j.status_id = s.id
-and j.process_id = 19
 		order by p.name, j.last_update asc);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
