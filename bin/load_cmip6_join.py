@@ -111,11 +111,11 @@ def join_DECK_exps(db, cursor, version):
     version: dreq version
     """
     # define a lookup data structures for DECK experiments with design_mip = 'DECK'
-    deck_exps = { 'historical'   : ['historical', 'historical-WACCM'],
+    deck_exps = { 'historical'   : ['historical', 'historical-WACCM', 'historical-2deg', 'historical-2deg-WACCM'],
                   'abrupt-4xCO2' : ['4xCO2-CESM2-BGC','4xCO2-CESM2-WACCM'],
                   '1pctCO2'      : ['1pctCO2-CESM2-BGC','1pctCO2-CESM2-WACCM'],
                   'amip'         : ['AMIP-CESM2-BGC','AMIP-CESM2-WACCM'],
-                  'piControl'    : ['Control','Control-WACCM','Control-high-res'] }
+                  'piControl'    : ['Control','Control-WACCM','Control-high-res','Control-2deg','Control-2deg-WACCM'] }
 
     # get the DECK MIP id from the t2_cmip6_MIP_types table
     count = 0
