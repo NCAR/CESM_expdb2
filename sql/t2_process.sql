@@ -11,7 +11,7 @@ create table t2_process(
 insert into t2_process (name, description)
 values ('case_run','model run'),
        ('case_st_archive', 'short term archiver'), 
-       ('timeseries', 'overall single variable timeseries'),
+       ('timeseries', 'single variable timeseries conversion'),
        ('atm_averages', 'atmosphere averages'),
        ('ice_averages', 'sea-ice averages'),
        ('lnd_averages', 'land averages'),
@@ -32,5 +32,8 @@ values ('case_run','model run'),
        ('cvdp_diagnostics', 'climate variability diagnostics'),
        ('cmat_diagnostics', 'climate model analysis tool diagnostics'),
        ('ccr_diagnostics', 'climate change research diagnostics'),
-       ('atmv_diagnostics', 'atmosphere variability diagnostics');
+       ('atmv_diagnostics', 'atmosphere variability diagnostics'),
+       ('publish_science', 'scientific journal publication'),
+       ('publish_timing', 'timing data publication'),
+       ('NCAR_opensky', 'NCAR Opensky repository');
 

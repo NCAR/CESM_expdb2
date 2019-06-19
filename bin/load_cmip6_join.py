@@ -86,13 +86,14 @@ def map_exp_to_request_mip(exp_name, dq=None):
         dq = dreq.loadDreq()
 
     mips = []
-    e_id = dq.inx.experiment.label[exp_name][0]
-    mips.append(dq.inx.uid[e_id].mip)
-    e_vars = dq.inx.iref_by_sect[e_id].a
-    for ri in e_vars['requestItem']:
-        dr = dq.inx.uid[ri]
-        if dr.mip not in mips:
-            mips.append(dr.mip)
+    if dq.inx.experiment.label[exp_name]:
+        e_id = dq.inx.experiment.label[exp_name][0]
+        mips.append(dq.inx.uid[e_id].mip)
+        e_vars = dq.inx.iref_by_sect[e_id].a
+        for ri in e_vars['requestItem']:
+            dr = dq.inx.uid[ri]
+            if dr.mip not in mips:
+                mips.append(dr.mip)
 
     return mips
 
@@ -110,11 +111,11 @@ def join_DECK_exps(db, cursor, version):
     version: dreq version
     """
     # define a lookup data structures for DECK experiments with design_mip = 'DECK'
-    deck_exps = { 'historical'   : ['historical', 'historical-WACCM'],
+    deck_exps = { 'historical'   : ['historical', 'historical-WACCM', 'historical-2deg', 'historical-2deg-WACCM'],
                   'abrupt-4xCO2' : ['4xCO2-CESM2-BGC','4xCO2-CESM2-WACCM'],
                   '1pctCO2'      : ['1pctCO2-CESM2-BGC','1pctCO2-CESM2-WACCM'],
                   'amip'         : ['AMIP-CESM2-BGC','AMIP-CESM2-WACCM'],
-                  'piControl'    : ['Control','Control-WACCM','Control-high-res'] }
+                  'piControl'    : ['Control','Control-WACCM','Control-high-res','Control-2deg','Control-2deg-WACCM'] }
 
     # get the DECK MIP id from the t2_cmip6_MIP_types table
     count = 0

@@ -20,14 +20,6 @@
       @import "/jqueryui/css/redmond/jquery-ui-1.8.23.custom.css";
       @import "/jquerydt/DataTables-1.9.3/media/css/jquery.dataTables.css";*/
     </style>
-    <!--
-	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
-	<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.1/css/responsive.dataTables.min.css" />
-	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-	<script type="text/javascript" src="/expdb2.0/scripts/popitup.js"></script>
-	<script type="text/javascript" src="/expdb2.0/scripts/exp_dashboard.js"></script>
-	-->
 
     <style>
       #details { 
@@ -120,9 +112,9 @@
 	  <div class="row">
 	    <div class="col-lg-12">
 	      <ul class="breadcrumb">
-		<li><a href="http://www.cesm/ucar/edu/index.html"><i class="fa fa-home"></i></a><i class="icon-angle-right"></i></li>
+		<li><a href="http://www.cesm.ucar.edu/index.html"><i class="fa fa-home"></i></a><i class="icon-angle-right"></i></li>
 		<li><a href="http://www.cesm.ucar.edu/models/">CESM Models</a><i class="icon-angle-right"></i></li>
-		<li><a href="https://csegweb.cgd.ucar.edu/">CSEG Web Apps</a><i class="icon-angle-right"></i></li>
+		<li><a href="/">CSEG Web Apps</a><i class="icon-angle-right"></i></li>
 		<li class="active">Experiment Database</li>
 	      </ul>
 
@@ -132,7 +124,7 @@
 	</div>
       </section>
 
-      <!-- content start blahblahstart -->
+      <!-- content start  -->
       <section id="content">
 	<div class="container">
 	  <div class="row visible-sm-block text-center hidden-md hidden-lg"><h3>Not designed for mobile viewing, please open on a desktop</h3></div>
@@ -146,9 +138,6 @@
               </div>
 
 	      <p class="lead">The purpose of this project is to provide a single web portal to store metadata for CESM experiments including tracking run status, viewing diagnostics, and adding publication links.</p>
-	      <span class="label label-danger">* You must have a valid CESM SVN developers login or a UCAS login to use the experiment database</span>
-	      <br><br>
-
 
 	      [% IF validstatus.status == 0 %]
 	      <div class="alert alert-danger text-center" role="alert">
@@ -158,7 +147,7 @@
 
 	      <div id="dashtabs-og-name">
 		<ul id="dashTabs" class="nav nav-tabs small" role="tablist">
-		  <li role="presentation" class="active"><a data-toggle="tab" role="tab" href="#cmip6exp" id="cmip6exp-tab">CESM2 / CMIP 6 Experiments</a></li>
+		  <li role="presentation" class="active"><a data-toggle="tab" role="tab" href="#cmip6exp" id="cmip6exp-tab">CESM2 / CMIP6 Experiments</a></li>
 		  <li role="presentation"><a data-toggle="tab" role="tab" href="#cesm2tune" id="cesm2tune-tab">CESM2.0 Release Experiments</a></li>
 		  <li role="presentation"><a data-toggle="tab" role="tab" href="#cesm2exp" id="cesm2exp-tab">CESM2 Production Experiments</a></li>
 		  <li role="presentation"><a data-toggle="tab" role="tab" href="#projectA" id="projectA-tab">CESM2 Project A Experiments (TBD)</a></li>
@@ -196,7 +185,7 @@
 			  <div class="panel panel-default">
 			    <div class="panel-heading" role="tab" id="[% DECKexp.name %]Header">
 			      <h4 class="panel-title">
-				<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion-DECK" href="#[% DECKexp.name %]Collapse" aria-expanded="false" aria-controls="[% DECKexp.name %]Collapse">
+				<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-DECK" href="#[% DECKexp.name %]Collapse" aria-expanded="false" aria-controls="[% DECKexp.name %]Collapse">
 				  [% DECKexp.name %] - [% DECKexp.description %]
 				</a>
 			      </h4>
@@ -206,6 +195,7 @@
 			      <div class="panel-body">
 				<table class="table table-striped table-condensed" id="[% DECKexp.cmip6_exp %]Table">
 				  <thead>
+				    <th>ID</th>
 				    <th>Case Name</th>
 				    <th>CESM Experiment Name</th>
 				    <th>Designing MIP</th>
@@ -215,7 +205,8 @@
 				  <tbody>
 				    [% FOREACH exp IN DECKexp.exps %]
 				    <tr>
-				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+				      <td>[% exp.case_id %]</td>
+				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
 				      <td>[% exp.request_date %]</td>
@@ -246,7 +237,7 @@
 			  <div class="panel panel-default">
 			    <div class="panel-heading" role="tab" id="[% MIPexp.name %]Header">
 			      <h4 class="panel-title">
-				<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#[% MIPexp.name %]Collapse" aria-expanded="false" aria-controls="[% MIPexp.name %]Collapse">
+				<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-MIP" href="#[% MIPexp.name %]Collapse" aria-expanded="false" aria-controls="[% MIPexp.name %]Collapse">
 				  [% MIPexp.name %] - [% MIPexp.description %]
 				</a>
 			      </h4>
@@ -256,6 +247,7 @@
 			      <div class="panel-body">
 				<table class="table table-striped table-condensed" id="[% MIPexp.name %]Table">
 				  <thead>
+				    <th>ID</th>
 				    <th>Case Name</th>
 				    <th>Experiment Name</th>
 				    <th>Designing MIP</th>
@@ -265,7 +257,8 @@
 				  <tbody>
 				    [% FOREACH exp IN MIPexp.exps.sort('expName') %]
 				    <tr>
-				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+				      <td>[% exp.case_id %]</td>				      
+				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
 				      <td>[% exp.request_date %]</td>
@@ -299,7 +292,7 @@
 			  <div class="panel panel-default">
 			    <div class="panel-heading" role="tab" id="[% DCPPexp.name %]Header">
 			      <h4 class="panel-title">
-				<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion-DCPP" href="#[% DCPPexp.name %]Collapse" aria-expanded="false" aria-controls="[% DCPPexp.name %]Collapse">
+				<a class="collapsed accordion-toggle" role="button" data-toggle="collapse" data-parent="#accordion-DCPP" href="#[% DCPPexp.name %]Collapse" aria-expanded="false" aria-controls="[% DCPPexp.name %]Collapse">
 				  [% DCPPexp.name %]
 				</a>
 			      </h4>
@@ -316,6 +309,7 @@
 
 				<table class="table table-striped table-condensed" id="[% DCPPexp.name %]Table">
 				  <thead>
+				    <th>ID</th>
 				    <th>Case Name</th>
 				    <th>Experiment Name</th>
 				    <th>Designing MIP</th>
@@ -326,7 +320,8 @@
 				  <tbody>
 				    [% FOREACH exp IN DCPPexp.exps %]
 				    <tr>
-				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+				      <td>[% exp.case_id %]</td>
+				      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 				      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% DCPPexp.uid %].html" target="_blank">[% exp.expName %]</a></td>
 				      <td>[% exp.designMIP %]</td>
 				      <td>[% exp.request_date %]</td>
@@ -347,6 +342,7 @@
 			<table id="cmip6ExpTable" class="table table-striped table-condensed" style="width: 100%;">
 			  <thead>
 			    <tr>
+			      <th>ID</th>
 			      <th>Case Name</th>
 			      <th>Experiment Name</th>
 			      <th>Designing MIP</th>
@@ -358,7 +354,8 @@
 			  <tbody>
 			    [% FOREACH exp IN CMIP6Exps %]
 			    <tr>
-			      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			      <td>[% exp.case_id %]</td>
+			      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 			      <td>[% exp.designMIP %]</td>
 			      <td>[% exp.request_date %]</td>
@@ -369,6 +366,7 @@
 
 			  <tfoot>
 			    <tr>
+			      <td>ID</td>
 			      <th>Case Name</th>
 			      <th>Experiment Name</th>
 			      <th>Designing MIP</th>
@@ -383,10 +381,6 @@
 		      <div class="tab-pane fade" role="tabpanel" id="RESERVE_CMIP6" aria-labelledby="RESERVE_CMIP6-tab">
 			[% INCLUDE reserveCaseCMIP6.tmpl %]
 		      </div>
-
-
-
-
 
 		      <!-- overall experiment status start -->
 		      <div class="tab-pane fade" role="tabpanel" id="STATUS" aria-labelledby="STATUS-tab">
@@ -403,10 +397,11 @@
 			</div>
 
 
-
 			<table id="statusTable" class="table table-striped table-condensed" style="width: 100%;">
 			  <thead>
 			    <tr>
+			      <th></th>
+			      <th>ID</th>
 			      <th>Casename</th>
 			      <th>Experiment Name</th>
 			      <th>Overall Status Summary</th>
@@ -417,8 +412,10 @@
 			  <tbody>
 			    [% FOREACH exp IN CMIP6Status %]
 			    <tr>
+			      <td></td>
+			      <td>[% exp.case_id %]</td>
 			      <td>
-				<a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a>
+				<a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a>
 			      </td>
 			      <td>
 				<a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a>
@@ -502,6 +499,9 @@
 				      <td>
 					<small>
 					  published:<br>
+					  [% IF exp.pub_code == "Verified" %]
+					  <span class="label label-primary">[% exp.pub_code %]</span>
+					  [% END %]
 					  [% IF exp.pub_code == "Succeeded" %]
 					  <span class="label label-info">[% exp.pub_code %]</span>
 					  [% END %]
@@ -529,6 +529,7 @@
 				      <th class="active">st_archive</th>
 				      <th class="active">timeseries</th>
 				      <th class="active">conformer</th>
+				      <th class="active">ESGF published</th>
 				      <th class="active">overall status</th>
 				    </tr>
 				  </thead>
@@ -539,23 +540,21 @@
 					<tbody>
 					  <tr>
 					    <td id="details">Disk Usage</td>
-					    <td>[% exp.run_disk_usage %]</td>
+					    <td>[% exp.run_disk_usage %] MB</td>
 					  </tr>
 					  <tr>
 					    <td id="details">Last Run Date</td>
 					    <td>[% exp.run_model_date %]</td>
 					  </tr>
 					  <tr>
-					    <td id="details">Cost</td>
-					    <td>[% exp.run_model_cost %]</td>
-					  </tr>
-					  <tr>
-					    <td id="details">Throughput</td>
-					    <td>[% exp.run_model_throughput %]</td>
-					  </tr>
-					  <tr>
 					    <td id="details">Last Update</td>
 					    <td>[% exp.run_last_update %]</td>
+					  </tr>
+					  <tr>
+					    <td colspan="2"><b>[% exp.run_model_cost %]</b></td>
+					  </tr>
+					  <tr>
+					    <td colspan="2"><b>[% exp.run_model_throughput %]</b></td>
 					  </tr>
 					</tbody>
 				      </table>
@@ -565,7 +564,7 @@
 				      <table class="table table-condensed table-striped small">
 					<tr>
 					  <td id="details">Disk Usage</td>
-					  <td>[% exp.sta_disk_usage %]</td>
+					  <td>[% exp.sta_disk_usage %] MB</td>
 					</tr>
 					<tr>
 					  <td id="details">Last Archive Date</td>
@@ -586,7 +585,7 @@
 				      <table class="table table-condensed table-striped small">
 					<tr>
 					  <td id="details">Disk Usage</td>
-					  <td>[% exp.ts_disk_usage %]</td>
+					  <td>[% exp.ts_disk_usage %] MB</td>
 					</tr>
 					<tr>
 					  <td id="details">Last Timeseries Date</td>
@@ -607,7 +606,7 @@
 				      <table class="table table-condensed table-striped small">
 					<tr>
 					  <td id="details">Disk Usage</td>
-					  <td>[% exp.conform_disk_usage %]</td>
+					  <td>[% exp.conform_disk_usage %] MB</td>
 					</tr>
 					<tr>
 					  <td id="details">Last Conform Date</td>
@@ -627,8 +626,21 @@
 				    <td>
 				      <table class="table table-condensed table-striped small">
 					<tr>
-					  <td valign="top">Total Disk Usage</td>
-					  <td>[% exp.total_disk_usage %]</td>
+					  <td id="details">Disk Usage</td>
+					  <td>[% exp.pub_disk_usage %] MB</td>
+					</tr>
+					<tr>
+					  <td id="details">Last Update</td>
+					  <td>[% exp.pub_last_update %]</td>
+					</tr>
+				      </table>
+				    </td>
+
+				    <td>
+				      <table class="table table-condensed table-striped small">
+					<tr>
+					  <td valign="top">Total Disk Usage<br/>(excluding ESGF)</td>
+					  <td>[% exp.total_disk_usage %] MB</td>
 					</tr>
 					<tr>
 					  <td valign="top">Run Percent Complete</td>
@@ -673,6 +685,8 @@
 
 			  <tfoot>
 			    <tr>
+			      <th></th>
+			      <th>ID</th>
 			      <th>Casename</th>
 			      <th>Experiment Name</th>
 			      <th>Overall Status Summary</th>
@@ -701,6 +715,7 @@
 			  <thead>
 			    <tr>
 			      <th></th>
+			      <th>ID</th>
 			      <th>Casename</th>
 			      <th>Experiment Name</th>
 			      <th class="none">Title</th>
@@ -712,7 +727,8 @@
 			    [% FOREACH exp IN CMIP6Diags %]
 			    <tr>
 			      <td></td>
-			      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			      <td>[% exp.case_id %]</td>
+			      <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			      <td><a href="http://clipc-services.ceda.ac.uk/dreq/u/[% exp.cmip6_exp_uid %].html" target="_blank">[% exp.expName %]</a></td>
 			      <td style="white-space:normal;">[% exp.title %]</td>
 			      <td>
@@ -741,6 +757,7 @@
 			  <tfoot>
 			    <tr>
 			      <th></th>
+			      <th>ID</th>
 			      <th>Case Name</th>
 			      <th>Experiment Name</th>
 			      <th class="none">Title</th>
@@ -768,7 +785,7 @@
 		      <tbody>
 			[% FOREACH exp IN cesm2tune %]
 			<tr>
-			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
 			  <td>[% exp.archive_date %]</td>
 			</tr>
@@ -791,7 +808,7 @@
 		      <tbody>
 			[% FOREACH exp IN cesm2exps %]
 			<tr>
-			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
 			  <td>[% exp.archive_date %]</td>
 			</tr>
@@ -814,7 +831,7 @@
 		      <tbody>
 			[% FOREACH exp IN projectA %]
 			<tr>
-			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
 			  <td>[% exp.archive_date %]</td>
 			</tr>
@@ -836,7 +853,7 @@
 		      <tbody>
 			[% FOREACH exp IN projectB %]
 			<tr>
-			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]">[% exp.casename %]</a></td>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
 			  <td>[% exp.archive_date %]</td>
 			</tr>
@@ -861,11 +878,6 @@
       <a href="#" class="scrollup"><i class="fa fa-angle-up active"></i></a>
 
       [% INCLUDE 'modern/js/js-include.html' %]
-
-      <!--
-	  <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-	  <script src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
-	  -->
 
       <script>
 	[% INCLUDE 'modern/js/datatables.min.js' %]

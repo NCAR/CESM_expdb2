@@ -17,7 +17,7 @@ use config;
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers getCMIP6Users checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
 getCaseFields getCaseFieldByName getCaseNotes getPercentComplete getDiags getCaseByID
-updatePublishStatus getPublishStatus);
+updatePublishStatus getPublishStatus getEnsembles getLinkByTypeCaseID);
 
 sub getCasesByType
 {
@@ -48,8 +48,8 @@ sub getNCARUsers
 {
     my $dbh = shift;
     my @users;
-    my $sql = "select user_id, lastname, firstname from t_svnusers 
-               where status = 'active' and lastname is not null order by lastname";
+    my $sql = qq(select user_id, lastname, firstname from t_svnusers 
+               where status = 'active' and lastname is not null order by lastname);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -68,9 +68,9 @@ sub getCMIP6Users
 {
     my $dbh = shift;
     my @users;
-    my $sql = "select user_id, lastname, firstname from t_svnusers 
+    my $sql = qq(select user_id, lastname, firstname from t_svnusers 
                where status = 'active' and lastname is not null 
-               and is_cmip6 = 1 order by lastname";
+               and is_cmip6 = 1 order by lastname);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -129,16 +129,25 @@ sub getUserByID
     my $dbh = shift;
     my $user_id = shift;
     my %user = ();
-    my $sql = "select lastname, firstname, email from t_svnusers where user_id = $user_id";
-    my $sth = $dbh->prepare($sql);
-    $sth->execute();
-    while (my $ref = $sth->fetchrow_hashref())
-    {
-	$user{'lastname'} = $ref->{'lastname'};
-	$user{'firstname'} = $ref->{'firstname'};
-	$user{'email'} = $ref->{'email'};
-    }
+    my ($sql, $sth);
 
+    if ($user_id) {
+	$sql = qq(select lastname, firstname, email from t_svnusers where user_id = $user_id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	while (my $ref = $sth->fetchrow_hashref())
+	{
+	    $user{'lastname'} = $ref->{'lastname'};
+	    $user{'firstname'} = $ref->{'firstname'};
+	    $user{'email'} = $ref->{'email'};
+	}
+	$sth->finish();
+    }
+    else {
+	$user{'lastname'} = 'Unknown';
+	$user{'firstname'} = '';
+	$user{'email'} = '';
+    }
     return %user;
 }
 
@@ -156,10 +165,10 @@ sub getAllCases
 {
     my $dbh = shift;
     my @cases;
-    my $sql = "select c.id, c.casename, t.name as expType 
+    my $sql = qq(select c.id, c.casename, t.name as expType 
                from t2_cases as c, t2_expType as t 
                where c.expType_id = t.id
-               order by expType, casename";
+               order by expType, casename);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
@@ -195,12 +204,16 @@ sub getLinkByID
    my %link;
 
    my $sql = qq(select j.id, j.case_id, j.process_id, j.linkType_id, j.link, j.description, 
-                DATE_FORMAT(j.last_update, '%Y-%m-%d'), c.casename, p.name, t.name
-                from t2j_links as j, t2_cases as c, t2_process as p, t2_linkType as t
-                where j.id = $link_id and j.case_id = c.id and j.process_id = p.id and j.linkType_id = t.id);
+                DATE_FORMAT(j.last_update, '%Y-%m-%d') as last_update, c.casename, p.name, t.name, 
+                u.firstname, u.lastname, u.email 
+                from t2j_links as j, t2_cases as c, t2_process as p, t2_linkType as t, t_svnusers as u
+                where j.id = $link_id and j.case_id = c.id and j.process_id = p.id and 
+                j.linkType_id = t.id and j.approver_id = u.user_id);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
-   ($link{'link_id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},$link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},$link{'linkType_name'})  = $sth->fetchrow();
+   ($link{'link_id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},
+    $link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},
+    $link{'linkType_name'},$link{'firstname'},$link{'lastname'},$link{'email'})  = $sth->fetchrow();
    $sth->finish();
 
    return \%link;
@@ -211,7 +224,7 @@ sub getProcess
    my $dbh = shift;
    my @processes;
 
-   my $sql = qq(select * from t2_process order by description);
+   my $sql = qq(select * from t2_process order by name);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
    while(my $ref = $sth->fetchrow_hashref())
@@ -376,7 +389,8 @@ sub getCaseNotes
    my $case_id = shift;
    my @notes;
 
-   my $sql = qq(select * from t2e_notes where case_id = $case_id
+   my $sql = qq(select id, case_id, note, last_update, IFNULL(svnuser_id, 0) as svnuser_id 
+                from t2e_notes where case_id = $case_id
                 order by last_update asc);
    my $sth = $dbh->prepare($sql);
    $sth->execute();
@@ -402,33 +416,25 @@ sub getPercentComplete
     my $model_date = shift;
     my $nyears = shift;
     my $start_date = shift;
-
-    my @model_year = split(/-/, $model_date);
-    my @start_year = split(/-/, $start_date);
-
-    # check if the model year needs further parsing
-    my $model_year = @model_year;
-    my $model_yr = $model_year[0];
-    if ($model_year == 2) {
-	$model_yr = substr($model_year[0], 0, 4);
-    }
-
     my $percent_complete = 0;
-    if ($nyears && $model_yr && $start_year[0]) {
-	$percent_complete = (($model_yr - $start_year[0] + 0.0)/$nyears) * 100.0;
+
+    if (defined $model_date && defined $start_date)
+    {
+	my @model_year = split(/-/, $model_date);
+	my @start_year = split(/-/, $start_date);
+
+	# check if the model year needs further parsing
+	my $model_year = @model_year;
+	my $model_yr = $model_year[0];
+	if ($model_year == 2) {
+	    $model_yr = substr($model_year[0], 0, 4);
+	}
+
+	if ($nyears && $model_yr && $start_year[0]) {
+	    $percent_complete = (($model_yr - $start_year[0] + 0.0)/$nyears) * 100.0;
+	}
     }
-
     return $percent_complete;
-}
-
-
-sub getDiags
-{
-   my $dbh = shift;
-   my @diags;
-
-   # get all the casenames and id's for published diags from the t2j_links table
-   return (@diags);
 }
 
 
@@ -437,100 +443,122 @@ sub getCaseByID
     my $dbh = shift;
     my $id = shift;
     my (%case, %status, %user) = ();
-    my @fields;
     my @notes;
     my @links;
     my @sorted;
     my $count = 0;
+    my ($firstname, $lastname, $email);
     my ($field_name, $process_name) = '';
-    my ($sql1, $sth1);
+    my ($sql1, $sth1, $value);
 
-    my $sql = qq(select * from t2_cases where id = $id);
+    my @fields = qw(archive_date casename caseroot caseuser compiler compset 
+                    dout_s_root grid is_ens job_queue job_time machine model 
+                    model_cost model_throughput model_version mpilib project 
+                    rest_n rest_option run_dir run_lastdate run_refcase run_refdate 
+                    run_startdate run_type stop_n stop_option svn_repo_url title);
+    my @bool_fields = qw(continue_run dout_s postprocess);
+
+    my $sql = qq(select count(*) from t2_cases where id = $id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
-    while (my $ref = $sth->fetchrow_hashref())
-    {
-	$case{'case_id'} = $ref->{'id'};
-	$case{'archive_date'} = $ref->{'archive_date'};
-	$case{'casename'} = $ref->{'casename'};
-	$case{'caseroot'} = $ref->{'caseroot'};
-	$case{'caseuser'} = $ref->{'caseuser'};
-	$case{'compiler'} = $ref->{'compiler'};
-	$case{'compset'} = $ref->{'compset'};
-	$case{'continue_run'} = $ref->{'continue_run'};
-	$case{'dout_s'} = $ref->{'dout_s'};
-	$case{'dout_s_root'} = $ref->{'dout_s_root'};
-
-	# get the expType Name
-	$case{'expType_name'} = "undefined";
-	$case{'expType_desc'} = "undefined";
-	$case{'expType_template'} = "undefined";
-
-	if ( defined $ref->{'expType_id'} )
-	{
-	    $sql1 = qq(select name, description, expDetail_template from t2_expType where id = $ref->{'expType_id'});
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    ($case{'expType_name'}, $case{'expType_desc'}, $case{'expType_template'}) = $sth1->fetchrow();
-	    $sth1->finish();
-	}
-
-	$case{'expType_id'} = $ref->{'expType_id'};	
-	$case{'grid'} = $ref->{'grid'};
-	$case{'is_ens'} = $ref->{'is_ens'};
-	$case{'job_queue'} = $ref->{'job_queue'};
-	$case{'job_time'} = $ref->{'job_time'};
-	$case{'machine'} = $ref->{'machine'};
-	$case{'model'} = $ref->{'model'};
-	$case{'model_cost'} = $ref->{'model_cost'};
-	$case{'model_throughput'} = $ref->{'model_throughput'};
-	$case{'model_version'} = $ref->{'model_version'};
-	$case{'mpilib'} = $ref->{'mpilib'};
-	$case{'postprocess'} = $ref->{'postprocess'};
-	$case{'project'} = $ref->{'project'};
-	$case{'rest_n'} = $ref->{'rest_n'};
-	$case{'rest_option'} = $ref->{'rest_option'};
-	$case{'run_dir'} = $ref->{'run_dir'};
-	$case{'run_lastdate'} = $ref->{'run_lastdate'};
-	$case{'run_refcase'} = $ref->{'run_refcase'};
-	$case{'run_refdate'} = $ref->{'run_refdate'};
-	$case{'run_startdate'} = $ref->{'run_startdate'};
-	$case{'run_type'} = $ref->{'run_type'};
-	$case{'stop_n'} = $ref->{'stop_n'};
-	$case{'stop_option'} = $ref->{'stop_option'};
-	$case{'svn_repo_url'} = $ref->{'svn_repo_url'};
-	$case{'svnuser_id'} = $ref->{'svnuser_id'};
-	$case{'title'} = $ref->{'title'};
-	$count++;
-    }
+    ($count) = $sth->fetchrow;
     $sth->finish();
 
     # check the row count
     if (!$count) 
     {
 	# no matching rows return case id = 0
-	$case{'case_id'} = 0;
+	$case{'case_id'}{'value'} = 0;
     }
     elsif ($count > 1)
     {
 	# more than one matching row 
 	# indicates a violation of constraints!!
-	$case{'case_id'} = -1;
+	$case{'case_id'}{'value'} = -1;
     }
     else 
     {
-	# get case fields
-	@fields = getCaseFields($dbh, $case{'case_id'});
+	# set the case_id seperately
+	$case{'case_id'}{'value'} = $id;
+	$case{'case_id'}{'history'} = qw();
+
+	# get all the fields and their history values
+	foreach my $field (@fields) {
+	    $sql = qq(select $field from t2_cases where id = $id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $case{$field}{'value'} = $sth->fetchrow;
+	    $sth->finish();
+
+	    my @field_history = getCaseFieldByName($dbh, $id, $field);
+	    $case{$field}{'history'} = \@field_history;
+	    # if there is a history, update the display value to the most current
+	    my $field_history = @field_history;
+	    if ($field_history > 0) {
+		$case{$field}{'value'} = $field_history[0]{'field_value'};
+	    }
+	}
+
+	# get all the boolean fields and their history values
+	foreach my $field (@bool_fields) {
+	    $sql = qq(select $field from t2_cases where id = $id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    $value = $sth->fetchrow;
+	    $value == 1 ? $case{$field}{'value'} = "True" : ($case{$field}{'value'} = "False");
+	    $sth->finish();
+	    
+	    my @field_history = getCaseFieldByName($dbh, $id, $field);
+	    $case{$field}{'history'} = \@field_history;
+	}
+
+	# get the expType name seperately
+	$sql = qq(select count(expType_id), expType_id from t2_cases where id = $id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	my ($count, $expType_id) = $sth->fetchrow;
+	$sth->finish();
+
+	if ($count) {
+	    $sql = qq(select name, description from t2_expType where id = $expType_id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    ($case{'expType_name'}{'value'}, $case{'expType_desc'}{'value'}) = $sth->fetchrow();
+	    $sth->finish();
+	    $case{'expType_id'}{'value'} = $expType_id;
+	}
+	else {
+	    $case{'expType_name'}{'value'} = "undefined";
+	    $case{'expType_desc'}{'value'} = "undefined";
+	    $case{'expType_id'}{'value'} = 0;
+	}
+	$case{'expType_name'}{'history'} = qw();
+	$case{'expType_desc'}{'history'} = qw();
+
+	# get the svnlogin name seperately
+	$sql = qq(select count(u.user_id), u.firstname, u.lastname, u.email
+                  from t_svnusers as u, t2_cases as t where
+                  u.user_id = t.svnuser_id and
+                  t.id = $id);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	($count, $firstname, $lastname, $email) = $sth->fetchrow();
+	if ($count) {
+	    $case{'archiver'}{'value'} = $firstname . ' ' . $lastname . ': ' . $email
+	}
+	$sth->finish();
+	my @field_history = getCaseFieldByName($dbh, $id, "svnuser_id");
+	$case{'archiver'}{'history'} = \@field_history;
 
 	# get case notes
-	@notes = getCaseNotes($dbh, $case{'case_id'});
-
+	@notes = getCaseNotes($dbh, $id);
+	
 	# get process status
 	$sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date,
-                j.disk_usage, j.disk_path
+                j.disk_usage, j.disk_path, j.archive_method, IFNULL(j.user_id, 0) as user_id
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
-                j.case_id = $case{'case_id'} and
+                j.case_id = $id and
                 j.process_id = p.id and
                 j.status_id = s.id
 		order by p.name, j.last_update asc);
@@ -546,11 +574,17 @@ sub getCaseByID
 	    $status{$process_name}{'model_date'} = $ref->{'model_date'};
 	    $status{$process_name}{'disk_usage'} = $ref->{'disk_usage'};
 	    $status{$process_name}{'disk_path'} = $ref->{'disk_path'};
+	    $status{$process_name}{'archive_method'} = $ref->{'archive_method'};
+	    my @fullstats = getProcessStats($dbh, $id, $process_name);
+	    $status{$process_name}{'history'} = \@fullstats;
+	    $status{$process_name}{'user_id'} = $ref->{'user_id'};
+	    my %procUser = getUserByID($status{$process_name}{'user_id'});
+	    $status{$process_name}{'user'} = \%procUser;
 	}
 	$sth->finish();
 
 	# get case links
-	$sql = qq(select id from t2j_links where case_id = $case{'case_id'});
+	$sql = qq(select id from t2j_links where case_id = $id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_hashref())
@@ -563,7 +597,7 @@ sub getCaseByID
 	# sort on process_id key
 	@sorted = sort { $a->{process_id} <=> $b->{process_id} } @links;
     }
-    return \%case, \@fields, \%status, \@notes, \@sorted;
+    return \%case, \%status, \@notes, \@sorted;
 }
 
 sub updatePublishStatus
@@ -572,8 +606,13 @@ sub updatePublishStatus
     my $case_id = shift;
     my $process_id = shift;
     my $status_id = shift;
+    my $user_id = shift;
+    my $size = shift;
 
-    my $sql = qq(update t2j_status set status_id = $status_id
+    my $size_mb = $dbh->quote($size);
+    my $sql = qq(update t2j_status set status_id = $status_id,
+                 archive_method = 'user', user_id = $user_id, last_update = NOW(),
+                 disk_usage = $size_mb
                  where case_id = $case_id and process_id = $process_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -599,4 +638,63 @@ sub getPublishStatus
 
     return $statusCode, $status_id;
 }
-       
+
+sub getEnsembles
+{
+    # gather all the ensmeble case id's and casenames into an array of hash references
+    my $dbh = shift;
+    my $case_id = shift;
+    my (@cases);
+    my (%case);
+
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                  from t2_cases as c, t2j_cmip6 as j 
+                  where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
+
+    my ($base_name, $base_ext) = split(/\.([^\.]+)$/, $case{'casename'});
+    for (my $i = 1; $i <= $case{'ens_size'}; $i++) {
+	my %ca;
+	my $ext = sprintf("%03d",$i);
+	my $ens_casename = $dbh->quote($base_name . "." . $ext);
+	$sql = qq(select IFNULL(id, 0) from t2_cases where casename = $ens_casename);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	my ($ens_id) = $sth->fetchrow();
+	$sth->finish();
+	if ($ens_id > 0) {
+	    $ca{'casename'} = $ens_casename;
+	    $ca{'case_id'} = $ens_id;
+	    push (@cases, \%ca);
+	}
+    }
+    return @cases;
+}       
+
+sub getLinkByTypeCaseID
+{
+   my $dbh = shift;
+   my $case_id = shift;
+   my $process_name = shift;
+   my $linkType_id = shift;
+   my %link;
+
+   my $sql = qq(select count(j.id), j.id, j.case_id, j.process_id, j.linkType_id, j.link, j.description, 
+                DATE_FORMAT(j.last_update, '%Y-%m-%d') as last_update, c.casename, p.name, t.name, 
+                u.firstname, u.lastname, u.email 
+                from t2j_links as j, t2_cases as c, t2_process as p, t2_linkType as t, t_svnusers as u
+                where j.case_id = c.id and j.process_id = p.id and 
+                j.linkType_id = t.id and j.approver_id = u.user_id and
+                p.name = "$process_name" and c.id = $case_id and j.linkType_id = $linkType_id);
+   my $sth = $dbh->prepare($sql);
+   $sth->execute();
+   ($link{'count'}, $link{'link_id'},$link{'case_id'},$link{'process_id'},$link{'linkType_id'},$link{'link'},
+    $link{'description'},$link{'last_update'},$link{'casename'},$link{'process_name'},
+    $link{'linkType_name'},$link{'firstname'},$link{'lastname'},$link{'email'})  = $sth->fetchrow();
+   $sth->finish();
+
+   return \%link;
+}

@@ -10,7 +10,4 @@ create table t2_cmip6_physics(
 
 insert into t2_cmip6_physics (value, description)
 values
-(1,'CAM6'),
-(2,'CAM6-BGC'),
-(3,'CAM6-SE'),
-(4,'CAM6-WACCM');
+(1,'CESM2');

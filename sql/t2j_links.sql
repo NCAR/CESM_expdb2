@@ -10,6 +10,5 @@ create table t2j_links(
        `link` varchar(512),
        `description` TEXT,
        `last_update` DATETIME,
-       `approvalType_id` INTEGER,
-       `approver_id` INTEGER,
+       `user_id` INTEGER,
         PRIMARY KEY (`id`));

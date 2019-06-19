@@ -73,19 +73,27 @@ if ($count > 0) {
     $sth->finish;
 
     if ($expType_id == 1) {
-	# get the record info from the t2j_cmip6 table for updating
-	$sql = qq(select exp_id, design_mip_id from t2j_cmip6 where case_id = $case_id);
+	# get the record info from the t2j_cmip6 table for updating or deleting in the case of ensembles
+	$sql = qq(select IFNULL(exp_id,0) as exp_id, IFNULL(design_mip_id,0) as design_mip_id, ensemble_num
+                  from t2j_cmip6 where case_id = $case_id);
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
-	my ($exp_id, $design_mip_id) = $sth->fetchrow;
+	my ($exp_id, $design_mip_id, $ens_num) = $sth->fetchrow;
 	$sth->finish;
 
-	if ($exp_id > 0 && $design_mip_id > 0) {
+	if ($exp_id > 0 && $design_mip_id > 0 && $ens_num == 1) {
 	    # update the t2j_cmip6 table
 	    $sql = qq(update t2j_cmip6 set case_id = NULL, parentExp_id = NULL, variant_label = NULL,
               ensemble_num = NULL, ensemble_size = NULL, assign_id = NULL, science_id = NULL, 
               request_date = NULL, source_type = NULL, nyears = NULL
-              where exp_id = $exp_id and design_mip_id = $design_mip_id);
+              where exp_id = $exp_id and design_mip_id = $design_mip_id and case_id = $case_id);
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute() or die $dbh->errstr;
+	    $sth->finish;
+	}
+	elsif ($exp_id > 0 && $design_mip_id > 0 && $ens_num > 1) {
+	    # delete entry from the t2j_cmip6 table
+	    $sql = qq(delete from t2j_cmip6 where case_id = $case_id and exp_id = $exp_id and design_mip_id = $design_mip_id);
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute() or die $dbh->errstr;
 	    $sth->finish;

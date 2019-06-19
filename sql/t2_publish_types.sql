@@ -10,7 +10,7 @@ create table t2_publish_types(
        primary key (id));	
 
 insert into t2_publish_types (name, description, url)
-values ('CESM2','Publish diagnostics links to CESM2 scientifically validated experiments table','http://www.cesm.ucar.edu/models/cesm2/scientifically-validated-cesm2.html'),
+values ('CESM2','Publish to the CESM2 scientifically validated experiments table','/exp2-public/cgi-bin/scientifically-validated-cesm2.cgi'),
        ('ESGF','Publish datasets to ESGF','https://esgf.llnl.gov'),
        ('CDG','Publish datasets to NCAR Climate Data Gateway (formally ESG - Earth System Grid)','https://www.earthsystemgrid.org'),
        ('DSET','Publish metadata to DSET/DASH','https://www2.cisl.ucar.edu/dash'),

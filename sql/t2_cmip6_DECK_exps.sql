@@ -5,7 +5,7 @@ drop table if exists t2_cmip6_DECK_exps;
 create table t2_cmip6_DECK_exps(
        `id` INTEGER AUTO_INCREMENT NOT NULL,	
        `CMIP6_DECK_exp` VARCHAR(20),
-       `CESM_exp` VARCHAR(20),
+       `CESM_exp` VARCHAR(25),
        `description` VARCHAR(200),
        primary key (id));	
 
@@ -21,5 +21,8 @@ values
 ('abrupt-4xCO2','4xCO2-CESM2-BGC','Abrupt 4xCO2 run'),
 ('abrupt-4xCO2','4xCO2-CESM2-WACCM','Abrupt 4xCO2 run'),
 ('amip','AMIP-CESM2-BGC', 'AMIP simulation (~1979-2014)'),
-('amip','AMIP-CESM2-WACCM', 'AMIP simulation (~1979-2014)');
-
+('amip','AMIP-CESM2-WACCM', 'AMIP simulation (~1979-2014)'),
+('piControl','Control-2deg', 'Pre-industrial control simulation at 2 degree resolution'),
+('piControl','Control-2deg-WACCM', 'Pre-industrial control simulation with WACCM at 2 degree resolution'),
+('historical','historical-2deg', 'Historical simulation using CMIP6 forcings (1850-2014) at 2 degree resolution'),
+('historical','historical-2deg-WACCM', 'Historical simulation using CMIP6 and WACCM forcings (1850-2014) at 2 degree resolution');

@@ -23,3 +23,6 @@ insert into t2_status (code,description,color)
 
 insert into t2_status (code,description,color)
        values ('Succeeded','process completed successfully','#33ffff');
+
+insert into t2_status (code,description,color)
+       values ('Verified','Publication successfully verified','#33ffff');
