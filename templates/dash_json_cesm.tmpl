@@ -1,10 +1,9 @@
 {
-
     "abstract": "[% DASHFields.abstract %]",
 
-    "access_constraints": "Registration required to download datasets.",
+    "access_constraints": "Registration required to download datasets",
 
-    "additional_information": "[% DASHFields.cmip6_experiment %]",
+    "additional_information": "[% DASHFields.additional_information.dquote %]",
 
     "alternate_identifier": [% DASHFields.alternate_identifier %],
 
@@ -22,7 +21,7 @@
 
     "geolocation": {"north": "90.0", "south": "-90.0", "east": "180.0", "west": "-180.0"}, 
 
-    "keywords": [ [% DASHFields.keywords %] ],
+    "keywords": [% DASHFields.keywords %],
 
     "landing_page": "[% DASHFields.landing_page %]",
 
@@ -63,5 +62,4 @@
     "title": "[% DASHFields.title %]",
 
     "topic_category": ["climatologyMeteorologyAtmosphere"]
-
 }

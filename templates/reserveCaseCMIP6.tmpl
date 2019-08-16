@@ -126,7 +126,7 @@
 							<select name="parentExp">
 								<option value="0">Select Experiment</option>
 								[% FOREACH exp IN CMIP6Exps %]	
-								<option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
+								<option value="[% exp.exp_id %],[% exp.casename %]">[% exp.expName %] : [% exp.casename %]</option>
 								[% END %]
 							</select>
 						</div>

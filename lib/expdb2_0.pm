@@ -10,14 +10,19 @@ use vars qw(@ISA @EXPORT);
 use Exporter;
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser); 
 use CGI::Session qw/-ip-match/;
+use Email::Simple;
+use Email::Sender::Simple qw(sendmail);
+use Email::Sender::Transport::Sendmail qw();
 use lib "/home/www/html/csegdb/lib";
 use config;
+
+my %config = &getconfig;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers getCMIP6Users checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
 getCaseFields getCaseFieldByName getCaseNotes getPercentComplete getDiags getCaseByID
-updatePublishStatus getPublishStatus getEnsembles getLinkByTypeCaseID);
+updatePublishStatus getPublishStatus getEnsembles getLinkByTypeCaseID copySVNtrunkTag);
 
 sub getCasesByType
 {
@@ -697,4 +702,61 @@ sub getLinkByTypeCaseID
    $sth->finish();
 
    return \%link;
+}
+
+sub copySVNtrunkTag
+{
+    my $dbh = shift;
+    my $casename = shift;
+    my $expdb2username = shift;
+    my $expdb2password = shift;
+    my $lemail = shift;
+
+    my ($msgbody, $signal);
+
+    my $dest_url = qq(https://svn-cesm2-expdb.cgd.ucar.edu/public/$casename);
+    my $src_url = qq(https://svn-cesm2-expdb.cgd.ucar.edu/$casename/trunk);
+    my @args = ("svn", "copy", $src_url, $dest_url, "--message", "copy caseroot trunk to public repo",
+	"--username", $expdb2username, "--password", $expdb2password);
+    system(@args);
+
+    my $subject = qq(CESM2 experiments database copy status of caseroot to public SVN repo for $casename);
+    # print return status to the SVN log file
+    if ($? == -1) {
+	$msgbody = <<EOF;
+SVN copy command failed to execute with error = $!.
+
+Please contact help\@cgd.ucar.edu for assistance.
+EOF
+    }
+    elsif ($? & 127) {
+	$signal = ($? & 127);
+	$msgbody = <<EOF;
+SVN copy command died with signal = $signal.
+
+Please contact help\@cgd.ucar.edu for assistance.
+EOF
+    }
+    else {
+	$msgbody = <<EOF;
+SVN copy command completed successfully. Publicly accessible caseroot files are available at URL:
+
+$dest_url
+EOF
+    }
+
+    # send emails to user with error message
+    my $email = Email::Simple->create(
+	header => [
+	    From => "CESM-expdb2",
+	    To   => "$lemail",
+	    Subject => $subject,
+	],
+	body => $msgbody,
+	);
+
+    sendmail($email, 
+	     { from => $lemail,
+	       transport => Email::Sender::Transport::Sendmail->new}
+	) or die "can't send email to $lemail in copySVNtrunkTag";
 }

@@ -19,8 +19,8 @@ use expdb2_0;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(getHorizontalResolutions getTemporalResolutions getExpAttributes
-getExpTypes getExpPeriods getComponents getWorkingGroups getDASHFields
-copySVNtrunkTag);
+getExpTypes getExpPeriods getComponents getWorkingGroups getDASHFields);
+
 
 sub getHorizontalResolutions
 {
@@ -182,6 +182,7 @@ sub getDASHFields
     my ($keywords) = '';
     my (@links, @stats);
     my $cmip6_exp_uid;
+    my ($compset, $grid);
 
     # get the current process stats for DASH publication
     ($DASHFields{'casename'}, @stats) = getProcessStats($dbh, $case_id, 'publish_dash');
@@ -217,15 +218,17 @@ sub getDASHFields
 	    $project->{'cmip6_ensemble_size'} = 1;
 	}
 	$cmip6_exp_uid = $project->{'cmip6_exp_uid'};
-	$DASHFields{'additional_information'} = qq(CMIP Phase 6 (CMIP6));
-	$DASHFields{'abstract'} = qq($project->{'cmip6_experiment'} (CMIP6 Experiment). Users can access the data from the Earth System Grid Federation or Climate Data Gateway; see the'Related links' section.  Diagnostic plots are also available from the 'Related links'.);
+	$DASHFields{'abstract'} = qq($project->{'cmip6_experiment'} (CMIP6 Experiment). Users can access the data from the Earth System Grid Federation or Climate Data Gateway as registered users; see the'Related links' section.  Diagnostic plots are also available from the 'Related links'.);
 
 	$DASHFields{'alternate_identifier'} = qq(["$project->{'cmip6_experiment_id'} (CMIP6 Experiment ID)",
-                 "$project->{'cmip6_variant_label'} (CMIP6 Variant Label)",
-                 "$project->{'cmip6_mipName'} (CMIP6 MIP Name)",
-                 "$project->{'cmip6_ensemble_num'} (CMIP6 Ensemble Number)",
-                 "$project->{'cmip6_ensemble_size'} (CMIP6 Ensemble Size)",
-                 "$project->{'cmip6_nyears'} (CMIP6 Minimum Number of Years)"]);
+                    "$project->{'cmip6_source_id'} (CMIP6 CESM Model Source)",
+                    "$project->{'cmip6_variant_label'} (CMIP6 Variant Label)",
+                    "$project->{'cmip6_mipName'} (CMIP6 MIP Name)",
+                    "$project->{'cmip6_ensemble_num'} (CMIP6 Ensemble Number)",
+                    "$project->{'cmip6_ensemble_size'} (CMIP6 Ensemble Size)",
+                    "$project->{'cmip6_nyears'} (CMIP6 Minimum Number of Years)",
+                    "$DASHFields{'casename'} (CESM Case Name)",
+                    "$case_id (CESM2 Experiments Database ID)"]);
     }
     else {
 	# TODO add project specific alternate_identifier's as they become available
@@ -234,8 +237,10 @@ sub getDASHFields
 	$sth->execute();
 	($DASHFields{'alternate_identifier'}, $DASHFields{'abstract'}) = $sth->fetchrow();
 	$sth->finish();
-	$DASHFields{'abstract'} = qq($DASHFields{'abstract'} ($DASHFields{'alternate_identifier'}). Users can access the data from the Climate Data Gateway; see the 'Related links' section.  Diagnostic plots are also available from the 'Related links'.);
-	$DASHFields{'alternate_identifier'} = qq(["$DASHFields{'alternate_identifier'}"]);
+	$DASHFields{'abstract'} = qq($DASHFields{'abstract'} ($DASHFields{'alternate_identifier'}). Users can access the data from the Climate Data Gateway as registered users; see the 'Related links' section.  Diagnostic plots are also available from the 'Related links'.);
+	$DASHFields{'alternate_identifier'} = qq(["$DASHFields{'alternate_identifier'}", 
+                    "$DASHFields{'casename'} (CESM Case Name)"],
+                    "$case_id (CESM2 Experiments Database ID)"]);
     }
 
     # get keywords and table info from the t2_DASH_tables except the temporal resolution 
@@ -257,18 +262,20 @@ sub getDASHFields
 	while(my $ref1 = $sth1->fetchrow_hashref())
 	{
 	    # create a keyword value string depending on the table id
-	    $kw_list .= qq("CESM2: $keyword : $ref1->{'name'}",);
+	    $kw_list .= qq("$keyword: $ref1->{'name'}",);
 	}
 	$sth1->finish();
 	$keywords .= $kw_list;
     }
     $sth->finish();
 
-    $DASHFields{'keywords'} = '';
     if (length($keywords) > 0) {
 	# chop off trailing ,
-	$DASHFields{'keywords'} = substr($keywords, 0, -1);
+	$DASHFields{'keywords'} .= substr($keywords, 0, -1);
+	$DASHFields{'keywords'} .= $keywords;
     }
+    # append the pre-defined keywords for better searching
+    $DASHFields{'keywords'} = qq([$keywords "CESM2", "CESM", "NCAR Community Earth System Model"]);
 
     # get the temporal resolution (table_id = 6)
     $kw_list = '';
@@ -285,16 +292,21 @@ sub getDASHFields
     $DASHFields{'temporal_resolution'} = $kw_list;
 
     # construct the title and additional_information
-    $DASHFields{'additional_information'} = '';
     $sql = qq(select title, compset, grid, machine, DATE_FORMAT(archive_date, '%Y-%m-%d') as archive_date,
-              model_version, run_startdate, run_lastdate
+              model_version, run_startdate, LEFT(run_lastdate, 10) as run_lastdate
               from t2_cases where id = $case_id);
     $sth = $dbh->prepare($sql);
     $sth->execute();
     while(my $ref = $sth->fetchrow_hashref())
     {
 	$DASHFields{'title'} = $ref->{'title'};
-	$DASHFields{'additional_information'} = qq(These data were generated by $ref->{'model_version'} on $ref->{'archive_date'} using machine "$ref->{'machine'}". CESM specific information: casename = $DASHFields{'casename'}, case_id = $case_id, compset = $ref->{'compset'}, grid = $ref->{'grid'}, run_startdate = $ref->{'run_startdate'}, run_lastdate = $ref->{'run_lastdate'});
+
+	$compset = $ref->{'compset'};
+##	$compset =~ s/\%/\\\\%/g;
+	$grid = $ref->{'grid'};
+##	$grid =~ s/\%/\\\\%/g;
+
+	$DASHFields{'additional_information'} = qq(These data were generated by $ref->{'model_version'} on $ref->{'archive_date'} using machine $ref->{'machine'}.\n\nCESM specific information:\n\ncasename = $DASHFields{'casename'}\n\ncase_id =  $case_id\n\ncompset = $compset\n\ngrid = $grid);
 	$DASHFields{'resource_version'} = qq($ref->{'model_version'});
 	$DASHFields{'run_startdate'} = qq($ref->{'run_startdate'});
 	$DASHFields{'run_lastdate'} = qq($ref->{'run_lastdate'});
@@ -334,8 +346,10 @@ sub getDASHFields
 	$DASHFields{'related_link'} .= qq({"name":"CMIP6 Data Request","linkage":"http://clipc-services.ceda.ac.uk/dreq/u/$cmip6_exp_uid.html","description":"CMIP6 Data Request Details"},);
     }
 
-    $DASHFields{'landing_page'} = '';
+    # set the landing page to the scientifically validated configurations
+    $DASHFields{'landing_page'} = qq(https://csegweb.cgd.ucar.edu/experiments/public);
 
+    # load up the related links
     $sql = qq(select p.id, p.description as name, j.link, j.description, 
               DATE_FORMAT(j.last_update, '%Y-%m-%d') as last_update
               from t2j_links as j, t2_process as p 
@@ -346,13 +360,13 @@ sub getDASHFields
     while(my $ref = $sth->fetchrow_hashref())
     {
 	if ($ref->{'id'} == 18 || $ref->{'id'} == 20) {
-	    $DASHFields{'landing_page'} = $ref->{'link'};
 	    $DASHFields{'publication_date'} = $ref->{'last_update'};
-	    print STDERR '>>> publication_date = ' . $DASHFields{'publication_date'};
 	}
-	else {
-	    $DASHFields{'related_link'} .= qq({"name":"$ref->{'name'}","linkage":"$ref->{'link'}","description":"$ref->{'description'}"},);
-	}
+	$DASHFields{'related_link'} .= qq({"name":"$ref->{'name'}","linkage":"$ref->{'link'}","description":"$ref->{'description'}"},);
+	# sterilize it a bit for JSON to ISO
+	$DASHFields{'related_link'} =~ s/\s+/ /g;
+	$DASHFields{'related_link'} =~ s/\t+/ /g;
+	$DASHFields{'related_link'} =~ s/\n+/ /g;
     }
     $sth->finish();
 
@@ -360,50 +374,7 @@ sub getDASHFields
 	$DASHFields{'related_link'} = substr($DASHFields{'related_link'}, 0, -1);
 	$DASHFields{'related_link'} = qq([$DASHFields{'related_link'}]);
     }
-
+    
     return \%DASHFields;
 }
 
-sub copySVNtrunkTag
-{
-    my $dbh = shift;
-    my $username = shift;
-    my $password = shift;
-    my $casename = shift;
-    my $rc = 0;
-
-    my $source_url = qq(https://svn-cesm2-expdb.cgd.ucar.edu/$casename);
-    my $dst_url = qq(https://svn-cesm2-expdb.cgd.ucar.edu/public/$casename);
-
-    # start here to setup authorization and SVN copy from source_url to dst_url
-    # setup the SVN client object 
-    my $client = new SVN::Client();
-
-    # setup to handle authentication the same as the command line client
-    my $config_dir = undef; # use default location
-##    my $config = SVN:Core::config_get_config($config_dir);
-##    my $config_category = $config->{SVN::Core::CONFIG_CATEGORY_CONFIG};
-##    $client->auth(
-##      SVN::Core::cmdline_create_auth_baton(0,           #non_interactive
-##                                           $username,       #username
-##                                           $password,       #password
-##                                           $config_dir,
-##                                           0,           #no_auth_cache
-##                                           0,           #trust_server_cert
-##                                           $config_category,
-##                                           undef)       #cancel_callback
-##	);
-
-    # Use first argument as target and canonicalize it before using
-    my $target;
-##    if (SVN::Core::path_is_url($source_url)) {
-##	$target = SVN::Core::uri_canonicalize($source_url);
-##    } else {
-##	$target = SVN::Core::dirent_canonicalize($source_url);
-##    }
-
-    # fetch the head revision of the target
-##    $client->cat(\*STDERR, $target, 'HEAD');
-
-    return $rc;
-}

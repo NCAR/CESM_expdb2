@@ -13,9 +13,9 @@ create table t2_expType(
 
 insert into t2_expType (name, description, exp_module, getCaseByID, expDetail_template)
 values ('cmip6', 'CMIP6 Experiments','CMIP6','getCMIP6CaseByID','CMIP6.tmpl'),
-       ('production', 'CESM2.0 Production Experiments','','',''),
-       ('projectA', 'CESM2.0 Project A Experiments','','',''),
-       ('projectB', 'CESM2.0 Project B Experiments','','',''),
-       ('tuning', 'CESM2.0 Tuning Experiments','','','');
+       ('production', 'CESM2 Production Experiments','','',''),
+       ('lens', 'CESM2 Large Ensemble Experiments','','',''),
+       ('TBD project', 'CESM2 TBD Project Experiments','','',''),
+       ('tuning', 'CESM2 Tuning Experiments','','','');
 
 
