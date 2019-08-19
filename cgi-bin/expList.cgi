@@ -1417,16 +1417,18 @@ sub publishDASHProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
+    my $pub_ens = $req->param('pub_ensemble_DASH');
     my $casename = $req->param('casename');
     my ($tmplFile);
     my $signal;
+    my %case;
+    my @cases;
 
     if ($expType_id == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
 	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the DASH publication options for CMIP6 experiments.<br/>);
 	return;
     }
-
 
     # gather all the required metadata fields
     my $DASHFields = getDASHFields($dbh, $case_id, $expType_id);
@@ -1507,21 +1509,31 @@ sub publishDASHProcess
 	$git_logger->debug('****************************');
     }
 
-    # everything looks good - update the DASH publication (19) status (5) succeded 
-    updatePublishStatus($dbh, $case_id, 19, 5, $item{luser_id}, $DASHFields->{'asset_size_MB'});    
+    # check if all ensemble members should be marked success or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
+    }
+    else {
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
+    }
 
-    # add a link to the DASH publication in the t2j_links table
-    my $link = $DASHFields->{'title'};
-    $link =~ s/\s/-/g;
-    $link = qq($config{'dset_web_dev_url'}/$link);
-    my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, approver_id)
-                 value ($case_id, 19, 1, '$link', 'DASH URL', NOW(), $item{luser_id}));
-    my $sth = $dbh->prepare($sql);
-    $sth->execute();
-    $sth->finish();
+    foreach my $ca (@cases) 
+    {
+	# everything looks good - update the DASH publication (19) status (5) succeded 
+	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 5, $item{luser_id}, $DASHFields->{'asset_size_MB'});    
+
+	# add a link to the DASH publication in the t2j_links table
+	my $description = $dbh->quote('DASH URL - enter search term "CESM2" along with any other experiment title keywords or casename');
+	my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, approver_id)
+                     value ($ca->{'case_id'}, 19, 1, "$config{'dset_web_dev_url'}", $description, NOW(), $item{luser_id}));
+	my $sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
+    }
 
     $validstatus{'status'} = 1;
-    $validstatus{'message'} .= qq(Successful publication of record to $link'});
+    $validstatus{'message'} .= qq(Successful publication of record to $config{'dset_web_dev_url'});
 }
 
 #----------------------
@@ -1578,60 +1590,6 @@ sub resetDASHProcess
 
     $validstatus{'status'} = 1;
     $validstatus{'message'} = qq(DASH keywords and publish status reset.<br/>);
-}
-
-#--------------------
-sub updateDASHProcess
-#--------------------
-{
-    my $case_id = $req->param('case_id');
-    my $expType_id = $req->param('expType_id');
-    my $pub_radio = $req->param('dash_published');
-    my $pub_ens = $req->param('verify_ensemble_DASH');
-    my $dash_size = $req->param('dash_size') * 1000000;
-    my @cases;
-    my %case;
-
-    if ($expType_id == 1 && !isCMIP6User($dbh, $item{luser_id}, $case_id) ) {
-	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the DASH publication options.<br/>);
-	return;
-    }
-
-    # get the ensemble info about the case
-    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
-                 from t2_cases as c, t2j_cmip6 as j 
-                 where c.id = $case_id and c.id = j.case_id);
-    my $sth = $dbh->prepare($sql);
-    $sth->execute();
-    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
-    $sth->finish();
-
-    # check if all ensemble members should be marked success or not
-    if ($pub_ens eq "all") {
-	@cases = getEnsembles($dbh, $case_id);
-    }
-    else {
-	$case{'case_id'} = $case_id;
-	push (@cases, \%case);
-    }
-
-    foreach my $ca (@cases) 
-    {
-	# check current publish status for process_id = 19 (publish_dash)
-	my ($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 19);
-
-	if ($status_id == 2 && $pub_radio eq 'yes') {
-	    # update the publish to DASH status - process_id = 19 to status_id = 5 "succeeded"
-	    updatePublishStatus($dbh, $case_id, 19, 5, $item{luser_id}, $dash_size);
-	    $validstatus{'status'} = 1;
-	    $validstatus{'message'} .= qq(DASH successfully published and verified (casename = $ca->{'casename'}).<br/>)
-	}
-	else {
-	    $validstatus{'status'} = 0;
-	    $validstatus{'message'} .= qq(This experiment data has already been successfully published to DASH (casename = $ca->{'casename'}).<br/>);
-	}
-    }
 }
 
 #----------------------
@@ -1732,11 +1690,11 @@ sub deleteDASHProcess
 	$sth->finish();
 
 	# reset publish status to unknown
-	updatePublishStatus($dbh, $case_id, 19, 1, $item{luser_id}, 0);
+	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 1, $item{luser_id}, 0);
     }
 
     $validstatus{'status'} = 1;
-    $validstatus{'message'} = qq(DASH keywords and publish status reset.<br/>);
+    $validstatus{'message'} = qq(DASH ISO record deleted; keywords and publish status reset.<br/>);
 }
 
 #---------------------------
