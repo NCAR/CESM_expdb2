@@ -1473,7 +1473,7 @@ sub publishDASHProcess
     }
 
     # git fetch origin master
-    $output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} fetch --all);
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} fetch --all);
     if (length($output) > 0) {
 	$git_logger->debug('****************************');
 	$git_logger->debug('** publishDASHProcess : ' . $casename . ' git fetch --all: ' . $output);
@@ -1481,29 +1481,29 @@ sub publishDASHProcess
 	
     # git reset --hard to the origin/master
     $output = '';
-    $output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} reset --hard origin/master 2>&1 1>/dev/null);
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} reset --hard origin/master 2>&1 1>/dev/null);
     if (length($output) > 0) {
 	$git_logger->debug('** publishDASHProcess : ' . $casename . ' git reset --hard origin/master: ' . $output);
     }
 
     # add the new ISO record to the repo
     $output = '';
-    $output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} add .);
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} add .);
     if (length($output) > 0) {
 	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git add . :' . $output);
     }
 
     # commit the new ISO record to the repo
     $output = '';
-    $output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} commit -m "CESM Experiments Database add $casename.xml ISO record");
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} commit -m "CESM Experiments Database add $casename.xml ISO record");
     if (length($output) > 0) {
 	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git commit :' . $output);
     }
 
     # git push origin master using the a personal token
-    my $originURL = qq(https://$config{'dset_web_dev_login'}:$config{'dset_web_dev_token'}\@github.com/NCAR/dset-web-accessible-folder-dev);
+    my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/dset-web-accessible-folder-dev);
     $output = '';
-    $output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} push $originURL master); 
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} push $originURL master); 
     if (length($output) > 0) {
 	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git push ' . $originURL . 'master :' . $output);
 	$git_logger->debug('****************************');
@@ -1526,14 +1526,14 @@ sub publishDASHProcess
 	# add a link to the DASH publication in the t2j_links table
 	my $description = $dbh->quote('DASH URL - enter search term "CESM2" along with any other experiment title keywords or casename');
 	my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, approver_id)
-                     value ($ca->{'case_id'}, 19, 1, "$config{'dset_web_dev_url'}", $description, NOW(), $item{luser_id}));
+                     value ($ca->{'case_id'}, 19, 1, "$config{'dset_web_url'}", $description, NOW(), $item{luser_id}));
 	my $sth = $dbh->prepare($sql);
 	$sth->execute();
 	$sth->finish();
     }
 
     $validstatus{'status'} = 1;
-    $validstatus{'message'} .= qq(Successful publication of record to $config{'dset_web_dev_url'});
+    $validstatus{'message'} .= qq(Successful publication of record to $config{'dset_web_url'});
 }
 
 #----------------------
@@ -1636,7 +1636,7 @@ sub deleteDASHProcess
 	# git fetch origin master
 	$xmlfile = $ca->{'casename'} . ".xml";
 	my $output = '';
-	$output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} fetch --all 2>&1 1>/dev/null);
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} fetch --all 2>&1 1>/dev/null);
 	if (length($output) > 0) {
 	    $git_logger->debug('****************************');
 	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git fetch --all: ' . $output);
@@ -1644,29 +1644,29 @@ sub deleteDASHProcess
 	
 	# git reset --hard to the origin/master
 	$output = '';
-	$output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} reset --hard origin/master 2>&1 1>/dev/null);
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} reset --hard origin/master 2>&1 1>/dev/null);
 	if (length($output) > 0) {
 	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git reset --hard origin/master: ' . $output);
 	}
 
 	# delete the  ISO record from the repo
 	$output = '';
-	$output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} rm ./cesm_expdb/$xmlfile 2>&1 1>/dev/null);
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} rm ./cesm_expdb/$xmlfile 2>&1 1>/dev/null);
 	if (length($output) > 0) {
 	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git rm ./cesm_expdb./$xmlfile: ' . $output);
 	}
 
 	# commit the removed ISO record to the repo
 	$output = '';
-	$output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} commit -m "CESM Experiments Database delete $xmlfile ISO record");
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} commit -m "CESM Experiments Database delete $xmlfile ISO record");
 	if (length($output) > 0) {
 	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git commit: ' . $output);
 	}
 
 	# git push origin master using the a personal token
-	my $originURL = qq(https://$config{'dset_web_dev_login'}:$config{'dset_web_dev_token'}\@github.com/NCAR/dset-web-accessible-folder-dev);
+	my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/dset-web-accessible-folder-dev);
 	$output = '';	
-	$output = qx(/usr/bin/git -C $config{'dash_web_dev_git'} push $originURL master 2>&1 1>/dev/null);
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} push $originURL master 2>&1 1>/dev/null);
 	if (length($output) > 0) {
 	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git push $originURL master : ' . $output);
 	    $git_logger->debug('****************************');
