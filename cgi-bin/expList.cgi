@@ -395,6 +395,7 @@ sub reserveCaseCMIP6
     my ($sql1, $sth1) = '';
     my ($key, $value) = '';
     my (%scienceUser, %assignUser) = ();
+    my @parents;
 
     foreach $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
@@ -504,14 +505,24 @@ sub reserveCaseCMIP6
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	$sth->finish();
-	if ($item{'parentExp'} > 0)
+	if (length($item{'parentExp'}) > 0)
 	{
-	    $sql = qq(update t2j_cmip6 set 
-                      parentExp_id = $item{'parentExp'}
+            @parents = split(',', $item{'parentExp'});
+
+            # get the parentCase_id from $parents[1] casename
+            $sql = qq(select id from t2_cases where casename = '$parents[1]');
+            $sth = $dbh->prepare($sql);
+            $sth->execute();
+            ($item{'parentCase_id'}) = $sth->fetchrow();
+            $sth->finish();
+
+            $sql = qq(update t2j_cmip6 set
+                      parentExp_id = $parents[0],
+                      parentCase_id = $item{'parentCase_id'}
                       where exp_id = $item{'expName'});
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute();
-	    $sth->finish();
+            $sth = $dbh->prepare($sql);
+            $sth->execute();
+            $sth->finish();
 	}
 
 	# get the branch variables
@@ -1509,7 +1520,7 @@ sub updateGlobalAttsProcess
     my ($branch_child, $branch_parent, $variant_label, $orig_variant_label) = "";
     my ($ens_id, $base_name, $base_ext, $ens_casename, $ext, $real_num, $casename);
     my ($sql1, $sth1);
-    my (@cases, @variant_parts);
+    my (@cases, @variant_parts, @parents);
     my (%case);
     my (%globalAtts, %project);
     my ($subject, $msgbody, $email);
@@ -1571,11 +1582,19 @@ sub updateGlobalAttsProcess
 	    $variant_label = $dbh->quote($variant_label);
 	    $sql1 .= qq(, variant_label = $variant_label );
 	}
-	if ($item{'parentExp'} > 0) 
-	{
-	    $sql1 .= qq(, parentExp_id = $item{'parentExp'} );
-	    
-	}
+        if (length($item{'parentExp'}) > 0)
+        {
+            @parents = split(',', $item{'parentExp'});
+
+            # get the parentCase_id from $parents[1] = casename
+            $sql = qq(select id from t2_cases where casename = '$parents[1]');
+            $sth = $dbh->prepare($sql);
+            $sth->execute();
+	    ($item{'parentCase_id'}) = $sth->fetchrow();
+            $sth->finish();
+
+            $sql1 .= qq(, parentExp_id = $parents[0], parentCase_id = $item{'parentCase_id'} );
+        }
 	$sql1 .= qq(where case_id = $ca->{'case_id'});
 
 	# update the t2j_cmip6 table with the branch variables
@@ -1597,6 +1616,7 @@ These are the updates:
     branch_time_in_parent = $globalAtts->{'branch_time_in_parent'} 
     parent_experiment_id  = $globalAtts->{'parent_experiment_id'}
     variant_label         = $globalAtts->{'variant_label'}
+    parent_casename       = $parents[1]
 
 Please see the following experiment for more details:
 
