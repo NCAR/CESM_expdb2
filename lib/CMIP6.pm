@@ -1353,6 +1353,18 @@ sub getCMIP6GlobalFileAtts
 		$sth1->finish();
 	    }
 	    
+            # check if parentCase_id exists which indicates an ensemble member as the parent
+            if( $ref->{'parentCase_id'} > 0)
+            {
+                $parentCase_id = $ref->{'parentCase_id'};
+                $sql1 = qq(select variant_label from t2j_cmip6
+                           where case_id = $parentCase_id');
+                $sth1 = $dbh->prepare($sql1);
+                $sth1->execute();
+                $globalAtts{'parent_variant_label'} = $project{'cmip6_parent_variant_label'} = $sth1->fetchrow();
+                $sth1->finish();
+            }
+
 	    # work on the sub_experiment_id 
 	    $globalAtts{'sub_experiment_id'} = $ref->{'sub_experiment_id'};
 	    $globalAtts{'sub_experiment'} = 'none';

@@ -538,7 +538,6 @@ sub reserveCaseCMIP6
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
 	    $sth->finish();
-
 	}
 
 	# get the branch variables
@@ -1770,6 +1769,7 @@ sub updateGlobalAttsProcess
 	    $variant_label = $dbh->quote($variant_label);
 	    $sql1 .= qq(, variant_label = $variant_label );
 	}
+
 	if (length($item{'parentExp'}) > 0) 
 	{
 	    @parents = split(',', $item{'parentExp'});

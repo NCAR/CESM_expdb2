@@ -12,6 +12,8 @@ insert into t2_cmip6_source_id (value, description)
 values
 ('CESM2','CAM6 1 degree'),
 ('CESM2-WACCM','WACCM 1 degree'),
-('CESM2-SE','spectral element dycore, resolution as yet unspecified, but probably ne120'),
-('CESM2-FV2','CAM6 2 degree finite volume dycore, to be used for paleo runs, probably');
+('CESM1-3-SE-CAM5-CMIP5','spectral element dycore for high resolution'),
+('CESM2-FV2','CAM6 2 degree finite volume dycore'),
+('CESM2-WACCM-FV2','WACCM 2 degree finite volume dycore'),
+('CESM1-1-CAM5-CMIP5','CAM5 1 degree');
 
