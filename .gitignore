@@ -13,3 +13,9 @@
 
 # Ignore toss subdirs
 toss
+
+# ignore dash related subdirs
+DASH-JSON-records
+dash-cgd-prod
+dset-JSON-to-ISO19139
+dset-web-accessible-folder-dev

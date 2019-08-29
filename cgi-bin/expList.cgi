@@ -1501,7 +1501,7 @@ sub publishDASHProcess
     }
 
     # git push origin master using the a personal token
-    my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/dset-web-accessible-folder-dev);
+    my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/$config{'dash_repo'});
     $output = '';
     $output = qx(/usr/bin/git -C $config{'dash_web_git'} push $originURL master); 
     if (length($output) > 0) {
@@ -1664,7 +1664,7 @@ sub deleteDASHProcess
 	}
 
 	# git push origin master using the a personal token
-	my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/dset-web-accessible-folder-dev);
+	my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/$config{'dash_repo'});
 	$output = '';	
 	$output = qx(/usr/bin/git -C $config{'dash_web_git'} push $originURL master 2>&1 1>/dev/null);
 	if (length($output) > 0) {
