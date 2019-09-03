@@ -11,7 +11,9 @@ insert into t2_DASH_expPeriod (name)
 values 
 ('paleoclimate'),
 ('pre-industrial'),
+('historical'),
 ('present-day'),
 ('scenario (future)'),
 ('other time period');
+
 

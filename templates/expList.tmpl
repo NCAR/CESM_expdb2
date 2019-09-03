@@ -150,8 +150,8 @@
 		  <li role="presentation" class="active"><a data-toggle="tab" role="tab" href="#cmip6exp" id="cmip6exp-tab">CESM2 / CMIP6 Experiments</a></li>
 		  <li role="presentation"><a data-toggle="tab" role="tab" href="#cesm2tune" id="cesm2tune-tab">CESM2.0 Release Experiments</a></li>
 		  <li role="presentation"><a data-toggle="tab" role="tab" href="#cesm2exp" id="cesm2exp-tab">CESM2 Production Experiments</a></li>
-		  <li role="presentation"><a data-toggle="tab" role="tab" href="#projectA" id="projectA-tab">CESM2 Project A Experiments (TBD)</a></li>
-		  <li role="presentation"><a data-toggle="tab" role="tab" href="#projectB" id="projectB-tab">CESM2 Project B Experiments (TBD)</a></li>
+		  <li role="presentation"><a data-toggle="tab" role="tab" href="#cesm2lens" id="cesm2lens-tab">CESM2 LENS Experiments</a></li>
+		  <li role="presentation"><a data-toggle="tab" role="tab" href="#projectB" id="projectB-tab">CESM2 (TBD) Project Experiments</a></li>
 		</ul>
 
 		<div class="tab-content" id="dashTabContent">
@@ -820,16 +820,16 @@
 
 
 
-		  <!-- tab box for projectA start -->
-		  <div class="tab-pane fade" role="tabpanel" id="projectA" aria-labelledby="projectA-tab"> 
-		    <table id="ProjectATable" class="table table-striped table-condensed" style="width: 100%;">
+		  <!-- tab box for cesm2lens start -->
+		  <div class="tab-pane fade" role="tabpanel" id="cesm2lens" aria-labelledby="cesm2lens-tab"> 
+		    <table id="cesm2LensTable" class="table table-striped table-condensed" style="width: 100%;">
 		      <thead>
 			<th>Case Name</th>
 			<th>Title</th>
 			<th>Archive Date</th>
 		      </thead>
 		      <tbody>
-			[% FOREACH exp IN projectA %]
+			[% FOREACH exp IN lensExps %]
 			<tr>
 			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
@@ -839,7 +839,7 @@
 		      </tbody>
 		    </table>
 		  </div>
-		  <!-- tab box for projectA end -->
+		  <!-- tab box for cesm2lens end -->
 
 
 		  <!-- tab box for projectB start -->

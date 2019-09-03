@@ -40,6 +40,7 @@ CREATE TABLE `t2j_cmip6` (
   `branch_method` varchar(500) DEFAULT NULL,
   `branch_time_in_parent` varchar(100) DEFAULT NULL,
   `branch_time_in_child` varchar(100) DEFAULT NULL,
+  `parentCase_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`exp_id`,`variant_label`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;

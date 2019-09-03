@@ -187,7 +187,7 @@
 			<form method="post">
 			  <div class="modal-body">
 			    <div class="form-group">
-			      <textarea class="form-control" name="title" rows="5" maxlength="256" cols="100">[% case.title.value %]</textarea>
+			      <textarea class="form-control" name="title" rows="5" maxlength="500" cols="100">[% case.title.value %]</textarea>
 			    </div>
 			  </div>
 			  <div class="modal-footer">
@@ -308,7 +308,7 @@
 			      <select name="parentExp">
 				<option value="0">Select Experiment</option>
 				[% FOREACH exp IN CMIP6Exps %]	
-				<option value="[% exp.exp_id %]">[% exp.expName %] : [% exp.casename %]</option>
+				<option value="[% exp.exp_id %],[% exp.casename %]">[% exp.expName %] : [% exp.casename %]</option>
 				[% END %]
 			      </select>
 			      <br/>
@@ -1103,9 +1103,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 			</li>
 
 			<li class="list-group-item">
-			  <span class="label label-danger" style="font-weight: 100; font-size: 85%;"><strong>Note:</strong> DASH publication options are still a work-in-progress.</span><br/>
-			  Publish experiment metadata to the NCAR <a href="https://data.ucar.edu/" target="_blank">Digital Assets Services Hub</a>.
-			  This also adds a link to the CESM2 scientifically supported configurations pages (link here).<br/>
+			  Publish experiment metadata to the NCAR <a href="https://data.ucar.edu/" target="_blank">Digital Assets Services Hub</a> (DASH).<br/>
 			  <div class="btn-group" role="group">
 			    [% pubkey = 'publish_dash'; IF status.$pubkey.code_id < 2 %]
 			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalDASH">
@@ -1128,11 +1126,11 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 
 			  <div class="btn-group" role="group">
 			    [% pubkey = 'publish_dash'; IF status.$pubkey.code_id < 6 %]
-			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalDASHStatus">
+			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalDASHReset">
 			    [% ELSE %]
-			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalDASHStatus" disabled>
+			    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModalDASHReset" disabled>
 			    [% END %]
-			    Update Status of DASH
+			    Delete and Reset on DASH
 			    </button>
 			  </div>
 
@@ -1153,19 +1151,20 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 					<fieldset class="form-group">
 					  <label for="publishEnsembleDASHRadios1">DASH publication options:</label><br/>
 					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="all" required/> Publish *ALL* experiment ensemble members under this single DASH record<br/>
-					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="one"/> Publish *ONLY* this experiment member
+					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="one"/> Publish *ONLY* this experiment
 					</fieldset>
 				      </div>
 				    </div>
 
-				    <fieldset class="form-group">
-				      <div class="row">
-					<label class="col-form-label col-lg-12">Published dataset size in MB (for ensembles, enter dataset size of only one member)?</label>
-					<div class="col-lg-4">
-					  <input type="number" class="form-control" name="dash_size" min="1" max="999999999"  value=[% pubkey = 'publish_dash'; status.$pubkey.disk_usage %] required/>
-					</div>
+				    <div class="row">
+				      <div class="col-md-12">
+					<fieldset class="form-group">
+					  <label for="addSizeDASHRadios1">Select the published dataset size in MB on ESGF or CDG (for ensembles, select the dataset size of only one member)?</label>
+					  <input type="radio" name="dash_size" id="addSizeDASHRadios1" value="[% pubkey = 'publish_esgf'; status.$pubkey.disk_usage %]" required/> ESGF size in MB: [% pubkey = 'publish_esgf'; status.$pubkey.disk_usage %]<br/>
+					  <input type="radio" name="dash_size" id="addSizeDASHRadios1" value="[% pubkey = 'publish_cdg'; status.$pubkey.disk_usage %]"/> CDG size in MB: [% pubkey = 'publish_cdg'; status.$pubkey.disk_usage %]
+					</fieldset>
 				      </div>
-				    </fieldset>
+				    </div>
 
 				    <fieldset class="form-group">
 				      <label for="atmlat_spatialResolution">Spatial resolution for atmosphere/land grid in degrees</label><br/>
@@ -1195,7 +1194,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="row">
 					<div class="col-md-12">
 					  <label for="horizontalResolution">Horizontal Resolution in layman's terms</label>
-					  <select multiple class="form-control" id="horizontalResolution" name="horizontalResolution">
+					  <select multiple class="form-control" id="horizontalResolution" name="horizontalResolution" size="6">
 					    [% FOREACH hr IN horizontalResolutions %]
 					    <option value="[% hr.id %]">[% hr.name %]</option>
 					    [% END %]
@@ -1209,7 +1208,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 					<div class="col-md-12">
 					  <label for="temporalResolution">Temporal Resolution - Select the temporal resolution(s) at with the output are available.
 					    Some temporal resolutions need not be available for all variables for all years.</label>
-					  <select multiple class="form-control" id="temporalResolution" name="temporalResolution">
+					  <select multiple class="form-control" id="temporalResolution" name="temporalResolution" size="6">
 					    [% FOREACH tr IN temporalResolutions %]
 					    <option value="[% tr.id %]">[% tr.name %]</option>
 					    [% END %]
@@ -1221,21 +1220,8 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				    <fieldset class="form-group">
 				      <div class="row">
 					<div class="col-md-12">
-					  <label for="expAttributes">Experiment Attributes (Optional)</label>
-					  <select multiple class="form-control" id="expAttributes" name="expAttributes">
-					    [% FOREACH ea IN expAttributes %]
-					    <option value="[% ea.id %]">[% ea.name %] ([% ea.short_name %])</option>
-					    [% END %]
-					  </select>
-					</div>
-				      </div>
-				    </fieldset>
-
-				    <fieldset class="form-group">
-				      <div class="row">
-					<div class="col-md-12">
 					  <label for="expTypes">Experiment Type (select at least one)</label>
-					  <select multiple class="form-control" id="expTypes" name="expTypes">
+					  <select multiple class="form-control" id="expTypes" name="expTypes" size="6">
 					    [% FOREACH et IN expTypes %]
 					    <option value="[% et.id %]">[% et.name %]</option>
 					    [% END %]
@@ -1248,7 +1234,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="row">
 					<div class="col-md-12">
 					  <label for="expPeriods">Experiment Time Period (select at least one)</label>
-					  <select multiple class="form-control" id="expPeriods" name="expPeriods">
+					  <select multiple class="form-control" id="expPeriods" name="expPeriods" size="6">
 					    [% FOREACH ep IN expPeriods %]
 					    <option value="[% ep.id %]">[% ep.name %]</option>
 					    [% END %]
@@ -1260,9 +1246,22 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				    <fieldset class="form-group">
 				      <div class="row">
 					<div class="col-md-12">
+					  <label for="expAttributes">Experiment Attributes (Optional)</label>
+					  <select multiple class="form-control" id="expAttributes" name="expAttributes" size="8">
+					    [% FOREACH ea IN expAttributes %]
+					    <option value="[% ea.id %]">[% ea.name %] ([% ea.short_name %])</option>
+					    [% END %]
+					  </select>
+					</div>
+				      </div>
+				    </fieldset>
+
+				    <fieldset class="form-group">
+				      <div class="row">
+					<div class="col-md-12">
 					  <label for="components">Stand-alone Components - If any of the CESM component models were run as 
 					    uncoupled 'stand-alone' models for this experiment, select them here. (Optional)</label>
-					  <select multiple class="form-control" id="components" name="components">
+					  <select multiple class="form-control" id="components" name="components" size="10">
 					    [% FOREACH c IN components %]
 					    <option value="[% c.id %]"> [% c.name %] ([% c.short_name %])</option>
 					    [% END %]
@@ -1276,7 +1275,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 					<div class="col-md-12">
 					  <label for="wgs">
 					    If the experiment is sponsored by a working group, select the group name(s) here. (Optional)</label>
-					  <select multiple class="form-control" id="wgs" name="wgs">
+					  <select multiple class="form-control" id="wgs" name="wgs" size="14">
 					    [% FOREACH w IN wgs %]
 					    <option value="[% w.id %]"> [% w.name %]</option>
 					    [% END %]
@@ -1289,6 +1288,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				  <div class="modal-footer">
 				    <input type="hidden" name="action" value="addDASHProcess"/>
 				    <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
 				    <button type="submit" class="btn btn-primary" id="btn-update" value="Submit">Submit</button>
 				    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 				  </div>
@@ -1303,11 +1303,21 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 			      <div class="modal-content">
 				<div class="modal-header">
 				  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				  <h4 class="modal-title" id="myModalDASHLabel">Preview and Publish [% case.casename.value %] metadata to the Digital Assest Services Hub</h4>
-				  <p>Below are the metadata fields specific to this experiment that will be published to DASH via an ISO XML record and the CKAN github repository. Check the keyword fields and then scroll to the bottom of the form and press either the "Publish" button to publish this record or the "Reset" button which will allow you to return to the keyword entry form and resubmit any changes..</p>
+				  <h4 class="modal-title" id="myModalDASHPubLabel">Preview and Publish [% case.casename.value %] metadata to the Digital Assest Services Hub</h4>
+				  <p>Below are the metadata fields specific to this experiment that will be published to DASH via an ISO XML record and the CKAN github repository and posted on the <a href="http://data.ucar.edu">http://data.ucar.edu</a> website. Check the keyword fields and then scroll to the bottom of the form and press either the "Publish" button to publish this record or the "Reset" button which will allow you to return to the keyword entry form and resubmit any changes..</p>
 				</div>
 				<form id="publishDASH_form" method="post">
 				  <div class="modal-body">
+				    <div class="row">
+				      <div class="col-md-12">
+					<fieldset class="form-group">
+					  <label for="publishEnsembleDASHRadios1">DASH publication options:</label><br/>
+					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="all" required/> Publish or reset *ALL* experiment ensemble members under this single DASH record<br/>
+					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="one"/> Publish or reset *ONLY* this experiment
+					</fieldset>
+				      </div>
+				    </div>
+
 				    <table class="table table-striped table-condensed">
 				      <thead>
 					<tr>
@@ -1319,7 +1329,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 					[% FOREACH key IN DASHFields.keys.sort  %]
 					<tr>
 					  <td><strong>[% key %]</strong></td>
-					  <td>[% DASHFields.$key %]</td>
+					  <td style="word-wrap: break-word">[% DASHFields.$key %]</td>
 					</tr>
 					[% END %]
 				      </tbody>
@@ -1330,6 +1340,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				    <input type="hidden" name="action" id="action"/>
 				    <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
 				    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				    <input type="hidden" name="casename" value="[% case.casename.value %]"/>
 				    <button type="submit" class="btn btn-primary" id="btn-publish" value="Publish" onclick="publishDASH_clickHandler(event);">Publish</button>
 				    <button type="submit" class="btn btn-primary" id="btn-reset" value="Reset" onclick="resetDASH_clickHandler(event);">Reset</button>
 				    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -1339,83 +1350,42 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 			    </div>
 			  </div>
 
-			  <div class="modal fade" id="myModalDASHStatus" tabindex="-1" role="dialog" aria-labelledby="myModalDASHStatusLabel">
-			    <div class="modal-dialog modal-lg" role="document">
+
+			  <div class="modal fade" id="myModalDASHReset" tabindex="-1" role="dialog" aria-labelledby="myModalDASHResetLabel">
+			    <div class="modal-dialog" role="document">
 			      <div class="modal-content">
 				<div class="modal-header">
 				  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				  <h4 class="modal-title" id="myModalDASHStatusLabel">[% case.casename.value %] Update Status of DASH</h4>
-				  <p>Only data managers can update the DASH publication status. DASH landing page URLs and Dataset DOI should be added under the
-				    <b>Case Diagnostics and Publication Links</b> accordion.</p>
+				  <h4 class="modal-title" id="myModalDASHResetLabel">[% case.casename.value %] Delete and reset published records on DASH</h4>
+				  <p>Only data managers can delete and reset a DASH published ISO record.</p>
+				  <div class="alert alert-danger text-center" role="alert">
+				    <span class="">*CAUTION* Deleting and reseting published records on DASH can not be undone without administrator assistance.
+				      If you wish to re-publish deleted records, you will need to re-enter the keywords followed by pressing the "Preview and Publish to DASH" button.</span>
+				  </div>
 				</div>
-
 				<form method="post">
 				  <div class="modal-body">
 				    <div class="row">
 				      <div class="col-lg-12">
-					[% IF case.is_ens.value.lower == 'true' %] 
 					<fieldset class="form-group">
-					  <label for="verifyEnsembleDASHRadios1">Ensemble successfully published and verified options:</label><br/>
-					  <input type="radio" name="verify_ensemble_DASH" id="verifyEnsembleDASHRadios1" value="all" required/> *ALL* ensemble members published and verified?<br/>
-					  <input type="radio" name="verify_ensemble_DASH" id="verifyEnsembleDASHRadios1" value="one"/> *ONLY* this ensemble member published and verified?
+					  [% IF case.is_ens.value.lower == 'true' %] 
+					  <label for="deleteEnsembleDASHRadios1">Ensemble records delete and reset options:</label><br/>
+					  <input type="radio" name="delete_ensemble_DASH" id="deleteEnsembleDASHRadios1" value="all" required/> Delete and reset *ALL* ensemble members' DASH records<br/>
+					  <input type="radio" name="delete_ensemble_DASH" id="deleteEnsembleDASHRadios1" value="one"/> Delete and reset *ONLY* this ensemble member's DASH record
+					  [% ELSE %]
+					  <label for="deleteEnsembleDASHRadios1">DASH record delete and reset:</label><br/>
+					  <input type="radio" name="delete_ensemble_DASH" id="deleteEnsembleDASHRadios1" value="one" required/> Delete and reset this experiment's DASH record
+					  [% END %]
 					</fieldset>
-					[% END %]
 				      </div>
 				    </div>
-
-				    <fieldset class="form-group">
-				      <div class="row">
-					<label class="col-form-label col-lg-4">Successfully published and verified on DASH?</label>
-					<div class="col-lg-8">
-					  <div class="form-check">
-					    [% pubkey = 'publish_dash'; IF status.$pubkey.code == "Succeeded" %]
-					    <input class="form-check-input" type="radio" name="dash_published" id="publishDASHRadios1" value="no" disabled>
-					    [% ELSE %]
-					    <input class="form-check-input" type="radio" name="dash_published" id="publishDASHRadios1" value="no" checked>
-					    [% END %]
-					    <label class="form-check-label" for="publishDASHRadios1"> 
-					      No
-					    </label>
-					  </div>
-					  <div class="form-check">
-					    [% pubkey = 'publish_dash'; IF status.$pubkey.code == "Succeeded" %]
-					    <input class="form-check-input" type="radio" name="dash_published" id="publishDASHRadios2" value="yes" checked disabled>
-					    [% ELSE %]
-					    <input class="form-check-input" type="radio" name="dash_published" id="publishDASHRadios2" value="yes">
-					    [% END %]
-					    <label class="form-check-label" for="publishDASHRadios2">
-					      Yes
-					    </label>
-					  </div>
-					</div>
-				      </div>
-				    </fieldset>
-
-				    <fieldset class="form-group">
-				      <div class="row">
-					<label class="col-form-label col-lg-12">Published dataset URL?</label>
-					<div class="col-lg-12">
-					  <textarea class="form-control" name="dash_url" cols="100" rows="3" placeholder="https://data.ucar.edu/dataset/[% title = case.title.value; title.replace('\s+', '-') %]">https://data.ucar.edu/dataset/[% title = case.title.value; title.replace('\s+', '-') %]</textarea>
-					</div>
-				      </div>
-				    </fieldset>
-
-				    <fieldset class="form-group">
-				      <div class="row">
-					<label class="col-form-label col-lg-12">Published dataset size in MB (for ensembles, enter dataset size of only one member)?</label>
-					<div class="col-lg-4">
-					  <input type="number" class="form-control" name="dash_size" min="1" max="999999999"  value=[% pubkey = 'publish_dash'; status.$pubkey.disk_usage %] required/>
-					</div>
-				      </div>
-				    </fieldset>
-
-				    <div class="modal-footer">
-				      <input type="hidden" name="action" value="updateDASHProcess"/>
-				      <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
-				      <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
-				      <button type="submit" class="btn btn-primary"  id="btn-update" value="Update">Update</button>
-				      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				    </div>
+				  </div>
+				  <div class="modal-footer">
+				    <input type="hidden" name="action" value="deleteDASHProcess"/>
+				    <input type="hidden" name="case_id" value="[% case.case_id.value %]"/>
+				    <input type="hidden" name="expType_id" value="[% case.expType_id.value %]"/>
+				    <button type="submit" class="btn btn-primary" id="btn-update" value="Delete">Delete</button>
+				    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 				  </div>
 				</form>
 			      </div>
@@ -1505,7 +1475,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 	}
 	setTimeout(function() {
             $this.html($this.data('original-text'));
-	}, 30000);
+	}, 120000);
 	});
 
 	// DASH publish button event handler

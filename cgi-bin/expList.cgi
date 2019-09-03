@@ -2,6 +2,7 @@
 #
 use warnings;
 use strict;
+use Cwd;
 use CGI qw(:standard);
 use Email::Simple;
 use Email::Sender::Simple qw(sendmail);
@@ -13,6 +14,8 @@ use HTML::Entities;
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser); 
 use CGI::Session qw/-ip-match/;
 use Data::FormValidator;
+use Log::Log4perl qw(get_logger);
+use Log::Log4perl::DataDumper;
 use Template;
 use lib qw(.);
 use lib "/home/www/html/csegdb/lib";
@@ -32,14 +35,18 @@ $ENV{PATH} = '';
 my $req = CGI->new;
 my %config = &getconfig;
 
-print STDERR ">>> config expdb2username " . $config{'expdb2username'};
-print STDERR ">>> config expdb2password " . $config{'expdb2password'};
-
 my $dbname = $config{'dbname'};
 my $dbhost = $config{'dbhost'};
 my $dbuser = $config{'dbuser'};
 my $dbpasswd = $config{'dbpassword'};
 my $dsn = $config{'dsn'};
+my $expdb2username = $config{'expdb2username'};
+my $expdb2password = $config{'expdb2password'};
+
+# set up the git logger
+Log::Log4perl->init($config{'git_logger_conf'});
+my $git_logger = get_logger();
+Log::Log4perl::DataDumper::override($git_logger);
 
 # initialize item hash that stores all auth info
 my %item = ();
@@ -54,9 +61,10 @@ my ($loggedin, $session) = &checksession($req);
 my $cookie = $req->cookie(CGISESSID => $session->id);
 my $sid = $req->cookie('CGISESSID');
 # DEBUG
-##my $loggedin = 1;
+##$loggedin = 1;
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
+
 
 if($loggedin == 0)
 {
@@ -75,6 +83,8 @@ else
     $item{lemail} = $session->param('email');
     $item{version} = $session->param('version');
     $item{version_id} = $session->param('version_id');
+    # DEBUG
+##    $item{luser_id} = 334;
 
     &doActions();
 }
@@ -229,6 +239,13 @@ sub doActions()
 	&showCaseDetail($req->param('case_id'));
     }
 
+    # delete DASH process
+    if ($action eq "deleteDASHProcess")
+    {
+	&deleteDASHProcess();
+	&showCaseDetail($req->param('case_id'));
+    }
+
     # udpate CMIP6 file global attributes
     if ($action eq "updateGlobalAttsProc" &&
 	$req->param('expType_id') == 1)
@@ -261,7 +278,7 @@ sub showExpList
     my @CMIP6Diags       = getCMIP6Diags($dbh);
 
     my @cesm2exps        = getCasesByType($dbh, 2);
-    my @projectA         = getCasesByType($dbh, 3);
+    my @lensExps         = getCasesByType($dbh, 3);
     my @projectB         = getCasesByType($dbh, 4);
     my @cesm2tune        = getCasesByType($dbh, 5);
     my @allCases         = getAllCases($dbh);
@@ -283,7 +300,7 @@ sub showExpList
 	CMIP6Diags       => \@CMIP6Diags,
 	CMIP6Users       => \@CMIP6Users,
 	cesm2exps        => \@cesm2exps,
-	projectA         => \@projectA,
+	lensExps         => \@lensExps,
 	projectB         => \@projectB,
 	cesm2tune        => \@cesm2tune,
 	allCases         => \@allCases,
@@ -395,6 +412,7 @@ sub reserveCaseCMIP6
     my ($sql1, $sth1) = '';
     my ($key, $value) = '';
     my (%scienceUser, %assignUser) = ();
+    my @parents;
 
     foreach $key ( $req->param )  {
 	$item{$key} = ( $req->param( $key ) );
@@ -411,7 +429,6 @@ sub reserveCaseCMIP6
 
     # get the user assignments from the pulldown
     if ($item{'assignUser'} > 0) {
-	print STDERR "expList.cgi line 392";
 	%assignUser = getUserByID($dbh, $item{'assignUser'});
     }
     else {
@@ -421,7 +438,6 @@ sub reserveCaseCMIP6
     }
 
     if ($item{'scienceUser'} > 0) {
-	print STDERR "expList.cgi line 402";
 	%scienceUser = getUserByID($dbh, $item{'scienceUser'});
     }
     else {
@@ -504,10 +520,20 @@ sub reserveCaseCMIP6
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	$sth->finish();
-	if ($item{'parentExp'} > 0)
+	if (length($item{'parentExp'}) > 0)
 	{
+	    @parents = split(',', $item{'parentExp'});
+
+	    # get the parentCase_id from $parents[1] casename
+	    $sql = qq(select id from t2_cases where casename = '$parents[1]');
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    ($item{'parentCase_id'}) = $sth->fetchrow();
+	    $sth->finish();
+
 	    $sql = qq(update t2j_cmip6 set 
-                      parentExp_id = $item{'parentExp'}
+                      parentExp_id = $parents[0], 
+                      parentCase_id = $item{'parentCase_id'}
                       where exp_id = $item{'expName'});
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute();
@@ -840,6 +866,10 @@ sub updateESGFProcess
 		$sth->execute();
 		$sth->finish();
 	    }
+
+	    # copy the last SVN trunk tag to the public repo at https://svn-cesm2-expdb.cgd.ucar.edu/public
+	    copySVNtrunkTag($dbh, $case{'casename'}, $expdb2username, $expdb2password, $item{lemail});
+
 	}
 	elsif ($status_id == 1) {
 	    $validstatus{'status'} = 0;
@@ -869,7 +899,7 @@ sub publishCDGProcess
     my @cases;
     my %case;
 
-    if ($req->param('expType_id') == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
+    if ($expType_id == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
 	$validstatus{'message'} .= qq(Only CMIP6 authorized data managers are allowed to publish case details to the CDG.<br/>);
 	return;
@@ -1003,6 +1033,9 @@ sub updateCDGProcess
 		$sth->execute();
 		$sth->finish();
 	    }
+
+	    # copy the last SVN trunk tag to the public repo at https://svn-cesm2-expdb.cgd.ucar.edu/public
+	    copySVNtrunkTag($dbh, $case{'casename'}, $expdb2username, $expdb2password, $item{lemail});
 	}
 	elsif ($status_id == 1) {
 	    $validstatus{'status'} = 0;
@@ -1013,6 +1046,8 @@ sub updateCDGProcess
 	    $validstatus{'message'} .= qq(This experiment dataset has already been successfully published to CDG (case_id = $ca->{'case_id'}).<br/>);
 	}
     }
+
+
 
     # update the publish to CDG status - process_id = 20 to status_id = 6 "Verified"
     if ($validstatus{'status'} == 1) {
@@ -1192,14 +1227,15 @@ sub addDASHProcess
     my $case_id = $req->param('case_id');
     my $pub_ens = $req->param('pub_ensemble_DASH');
     my $dash_size = $req->param('dash_size') * 1000000;
+    my $expType_id = $req->param('expType_id');
     my $update = 0;
     my (@comps, @eas, @eps, @ets, @hrs, @trs, @wgs);
     my %case;
     my @cases;
 
-    if (!isCMIP6User($dbh, $item{luser_id}) ) {
+    if ($expType_id == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the CDG publication options.<br/>);
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the DASH publication options for CMIP6 experiments.<br/>);
 	return;
     }
 
@@ -1380,31 +1416,31 @@ sub publishDASHProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
+    my $pub_ens = $req->param('pub_ensemble_DASH');
+    my $casename = $req->param('casename');
     my ($tmplFile);
+    my $signal;
+    my %case;
+    my @cases;
+
+    if ($expType_id == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the DASH publication options for CMIP6 experiments.<br/>);
+	return;
+    }
 
     # gather all the required metadata fields
     my $DASHFields = getDASHFields($dbh, $case_id, $expType_id);
 
-    # check to make sure the dataset size > 0
+    # check to make sure the dataset size > 0 
     if ($DASHFields->{'asset_size_MB'} == 0) {
 	$validstatus{'status'} = 0;
 	$validstatus{'message'} = qq(DASH records require the asset data size in MB. Please enter this value under the "Update Status of CDG" or "Update Status of ESGF" publication options.<br/>);
 	return;
     }
 
-    # check to make sure the landing page link is set
-    if (length($DASHFields->{'landing_page'}) == 0) {
-	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(DASH records require a valid landing page URL. Please enter a valid links to ESGF and/or CDG in the "Case Diagnostics, Process and Journal Publication Links" accordion.<br/>);
-	return;
-    }
-
-    # TODO add more templates for other experiment types
-    if ($expType_id == 1) {
-	$tmplFile = qq(../templates/dash_cesm_cmip6.tmpl);
-    }
-
     # load up the JSON template file with the DASHFields
+    $tmplFile = qq(../templates/dash_json_cesm.tmpl);
     my $vars = {
 	DASHFields => $DASHFields,
     };
@@ -1413,20 +1449,90 @@ sub publishDASHProcess
 	RELATIVE => 1,
 	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
 				 });
-    my $outfile = qq(../DASH-JSON-records/$DASHFields->{'casename'}.json);
+    my $outfile = qq($config{CESM_JSON_records}/$casename.txt);
     $template->process($tmplFile, $vars, $outfile) || die ("Problem processing $tmplFile, ", $template->error());
 
-    # copy the last SVN trunk tag to the public repo at https://svn-cesm2-expdb.cgd.ucar.edu/public
-    my $rc = copySVNtrunkTag($dbh, $config{'expdb2username'}, $config{'expdb2password'}, $DASHFields->{'casename'});
+    # system call to convert JSON to ISO - check the return code length
+    my $input = qq($config{'CESM_JSON_records'}/$casename.txt);
+    my $output = qq($config{'DASH_ISO_records'}/$casename.xml);
+    # this command must be executed from $config{'dset2iso_dir'} 
+    my $dir = getcwd;
+    chdir $config{'dset2iso_dir'};
+    $output = qx(/usr/bin/python $config{'dset2iso'} < $input > $output);
+    chdir $dir;
+    if (length($output) > 0) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Failed to call system command: "python $config{'dset2iso'} < $input > $output".<br/>Check paths and permissions, correct and press Publish again. Removing intermediate file "$input".<br/>);
+	unlink($input);
+	return;
+    }
+    else {
+	$validstatus{'status'} = 1;
+	$validstatus{'message'} = qq(Successful conversion of JSON to ISO record<br/>);
+    }
 
-    # check return code
+    # git fetch origin master
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} fetch --all);
+    if (length($output) > 0) {
+	$git_logger->debug('****************************');
+	$git_logger->debug('** publishDASHProcess : ' . $casename . ' git fetch --all: ' . $output);
+    }
+	
+    # git reset --hard to the origin/master
+    $output = '';
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} reset --hard origin/master 2>&1 1>/dev/null);
+    if (length($output) > 0) {
+	$git_logger->debug('** publishDASHProcess : ' . $casename . ' git reset --hard origin/master: ' . $output);
+    }
 
-    # system call to convert JSON to ISO
+    # add the new ISO record to the repo
+    $output = '';
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} add .);
+    if (length($output) > 0) {
+	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git add . :' . $output);
+    }
 
-    # push ISO record to github repo - call the python code to merge conflicts
+    # commit the new ISO record to the repo
+    $output = '';
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} commit -m "CESM Experiments Database add $casename.xml ISO record");
+    if (length($output) > 0) {
+	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git commit :' . $output);
+    }
 
-    # everything looks good - update the DASH publication (19) status (5) succeded 
-    updatePublishStatus($dbh, $case_id, 19, 5, $item{luser_id}, $DASHFields->{'asset_size_MB'});    
+    # git push origin master using the a personal token
+    my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/$config{'dash_repo'});
+    $output = '';
+    $output = qx(/usr/bin/git -C $config{'dash_web_git'} push $originURL master); 
+    if (length($output) > 0) {
+	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git push ' . $originURL . 'master :' . $output);
+	$git_logger->debug('****************************');
+    }
+
+    # check if all ensemble members should be marked success or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
+    }
+    else {
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
+    }
+
+    foreach my $ca (@cases) 
+    {
+	# everything looks good - update the DASH publication (19) status (5) succeded 
+	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 5, $item{luser_id}, $DASHFields->{'asset_size_MB'});    
+
+	# add a link to the DASH publication in the t2j_links table
+	my $description = $dbh->quote('DASH URL - enter search term "CESM2" along with any other experiment title keywords or casename');
+	my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, approver_id)
+                     value ($ca->{'case_id'}, 19, 1, "$config{'dset_web_url'}", $description, NOW(), $item{luser_id}));
+	my $sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
+    }
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} .= qq(Successful publication of record to $config{'dset_web_url'});
 }
 
 #----------------------
@@ -1434,33 +1540,18 @@ sub resetDASHProcess
 #----------------------
 {
     my $case_id = $req->param('case_id');
+    my $pub_ens = $req->param('pub_ensemble_DASH');
     my $expType_id = $req->param('expType_id');
-
-    $validstatus{'status'} = 0;
-    $validstatus{'message'} = qq(DASH keywords and publish status reset.<br/>);
-    
-    # TODO reset the keywords and publish status to unknown
-       
-}
-
-#--------------------
-sub updateDASHProcess
-#--------------------
-{
-    my $case_id = $req->param('case_id');
-    my $expType_id = $req->param('expType_id');
-    my $pub_radio = $req->param('dash_published');
-    my $pub_ens = $req->param('verify_ensemble_DASH');
-    my $dash_size = $req->param('dash_size') * 1000000;
-    my @cases;
+    my $casename = $req->param('casename');
     my %case;
+    my @cases;
 
-    if (!isCMIP6User($dbh, $item{luser_id}) ) {
+    if ($expType_id == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
-	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the DASH publication options.<br/>);
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the DASH publication options for CMIP6 experiments.<br/>);
 	return;
     }
-
+    
     # get the ensemble info about the case
     my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
                  from t2_cases as c, t2j_cmip6 as j 
@@ -1479,25 +1570,131 @@ sub updateDASHProcess
 	push (@cases, \%case);
     }
 
+    # reset the all the keywords entries by deleting them
     foreach my $ca (@cases) 
     {
+	$sql = qq(delete from t2_DASH_spatialResolution where case_id = $ca->{'case_id'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
 
-	# check current publish status for process_id = 19 (publish_dash)
-	my ($statusCode, $status_id) = getPublishStatus($dbh, $ca->{'case_id'}, 19);
-
-	if ($status_id == 2 && $pub_radio eq 'yes') {
-	    # update the publish to DASH status - process_id = 19 to status_id = 5 "succeeded"
-	    updatePublishStatus($dbh, $case_id, 19, 5, $item{luser_id}, $dash_size);
-	    $validstatus{'status'} = 1;
-	    $validstatus{'message'} .= qq(DASH successfully published and verified (casename = $ca->{'casename'}).<br/>)
-	}
-	else {
-	    $validstatus{'status'} = 0;
-	    $validstatus{'message'} .= qq(This experiment data has already been successfully published to DASH (casename = $ca->{'casename'}).<br/>);
-	}
+	$sql = qq(delete from t2j_DASH where case_id =  = $ca->{'case_id'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
     }
+
+    # reset publish status to unknown
+    updatePublishStatus($dbh, $case_id, 19, 1, $item{luser_id}, 0);
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(DASH keywords and publish status reset.<br/>);
 }
 
+#----------------------
+sub deleteDASHProcess
+#----------------------
+{
+    my $case_id = $req->param('case_id');
+    my $pub_ens = $req->param('delete_ensemble_DASH');
+    my $expType_id = $req->param('expType_id');
+    my $casename = $req->param('casename');
+    my %case;
+    my @cases;
+    my $xmlfile;
+    my $signal;
+
+    if ($expType_id == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
+	$validstatus{'status'} = 0;
+	$validstatus{'message'} = qq(Only CMIP6 authorized data managers are allowed to modify the DASH publication options for CMIP6 experiments.<br/>);
+	return;
+    }
+    
+    # get the ensemble info about the case
+    my $sql = qq(select c.casename, j.ensemble_num, j.ensemble_size
+                 from t2_cases as c, t2j_cmip6 as j 
+                 where c.id = $case_id and c.id = j.case_id);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
+    $sth->finish();
+
+    # check if all ensemble members should be marked success or not
+    if ($pub_ens eq "all") {
+	@cases = getEnsembles($dbh, $case_id);
+    }
+    else {
+	$case{'case_id'} = $case_id;
+	push (@cases, \%case);
+    }
+
+    # reset the all the keywords entries by deleting them
+    foreach my $ca (@cases) 
+    {
+	# delete the ISO record from the github repo
+	# git fetch origin master
+	$xmlfile = $ca->{'casename'} . ".xml";
+	my $output = '';
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} fetch --all 2>&1 1>/dev/null);
+	if (length($output) > 0) {
+	    $git_logger->debug('****************************');
+	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git fetch --all: ' . $output);
+	}
+	
+	# git reset --hard to the origin/master
+	$output = '';
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} reset --hard origin/master 2>&1 1>/dev/null);
+	if (length($output) > 0) {
+	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git reset --hard origin/master: ' . $output);
+	}
+
+	# delete the  ISO record from the repo
+	$output = '';
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} rm ./cesm_expdb/$xmlfile 2>&1 1>/dev/null);
+	if (length($output) > 0) {
+	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git rm ./cesm_expdb./$xmlfile: ' . $output);
+	}
+
+	# commit the removed ISO record to the repo
+	$output = '';
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} commit -m "CESM Experiments Database delete $xmlfile ISO record");
+	if (length($output) > 0) {
+	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git commit: ' . $output);
+	}
+
+	# git push origin master using the a personal token
+	my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/$config{'dash_repo'});
+	$output = '';	
+	$output = qx(/usr/bin/git -C $config{'dash_web_git'} push $originURL master 2>&1 1>/dev/null);
+	if (length($output) > 0) {
+	    $git_logger->debug('** deleteDASHProcess : ' . $xmlfile . ' git push $originURL master : ' . $output);
+	    $git_logger->debug('****************************');
+	}
+
+	# delete from the 
+	$sql = qq(delete from t2_DASH_spatialResolution where case_id = $ca->{'case_id'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
+
+	$sql = qq(delete from t2j_DASH where case_id = $ca->{'case_id'});
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
+
+	# delete the link for this process_id = 19 and case_id
+	$sql = qq(delete from t2j_links where case_id = $ca->{'case_id'} and process_id = 19);
+	$sth = $dbh->prepare($sql);
+	$sth->execute();
+	$sth->finish();
+
+	# reset publish status to unknown
+	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 1, $item{luser_id}, 0);
+    }
+
+    $validstatus{'status'} = 1;
+    $validstatus{'message'} = qq(DASH ISO record deleted; keywords and publish status reset.<br/>);
+}
 
 #---------------------------
 sub updateGlobalAttsProcess
@@ -1509,7 +1706,7 @@ sub updateGlobalAttsProcess
     my ($branch_child, $branch_parent, $variant_label, $orig_variant_label) = "";
     my ($ens_id, $base_name, $base_ext, $ens_casename, $ext, $real_num, $casename);
     my ($sql1, $sth1);
-    my (@cases, @variant_parts);
+    my (@cases, @variant_parts, @parents);
     my (%case);
     my (%globalAtts, %project);
     my ($subject, $msgbody, $email);
@@ -1565,16 +1762,26 @@ sub updateGlobalAttsProcess
 	    $sth->execute();
 	    ($orig_variant_label) = $sth->fetchrow();
 	    $sth->finish();
+
 	    $real_num = substr($orig_variant_label, 0, index($orig_variant_label, 'i'));
 	    @variant_parts = split('i', $item{'variant_label'});
 	    $variant_label = $real_num . "i" . $variant_parts[1];
 	    $variant_label = $dbh->quote($variant_label);
 	    $sql1 .= qq(, variant_label = $variant_label );
 	}
-	if ($item{'parentExp'} > 0) 
+
+	if (length($item{'parentExp'}) > 0) 
 	{
-	    $sql1 .= qq(, parentExp_id = $item{'parentExp'} );
-	    
+	    @parents = split(',', $item{'parentExp'});
+
+	    # get the parentCase_id from $parents[1] = casename
+	    $sql = qq(select id from t2_cases where casename = '$parents[1]');
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute();
+	    ($item{'parentCase_id'}) = $sth->fetchrow();
+	    $sth->finish();
+
+	    $sql1 .= qq(, parentExp_id = $parents[0], parentCase_id = $item{'parentCase_id'} );
 	}
 	$sql1 .= qq(where case_id = $ca->{'case_id'});
 
@@ -1597,6 +1804,7 @@ These are the updates:
     branch_time_in_parent = $globalAtts->{'branch_time_in_parent'} 
     parent_experiment_id  = $globalAtts->{'parent_experiment_id'}
     variant_label         = $globalAtts->{'variant_label'}
+    parent_casename       = $parents[1]
 
 Please see the following experiment for more details:
 
