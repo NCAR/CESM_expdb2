@@ -10,6 +10,7 @@ create table t2_DASH_expType(
 insert into t2_DASH_expType (name)
 values 
 ('control'),
+('hindcast'),
 ('transient'),
 ('equilibrium'),
 ('sensitivity'),

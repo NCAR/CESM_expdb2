@@ -1194,7 +1194,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="row">
 					<div class="col-md-12">
 					  <label for="horizontalResolution">Horizontal Resolution in layman's terms</label>
-					  <select multiple class="form-control" id="horizontalResolution" name="horizontalResolution">
+					  <select multiple class="form-control" id="horizontalResolution" name="horizontalResolution" size="6">
 					    [% FOREACH hr IN horizontalResolutions %]
 					    <option value="[% hr.id %]">[% hr.name %]</option>
 					    [% END %]
@@ -1208,7 +1208,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 					<div class="col-md-12">
 					  <label for="temporalResolution">Temporal Resolution - Select the temporal resolution(s) at with the output are available.
 					    Some temporal resolutions need not be available for all variables for all years.</label>
-					  <select multiple class="form-control" id="temporalResolution" name="temporalResolution">
+					  <select multiple class="form-control" id="temporalResolution" name="temporalResolution" size="6">
 					    [% FOREACH tr IN temporalResolutions %]
 					    <option value="[% tr.id %]">[% tr.name %]</option>
 					    [% END %]
@@ -1221,7 +1221,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="row">
 					<div class="col-md-12">
 					  <label for="expTypes">Experiment Type (select at least one)</label>
-					  <select multiple class="form-control" id="expTypes" name="expTypes">
+					  <select multiple class="form-control" id="expTypes" name="expTypes" size="6">
 					    [% FOREACH et IN expTypes %]
 					    <option value="[% et.id %]">[% et.name %]</option>
 					    [% END %]
@@ -1234,7 +1234,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="row">
 					<div class="col-md-12">
 					  <label for="expPeriods">Experiment Time Period (select at least one)</label>
-					  <select multiple class="form-control" id="expPeriods" name="expPeriods">
+					  <select multiple class="form-control" id="expPeriods" name="expPeriods" size="6">
 					    [% FOREACH ep IN expPeriods %]
 					    <option value="[% ep.id %]">[% ep.name %]</option>
 					    [% END %]
@@ -1247,7 +1247,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="row">
 					<div class="col-md-12">
 					  <label for="expAttributes">Experiment Attributes (Optional)</label>
-					  <select multiple class="form-control" id="expAttributes" name="expAttributes">
+					  <select multiple class="form-control" id="expAttributes" name="expAttributes" size="8">
 					    [% FOREACH ea IN expAttributes %]
 					    <option value="[% ea.id %]">[% ea.name %] ([% ea.short_name %])</option>
 					    [% END %]
@@ -1261,7 +1261,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 					<div class="col-md-12">
 					  <label for="components">Stand-alone Components - If any of the CESM component models were run as 
 					    uncoupled 'stand-alone' models for this experiment, select them here. (Optional)</label>
-					  <select multiple class="form-control" id="components" name="components">
+					  <select multiple class="form-control" id="components" name="components" size="10">
 					    [% FOREACH c IN components %]
 					    <option value="[% c.id %]"> [% c.name %] ([% c.short_name %])</option>
 					    [% END %]
@@ -1275,7 +1275,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 					<div class="col-md-12">
 					  <label for="wgs">
 					    If the experiment is sponsored by a working group, select the group name(s) here. (Optional)</label>
-					  <select multiple class="form-control" id="wgs" name="wgs">
+					  <select multiple class="form-control" id="wgs" name="wgs" size="14">
 					    [% FOREACH w IN wgs %]
 					    <option value="[% w.id %]"> [% w.name %]</option>
 					    [% END %]
