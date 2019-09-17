@@ -22,7 +22,7 @@ if sys.hexversion < 0x02070000:
     sys.exit(1)
 
 try:
-    from dreqPy import dreq, scope
+    from dreqPy import dreq
 except ImportError:
     print('ERROR - unable to import dreq library')
     print('Please install or update to the latest dreqPy version in your local user directory as follows:')
