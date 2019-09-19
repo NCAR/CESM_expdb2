@@ -8,4 +8,5 @@ create table t2e_notes(
        `note` TEXT,
        `last_update` DATETIME,
        `svnuser_id` INTEGER,
+       `is_public` BOOLEAN,
         PRIMARY KEY (`id`));

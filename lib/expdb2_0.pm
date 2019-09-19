@@ -311,7 +311,7 @@ sub getProcessStats
    $sth->finish();
 
    $sql = qq(select p.name, p.description, s.code, s.color, j.last_update, j.model_date, 
-                j.disk_usage, j.disk_path, j.archive_method
+                j.disk_usage, j.disk_path, j.archive_method, j.pub_ens
                 from t2_process as p, t2_status as s,
                 t2j_status as j where
                 j.case_id = $case_id and
@@ -334,6 +334,7 @@ sub getProcessStats
        $stat{'disk_usage'} = $ref->{'disk_usage'};
        $stat{'disk_path'} = $ref->{'disk_path'};
        $stat{'archive_method'} = $ref->{'archive_method'};
+       $stat{'pub_ens'} = $ref->{'pub_ens'};
        push(@stats, \%stat);
    }
    $sth->finish();
@@ -394,7 +395,7 @@ sub getCaseNotes
    my $case_id = shift;
    my @notes;
 
-   my $sql = qq(select id, case_id, note, last_update, IFNULL(svnuser_id, 0) as svnuser_id 
+   my $sql = qq(select id, case_id, note, last_update, IFNULL(svnuser_id, 0) as svnuser_id, is_public
                 from t2e_notes where case_id = $case_id
                 order by last_update asc);
    my $sth = $dbh->prepare($sql);
@@ -406,6 +407,7 @@ sub getCaseNotes
        $note{'note_id'} = $ref->{'id'};
        $note{'note'} = $ref->{'note'};
        $note{'last_update'} = $ref->{'last_update'};
+       $note{'is_public'} = $ref->{'is_public'};
        %user = getUserByID($dbh, $ref->{'svnuser_id'});
        $note{'firstname'} = $user{'firstname'};
        $note{'lastname'} = $user{'lastname'};
@@ -613,11 +615,12 @@ sub updatePublishStatus
     my $status_id = shift;
     my $user_id = shift;
     my $size = shift;
+    my $pub_ens = shift;
 
     my $size_mb = $dbh->quote($size);
     my $sql = qq(update t2j_status set status_id = $status_id,
                  archive_method = 'user', user_id = $user_id, last_update = NOW(),
-                 disk_usage = $size_mb
+                 disk_usage = $size_mb, pub_ens = $pub_ens
                  where case_id = $case_id and process_id = $process_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -625,7 +628,6 @@ sub updatePublishStatus
 
     return;
 }
-
 
 sub getPublishStatus
 {
@@ -760,3 +762,4 @@ EOF
 	       transport => Email::Sender::Transport::Sendmail->new}
 	) or die "can't send email to $lemail in copySVNtrunkTag";
 }
+

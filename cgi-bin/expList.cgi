@@ -764,7 +764,7 @@ sub publishESGFProcess
 
 	if ($status_id != 5 || $status_id != 2) {
 	    # update the publish to ESGF status - process_id = 18 to status_id = 2 "started"
-	    updatePublishStatus($dbh, $ca->{'case_id'}, 18, 2, $item{luser_id}, 0);
+	    updatePublishStatus($dbh, $ca->{'case_id'}, 18, 2, $item{luser_id}, 0, 0);
 	    
 	    $subject = qq(CESM EXDB ESGF Publication Notification: $ca->{'case_id'});
 	    $msgbody = <<EOF;
@@ -883,7 +883,7 @@ sub updateESGFProcess
 
     # update the publish to ESGF status - process_id = 18 to status_id = 6 "published"
     if ($validstatus{'status'} == 1) {
-	updatePublishStatus($dbh, $case_id, 18, 6, $item{luser_id}, $esgf_size);
+	updatePublishStatus($dbh, $case_id, 18, 6, $item{luser_id}, $esgf_size, 0);
     }
 }
 
@@ -930,7 +930,7 @@ sub publishCDGProcess
 
 	if ($status_id != 5 || $status_id != 2) {
 	    # update the publish to CDG status - process_id = 20 to status_id = 2 "started"
-	    updatePublishStatus($dbh, $ca->{'case_id'}, 20, 2, $item{luser_id}, 0);
+	    updatePublishStatus($dbh, $ca->{'case_id'}, 20, 2, $item{luser_id}, 0, 0);
 	    my $casename = $ca->{'casename'};
 	    
 	    my $subject = qq(CESM EXDB CDG Publication Notification: $ca->{'casename'});
@@ -1051,7 +1051,7 @@ sub updateCDGProcess
 
     # update the publish to CDG status - process_id = 20 to status_id = 6 "Verified"
     if ($validstatus{'status'} == 1) {
-	updatePublishStatus($dbh, $case_id, 20, 6, $item{luser_id}, $cdg_size);
+	updatePublishStatus($dbh, $case_id, 20, 6, $item{luser_id}, $cdg_size, 0);
     }
 }
 
@@ -1060,6 +1060,7 @@ sub addNoteProcess
 #-----------------
 {
     my $case_id = $req->param('case_id');
+    my $is_public = $req->param('is_public');
 
     if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -1072,8 +1073,8 @@ sub addNoteProcess
 	$item{$key} = ( $req->param( $key ) );
     }
     my $note = $dbh->quote($item{'note'});
-    my $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id) 
-               value ($case_id, $note, NOW(), $item{luser_id}));
+    my $sql = qq(insert into t2e_notes (case_id, note, last_update, svnuser_id, is_public) 
+               value ($case_id, $note, NOW(), $item{luser_id}, $is_public));
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish();
@@ -1088,6 +1089,7 @@ sub updateNoteProcess
 #---------------------
 {
     my $note_id = $req->param('note_id');
+    my $is_public = $req->param('is_public');
     
     if ($req->param('expType_id') == 1 && !isCMIP6User($dbh, $item{luser_id}) ) {
 	$validstatus{'status'} = 0;
@@ -1101,7 +1103,7 @@ sub updateNoteProcess
     }
     my $note = $dbh->quote($item{'note'});
     my $sql = qq(update t2e_notes set note = $note, last_update = NOW(),
-                 svnuser_id = $item{luser_id}
+                 svnuser_id = $item{luser_id}, is_public = $is_public
                  where id = $note_id);
     my $sth = $dbh->prepare($sql);
     $sth->execute();
@@ -1254,8 +1256,8 @@ sub addDASHProcess
     ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
     $sth->finish();
 
-    # check if all ensemble members should be marked success or not
-    if ($pub_ens eq "all") {
+    # check if all ensemble members should be marked included in this DASH record
+    if ($pub_ens == 1) {
 	@cases = getEnsembles($dbh, $case_id);
     }
     else {
@@ -1396,10 +1398,10 @@ sub addDASHProcess
 		$update = 1;
 	    }
 	}
-	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 2, $item{luser_id}, $dash_size);
+	# update the t2j_status for the publish_dash (process_id = 19) to Started (status_id = 2)
+	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 2, $item{luser_id}, $dash_size, $pub_ens);
     }
 
-    # update the t2j_status for the publish_dash (process_id = 19) to Started (status_id = 2)
     if ($update) {
 	$validstatus{'status'} = 1;
 	$validstatus{'message'} = qq(DASH keywords successfully added. Press the "Preview and Publish to DASH" button to continue.<br/>)
@@ -1416,12 +1418,11 @@ sub publishDASHProcess
 {
     my $case_id = $req->param('case_id');
     my $expType_id = $req->param('expType_id');
-    my $pub_ens = $req->param('pub_ensemble_DASH');
     my $casename = $req->param('casename');
     my ($tmplFile);
-    my $signal;
     my %case;
     my @cases;
+    my $rc;
 
     if ($expType_id == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
@@ -1458,9 +1459,9 @@ sub publishDASHProcess
     # this command must be executed from $config{'dset2iso_dir'} 
     my $dir = getcwd;
     chdir $config{'dset2iso_dir'};
-    $output = qx(/usr/bin/python $config{'dset2iso'} < $input > $output);
+    $rc = qx(/usr/bin/python $config{'dset2iso'} < $input > $output 2>&1);
     chdir $dir;
-    if (length($output) > 0) {
+    if ($rc =~ /error/i) {
 	$validstatus{'status'} = 0;
 	$validstatus{'message'} = qq(Failed to call system command: "python $config{'dset2iso'} < $input > $output".<br/>Check paths and permissions, correct and press Publish again. Removing intermediate file "$input".<br/>);
 	unlink($input);
@@ -1472,44 +1473,53 @@ sub publishDASHProcess
     }
 
     # git fetch origin master
-    $output = qx(/usr/bin/git -C $config{'dash_web_git'} fetch --all);
-    if (length($output) > 0) {
+    $rc = qx(/usr/bin/git -C $config{'dash_web_git'} fetch --all 2>&1);
+    if ($rc =~ /error/i ) {
 	$git_logger->debug('****************************');
-	$git_logger->debug('** publishDASHProcess : ' . $casename . ' git fetch --all: ' . $output);
+	$git_logger->debug('** publishDASHProcess : ' . $casename . ' git fetch --all: ' . $rc);
     }
 	
     # git reset --hard to the origin/master
-    $output = '';
-    $output = qx(/usr/bin/git -C $config{'dash_web_git'} reset --hard origin/master 2>&1 1>/dev/null);
-    if (length($output) > 0) {
-	$git_logger->debug('** publishDASHProcess : ' . $casename . ' git reset --hard origin/master: ' . $output);
+    $rc = '';
+    $rc = qx(/usr/bin/git -C $config{'dash_web_git'} reset --hard origin/master 2>&1 1>/dev/null);
+    if ($rc =~ /error/i) {
+	$git_logger->debug('** publishDASHProcess : ' . $casename . ' git reset --hard origin/master: ' . $rc);
     }
 
     # add the new ISO record to the repo
-    $output = '';
-    $output = qx(/usr/bin/git -C $config{'dash_web_git'} add .);
-    if (length($output) > 0) {
-	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git add . :' . $output);
+    $rc = '';
+    $rc = qx(/usr/bin/git -C $config{'dash_web_git'} add . 2>&1);
+    if ($rc =~ /error/i) {
+	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git add . :' . $rc);
     }
 
     # commit the new ISO record to the repo
-    $output = '';
-    $output = qx(/usr/bin/git -C $config{'dash_web_git'} commit -m "CESM Experiments Database add $casename.xml ISO record");
-    if (length($output) > 0) {
-	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git commit :' . $output);
+    $rc = '';
+    $rc = qx(/usr/bin/git -C $config{'dash_web_git'} commit -m "CESM Experiments Database add $casename.xml ISO record" 2>&1);
+    if ($rc =~ /error/i) {
+	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git commit :' . $rc);
     }
 
     # git push origin master using the a personal token
     my $originURL = qq(https://$config{'dset_web_login'}:$config{'dset_web_token'}\@github.com/NCAR/$config{'dash_repo'});
-    $output = '';
-    $output = qx(/usr/bin/git -C $config{'dash_web_git'} push $originURL master); 
-    if (length($output) > 0) {
+    $rc = '';
+    $rc = qx(/usr/bin/git -C $config{'dash_web_git'} push $originURL master 2>&1); 
+    if ($rc =~ /error/i) {
 	$git_logger->debug('** publishDASHProcess: ' . $casename . ' git push ' . $originURL . 'master :' . $output);
 	$git_logger->debug('****************************');
     }
 
+    # get the pub ensemble flag
+    my $sql = qq(select pub_ens from t2j_status where
+              case_id = $case_id and process_id = 19 and status_id = 2
+              order by last_update desc limit 1);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my ($pub_ens) = $sth->fetchrow();
+    $sth->finish();
+
     # check if all ensemble members should be marked success or not
-    if ($pub_ens eq "all") {
+    if ($pub_ens == 1) {
 	@cases = getEnsembles($dbh, $case_id);
     }
     else {
@@ -1520,7 +1530,7 @@ sub publishDASHProcess
     foreach my $ca (@cases) 
     {
 	# everything looks good - update the DASH publication (19) status (5) succeded 
-	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 5, $item{luser_id}, $DASHFields->{'asset_size_MB'});    
+	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 5, $item{luser_id}, $DASHFields->{'asset_size_MB'}, $pub_ens);    
 
 	# add a link to the DASH publication in the t2j_links table
 	my $description = $dbh->quote('DASH URL - enter search term "CESM2" along with any other experiment title keywords or casename');
@@ -1540,7 +1550,6 @@ sub resetDASHProcess
 #----------------------
 {
     my $case_id = $req->param('case_id');
-    my $pub_ens = $req->param('pub_ensemble_DASH');
     my $expType_id = $req->param('expType_id');
     my $casename = $req->param('casename');
     my %case;
@@ -1561,8 +1570,16 @@ sub resetDASHProcess
     ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
     $sth->finish();
 
-    # check if all ensemble members should be marked success or not
-    if ($pub_ens eq "all") {
+    # get the pub ensemble flag
+    $sql = qq(select pub_ens from t2j_status where
+              case_id = $case_id and process_id = 19 and status_id = 2
+              order by last_update desc limit 1);
+    $dbh->prepare($sql);
+    $sth->execute();
+    my ($pub_ens) = $sth->fetchrow();
+    $sth->finish();
+
+    if ($pub_ens == 1) {
 	@cases = getEnsembles($dbh, $case_id);
     }
     else {
@@ -1578,14 +1595,14 @@ sub resetDASHProcess
 	$sth->execute();
 	$sth->finish();
 
-	$sql = qq(delete from t2j_DASH where case_id =  = $ca->{'case_id'});
+	$sql = qq(delete from t2j_DASH where case_id = $ca->{'case_id'});
 	$sth = $dbh->prepare($sql);
 	$sth->execute();
 	$sth->finish();
     }
 
     # reset publish status to unknown
-    updatePublishStatus($dbh, $case_id, 19, 1, $item{luser_id}, 0);
+    updatePublishStatus($dbh, $case_id, 19, 1, $item{luser_id}, 0, 0);
 
     $validstatus{'status'} = 1;
     $validstatus{'message'} = qq(DASH keywords and publish status reset.<br/>);
@@ -1596,13 +1613,11 @@ sub deleteDASHProcess
 #----------------------
 {
     my $case_id = $req->param('case_id');
-    my $pub_ens = $req->param('delete_ensemble_DASH');
     my $expType_id = $req->param('expType_id');
     my $casename = $req->param('casename');
     my %case;
     my @cases;
     my $xmlfile;
-    my $signal;
 
     if ($expType_id == 1 && !isCMIP6Publisher($dbh, $item{luser_id}, $case_id)) {
 	$validstatus{'status'} = 0;
@@ -1619,8 +1634,16 @@ sub deleteDASHProcess
     ($case{'casename'}, $case{'ens_num'}, $case{'ens_size'}) = $sth->fetchrow();
     $sth->finish();
 
-    # check if all ensemble members should be marked success or not
-    if ($pub_ens eq "all") {
+    # get the pub ensemble flag
+    $sql = qq(select pub_ens from t2j_status where
+              case_id = $case_id and process_id = 19 and status_id = 5
+              order by last_update desc limit 1);
+    $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my ($pub_ens) = $sth->fetchrow();
+    $sth->finish();
+
+    if ($pub_ens == 1) {
 	@cases = getEnsembles($dbh, $case_id);
     }
     else {
@@ -1689,7 +1712,7 @@ sub deleteDASHProcess
 	$sth->finish();
 
 	# reset publish status to unknown
-	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 1, $item{luser_id}, 0);
+	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 1, $item{luser_id}, 0, $pub_ens);
     }
 
     $validstatus{'status'} = 1;
