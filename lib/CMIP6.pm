@@ -1354,7 +1354,7 @@ sub getCMIP6GlobalFileAtts
 	    }
 	    
             # check if parentCase_id exists which indicates an ensemble member as the parent
-            if( $ref->{'parentCase_id'} > 0)
+            if( $parentCase_id > 0)
             {
                 $parentCase_id = $ref->{'parentCase_id'};
                 $sql1 = qq(select variant_label from t2j_cmip6

@@ -34,6 +34,7 @@ CREATE TABLE `t2j_status` (
   `archive_method` enum('cylc','archive_metadata','user') DEFAULT NULL,
   `total_time` varchar(50) DEFAULT NULL
   `user_id` int(11) DEFAULT NULL,
+  `pub_ens` boolean default NULL,
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

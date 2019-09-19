@@ -564,8 +564,12 @@
 				<div class="form-group">
 				  <textarea class="form-control" name="note" cols="100" rows="5"></textarea>
 				</div>
+				<div class="form-group">
+				  <label>Make note visible to the public via the DASH record? </label>
+				  <input type="radio" name="is_public" value="1" checked="checked"/> Yes
+				  <input type="radio" name="is_public" value="0"/> No
+				</div>
 			      </div>
-
 
 			      <div class="modal-footer">
 				<input type="hidden" name="action" value="addNoteProc"/>
@@ -585,6 +589,7 @@
 			  <th>Note</th>		
 			  <th>User</th>		
 			  <th>Last Update</th>		
+			  <th>Public?</th>
 			</thead>
 			<tbody>
 			  [% FOREACH n IN notes %]
@@ -597,6 +602,11 @@
 			    <td><pre>[% n.note %]</pre></td>
 			    <td>[% n.firstname %] [% n.lastname %] ([% n.email %]) </td>
 			    <td>[% n.last_update %]</td>
+			    [% IF n.is_public == 1 %]
+			    <td>Yes</td>
+			    [% ELSE %] 
+			    <td>No</td>
+			    [% END %]
 
 			    <div class="modal fade" id="myModalCaseNote[% n.note_id %]" tabindex="-1" role="dialog" aria-labelledby="myModalCaseNote[% n.note_id %]Label">
 			      <div class="modal-dialog" role="document">
@@ -611,6 +621,16 @@
 				    <div class="modal-body">
 				      <div class="form-group">
 					<textarea class="form-control" name="note" cols="100" rows="5">[% n.note %]</textarea>
+				      </div>
+				      <div class="form-group">
+					<label>Make note visible to the public via the DASH record? </label>
+					[% IF n.is_public == 1 %]
+					<input type="radio" name="is_public" value="1" checked="checked"/> Yes
+					<input type="radio" name="is_public" value="0"/> No
+					[% ELSE %]
+					<input type="radio" name="is_public" value="1"/> Yes
+					<input type="radio" name="is_public" value="0" checked="checked"/> No
+					[% END %]
 				      </div>
 
 				      <input type="hidden" name="action" value="updateNoteProc"/>
@@ -1141,7 +1161,9 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 				  <h4 class="modal-title" id="myModalDASHLabel">Add/Update [% case.casename.value %] metadata to the Digital Assest Services Hub</h4>
 				  <p>The publication back-end script will gather as much information from existing database fields that have already been
-				    defined. This form includes additional expert user knowledge that is required and cannot be harvested from existing database fields.
+				    defined. Please be sure to include public notes under the "Case Notes" and /glade paths for NCAR users under the
+				    "Case Diagnostics, Process and Journal Publication Links" links above. 
+				    This form includes additional expert user knowledge that is required and cannot be harvested from existing database fields.
 				    Use the Cntl and Shift keys to select multiple entries within a keyword select group. Be sure to scroll to the bottom of the form and press the "Submit" button.</p>
 				</div>
 				<form method="post">
@@ -1150,8 +1172,8 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="col-md-12">
 					<fieldset class="form-group">
 					  <label for="publishEnsembleDASHRadios1">DASH publication options:</label><br/>
-					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="all" required/> Publish *ALL* experiment ensemble members under this single DASH record<br/>
-					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="one"/> Publish *ONLY* this experiment
+					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="1" required/> Publish *ALL* experiment ensemble members under this single DASH record<br/>
+					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="0"/> Publish *ONLY* this experiment
 					</fieldset>
 				      </div>
 				    </div>
@@ -1221,7 +1243,7 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				      <div class="row">
 					<div class="col-md-12">
 					  <label for="expTypes">Experiment Type (select at least one)</label>
-					  <select multiple class="form-control" id="expTypes" name="expTypes" size="6">
+					  <select multiple class="form-control" id="expTypes" name="expTypes" size="5">
 					    [% FOREACH et IN expTypes %]
 					    <option value="[% et.id %]">[% et.name %]</option>
 					    [% END %]
@@ -1304,19 +1326,10 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				<div class="modal-header">
 				  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 				  <h4 class="modal-title" id="myModalDASHPubLabel">Preview and Publish [% case.casename.value %] metadata to the Digital Assest Services Hub</h4>
-				  <p>Below are the metadata fields specific to this experiment that will be published to DASH via an ISO XML record and the CKAN github repository and posted on the <a href="http://data.ucar.edu">http://data.ucar.edu</a> website. Check the keyword fields and then scroll to the bottom of the form and press either the "Publish" button to publish this record or the "Reset" button which will allow you to return to the keyword entry form and resubmit any changes..</p>
+				  <p>Below are the metadata fields specific to this experiment or experiment ensemble that will be published to DASH via an ISO XML record and the CKAN github repository and posted on the <a href="http://data.ucar.edu">http://data.ucar.edu</a> website. Check the keyword fields and then scroll to the bottom of the form and press either the "Publish" button to publish this record or the "Reset" button which will allow you to return to the keyword entry form and resubmit any changes.</p>
 				</div>
 				<form id="publishDASH_form" method="post">
 				  <div class="modal-body">
-				    <div class="row">
-				      <div class="col-md-12">
-					<fieldset class="form-group">
-					  <label for="publishEnsembleDASHRadios1">DASH publication options:</label><br/>
-					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="all" required/> Publish or reset *ALL* experiment ensemble members under this single DASH record<br/>
-					  <input type="radio" name="pub_ensemble_DASH" id="publishEnsembleDASHRadios1" value="one"/> Publish or reset *ONLY* this experiment
-					</fieldset>
-				      </div>
-				    </div>
 
 				    <table class="table table-striped table-condensed">
 				      <thead>
@@ -1368,14 +1381,8 @@ Path:  /glade/collections/cdg/[% case.casename.value %]
 				    <div class="row">
 				      <div class="col-lg-12">
 					<fieldset class="form-group">
-					  [% IF case.is_ens.value.lower == 'true' %] 
-					  <label for="deleteEnsembleDASHRadios1">Ensemble records delete and reset options:</label><br/>
-					  <input type="radio" name="delete_ensemble_DASH" id="deleteEnsembleDASHRadios1" value="all" required/> Delete and reset *ALL* ensemble members' DASH records<br/>
-					  <input type="radio" name="delete_ensemble_DASH" id="deleteEnsembleDASHRadios1" value="one"/> Delete and reset *ONLY* this ensemble member's DASH record
-					  [% ELSE %]
 					  <label for="deleteEnsembleDASHRadios1">DASH record delete and reset:</label><br/>
-					  <input type="radio" name="delete_ensemble_DASH" id="deleteEnsembleDASHRadios1" value="one" required/> Delete and reset this experiment's DASH record
-					  [% END %]
+					  <input type="radio" name="delete_ensemble_DASH" id="deleteEnsembleDASHRadios1" value="one" required/> Check to verify that you will be deleting and reseting this DASH record
 					</fieldset>
 				      </div>
 				    </div>
