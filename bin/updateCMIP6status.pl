@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # updateCMIP6status
 #
-# updated the temporary t2v_CMIP6_status table 
+# updated the temporary t2v_cmip6_status table 
 # usage : updateCMIP6status.pl
 #
 
@@ -35,7 +35,7 @@ my @CMIP6Status  = getCMIP6Status($dbh);
 
 #
 # loop through the CMIP6status array of hashes and update or insert 
-# values into the temporary t2v_CMIP6_status table
+# values into the temporary t2v_cmip6_status table
 #
 
 foreach my $ref (@CMIP6Status)
@@ -58,7 +58,8 @@ foreach my $ref (@CMIP6Status)
                    run_disk_usage, run_last_update, run_model_cost, run_model_date, run_model_throughput, 
                    run_percent_complete, sta_archive_method, sta_code, sta_color, sta_disk_usage, sta_last_update, 
                    sta_model_date, sta_percent_complete, total_disk_usage, ts_code, ts_color, ts_disk_usage, 
-                   ts_last_update, ts_model_date, ts_percent_complete, ts_process_time, last_update) 
+                   ts_last_update, ts_model_date, ts_percent_complete, ts_process_time, last_update,
+                   dash_code, dash_color, dash_disk_usage, dash_last_update) 
                   value ($ref->{'case_id'}, "$ref->{'casename'}", "$ref->{'cmip6_exp_uid'}", 
                    "$ref->{'conform_code'}", "$ref->{'conform_color'}", "$ref->{'conform_disk_usage'}", 
                    "$ref->{'conform_last_update'}", "$ref->{'conform_model_date'}", $ref->{'conform_percent_complete'}, 
@@ -70,7 +71,8 @@ foreach my $ref (@CMIP6Status)
                    "$ref->{'sta_color'}", "$ref->{'sta_disk_usage'}", "$ref->{'sta_last_update'}", 
                    "$ref->{'sta_model_date'}", $ref->{'sta_percent_complete'}, "$ref->{'total_disk_usage'}", 
                    "$ref->{'ts_code'}", "$ref->{'ts_color'}", "$ref->{'ts_disk_usage'}", "$ref->{'ts_last_update'}", 
-                   "$ref->{'ts_model_date'}", $ref->{'ts_percent_complete'}, "$ref->{'ts_process_time'}", NOW()));
+                   "$ref->{'ts_model_date'}", $ref->{'ts_percent_complete'}, "$ref->{'ts_process_time'}", NOW(),
+                   "$ref->{'dash_code'}", "$ref->{'dash_color'}", "$ref->{'dash_disk_usage'}", "$ref->{'dash_last_update'}"));
 	$sth = $dbh->prepare($sql);
 	$sth->execute() or die $dbh->errstr;
 	$sth->finish;
@@ -116,7 +118,11 @@ foreach my $ref (@CMIP6Status)
                   ts_model_date = "$ref->{'ts_model_date'}",
                   ts_percent_complete = $ref->{'ts_percent_complete'},
                   ts_process_time = "$ref->{'ts_process_time'}",
-                  last_update = NOW()
+                  last_update = NOW(),
+                  dash_code = "$ref->{'dash_code'}",
+                  dash_color = "$ref->{'dash_color'}",
+                  dash_disk_usage = "$ref->{'dash_disk_usage'}",
+                  dash_last_update = "$ref->{'dash_last_update'}"
                   where case_id = $ref->{'case_id'});
 	##print "update SQL = " . $sql . "\n";
 	$sth = $dbh->prepare($sql);

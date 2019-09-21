@@ -37,6 +37,7 @@ CREATE TABLE `t2v_cmip6_status` (
   `expName` varchar(40) DEFAULT NULL,
   `pub_code` varchar(20) DEFAULT NULL,
   `pub_color` varchar(7) DEFAULT NULL,
+  `pub_disk_usage` varchar(20) DEFAULT NULL,
   `pub_last_update` varchar(25) DEFAULT NULL,
   `run_archive_method` varchar(20) DEFAULT NULL,
   `run_code` varchar(20) DEFAULT NULL, 
@@ -62,6 +63,11 @@ CREATE TABLE `t2v_cmip6_status` (
   `ts_model_date` varchar(150) DEFAULT NULL, 
   `ts_percent_complete` float(7,2) DEFAULT NULL,   
   `ts_process_time` varchar(50) DEFAULT NULL
+  `dash_code` varchar(20) DEFAULT NULL,
+  `dash_color` varchar(7) DEFAULT NULL,
+  `dash_disk_usage` varchar(20) DEFAULT NULL,
+  `dash_last_update` varchar(25) DEFAULT NULL,
+  `last_update` datetime DEFAULT NULL,
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

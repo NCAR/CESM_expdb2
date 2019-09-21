@@ -498,7 +498,7 @@
 
 				      <td>
 					<small>
-					  published:<br>
+					  ESGF:<br>
 					  [% IF exp.pub_code == "Verified" %]
 					  <span class="label label-primary">[% exp.pub_code %]</span>
 					  [% END %]
@@ -516,6 +516,28 @@
 					  [% END %]
 					</small>
 				      </td>
+
+				      <td>
+					<small>
+					  DASH:<br>
+					  [% IF exp.dash_code == "Verified" %]
+					  <span class="label label-primary">[% exp.dash_code %]</span>
+					  [% END %]
+					  [% IF exp.dash_code == "Succeeded" %]
+					  <span class="label label-info">[% exp.dash_code %]</span>
+					  [% END %]
+					  [% IF exp.dash_code == "Unknown" %]
+					  <span class="label label-default">[% exp.dash_code %]</span>
+					  [% END %]
+					  [% IF exp.dash_code == "Started" %]
+					  <span class="label label-success">[% exp.dash_code %]</span>
+					  [% END %]
+					  [% IF exp.dash_code == "Failed" %]
+					  <span class="label label-danger">[% exp.dash_code %]</span>
+					  [% END %]
+					</small>
+				      </td>
+
 				    </tr>
 				  </tbody>
 				</table>

@@ -785,8 +785,6 @@ sub getCMIP6Status
 	# convert disk usage to MB
 	$case{'run_disk_usage'} = sprintf("%.0f", $case{'run_disk_usage'}/(1024 * 1024));
 
-	# compute the run percentage complete
-	$case{'run_percent_complete'} = getPercentComplete($case{'run_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
 
 	# get the case_st_archive status
 	$sql1 = qq(select IFNULL(j.disk_usage,0) as disk_usage, 
@@ -831,14 +829,13 @@ sub getCMIP6Status
 	$case{'ts_disk_usage'} = sprintf("%.0f",$case{'ts_disk_usage'}/(1024 * 1024));
 
 	# compute the timeseries percentage complete
-	$case{'ts_percent_complete'} = 0;
+	$case{'ts_percent_complete'} = 0.0;
 	if (index($case{'ts_model_date'}, "-") != -1 ) {
 	    my @ts_date_parts = split(/-/, $case{'ts_model_date'});
 	    my $endts_model_date = substr($ts_date_parts[1], 0, 4);
 	    $case{'ts_percent_complete'} = getPercentComplete($endts_model_date, $ref->{'nyears'}, $ref->{'run_startdate'});
 	}
 	    
-
 	# get the conform status
 	$sql1 = qq(select IFNULL(j.disk_usage,0) as disk_usage, 
                       IFNULL(j.model_date,0) as model_date, DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
@@ -869,9 +866,9 @@ sub getCMIP6Status
 	# compute total disk usage
 	$case{'total_disk_usage'} = sprintf("%.0f", ($case{'run_disk_usage'} + $case{'sta_disk_usage'} + $case{'ts_disk_usage'} + $case{'conform_disk_usage'}));
 
-	# get publication status
+	# get ESGF publication status
 	$sql1 = qq(select DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
-                      s.code, s.color, j.disk_usage
+                      s.code, s.color, IFNULL(j.disk_usage, 0) as disk_usage
                       from t2j_status as j, t2_status as s where
                       j.case_id = $ref->{'id'} and
                       j.process_id = 18 and 
@@ -882,6 +879,44 @@ sub getCMIP6Status
 	$sth1->execute();
 	($case{'pub_last_update'}, $case{'pub_code'}, $case{'pub_color'}, $case{'pub_disk_usage'}) = $sth1->fetchrow();
 	$sth1->finish();
+
+	# convert disk usage to MB
+	$case{'pub_disk_usage'} = sprintf("%.0f", $case{'pub_disk_usage'}/(1024 * 1024));
+
+	# get DASH publication status
+	$sql1 = qq(select DATE_FORMAT(j.last_update, '%Y-%m-%d %H:%i'),
+                      s.code, s.color, IFNULL(j.disk_usage, 0) as disk_usage
+                      from t2j_status as j, t2_status as s where
+                      j.case_id = $ref->{'id'} and
+                      j.process_id = 19 and 
+                      j.status_id = s.id
+                      order by j.last_update desc
+                      limit 1);
+	$sth1 = $dbh->prepare($sql1);
+	$sth1->execute();
+	($case{'dash_last_update'}, $case{'dash_code'}, $case{'dash_color'}, $case{'dash_disk_usage'}) = $sth1->fetchrow();
+	$sth1->finish();
+
+	# convert disk usage to MB
+	$case{'dash_disk_usage'} = sprintf("%.0f", $case{'dash_disk_usage'}/(1024 * 1024));
+
+	# compute the run percentage complete
+	$case{'run_percent_complete'} = getPercentComplete($case{'run_model_date'}, $ref->{'nyears'}, $ref->{'run_startdate'});
+	if ( $case{'ts_code'} eq 'Succeeded' || $case{'conform_code'} eq 'Succeeded' || $case{'pub_code'} eq 'Verified' ) {
+	    $case{'run_percent_complete'} = 100.0;
+	}
+        else {
+	    $case{'run_percent_complete'} = 0.0;
+        }
+
+       # clean up the timeseries percent complete
+       if ( $case{'ts_code'} eq 'Succeeded' || $case{'conform_code'} eq 'Succeeded' || $case{'pub_code'} eq 'Verified' ) {
+	    $case{'ts_percent_complete'} = 100.0;
+       }
+       else {
+	    $case{'ts_percent_complete'} = 0.0;
+       }
+
 
         push(@cases, \%case);
     }            
@@ -943,6 +978,10 @@ sub getCMIP6StatusFast
 	$case{'ts_model_date'} = $ref->{'ts_model_date'};
 	$case{'ts_percent_complete'} = $ref->{'ts_percent_complete'};
 	$case{'ts_process_time'} = $ref->{'ts_process_time'};
+	$case{'dash_code'} = $ref->{'dash_code'};
+	$case{'dash_color'} = $ref->{'dash_color'};
+	$case{'dash_disk_usage'} = $ref->{'dash_disk_usage'};
+	$case{'dash_last_update'} = $ref->{'dash_last_update'};
 
         push(@cases, \%case);
     }
