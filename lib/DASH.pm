@@ -298,6 +298,7 @@ sub getDASHFields
     $DASHFields{'temporal_resolution'} = $kw_list;
 
     # construct the title and additional_information
+    # TODO - make sure to get more recent fields from the t2e_fields table
     $sql = qq(select title, compset, grid, machine, DATE_FORMAT(archive_date, '%Y-%m-%d') as archive_date,
               model_version, run_startdate, LEFT(run_lastdate, 10) as run_lastdate
               from t2_cases where id = $case_id);
@@ -307,6 +308,8 @@ sub getDASHFields
     {
 	$DASHFields{'title'} = qq($ref->{'title'});
 	$DASHFields{'title'} =~ s/\r//g;
+	# Trim leading and trailing whitespaces
+	$DASHFields{'title'} =~ s/^\s+|\s+$//g;
 	$compset = $ref->{'compset'};
 	$grid = $ref->{'grid'};
 
