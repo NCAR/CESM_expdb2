@@ -279,8 +279,12 @@ sub showExpList
 
     my @cesm2exps        = getCasesByType($dbh, 2);
     my @lensExps         = getCasesByType($dbh, 3);
-    my @projectB         = getCasesByType($dbh, 4);
-    my @cesm2tune        = getCasesByType($dbh, 5);
+    my @cesm2tune        = getCasesByType($dbh, 4);
+    my @C1               = getCasesByType($dbh, 5);
+    my @C2               = getCasesByType($dbh, 6);
+    my @C3               = getCasesByType($dbh, 7);
+    my @C4               = getCasesByType($dbh, 8);
+    my @C5               = getCasesByType($dbh, 9);
     my @allCases         = getAllCases($dbh);
     my @NCARUsers        = getNCARUsers($dbh);
     my @CMIP6Users       = getCMIP6Users($dbh);
@@ -301,8 +305,12 @@ sub showExpList
 	CMIP6Users       => \@CMIP6Users,
 	cesm2exps        => \@cesm2exps,
 	lensExps         => \@lensExps,
-	projectB         => \@projectB,
 	cesm2tune        => \@cesm2tune,
+	C1               => \@C1,
+	C2               => \@C2,
+	C3               => \@C3,
+	C4               => \@C4,
+	C5               => \@C5,
 	allCases         => \@allCases,
 	NCARUsers        => \@NCARUsers,
 	authUser         => \%item,

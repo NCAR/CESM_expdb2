@@ -15,7 +15,13 @@ insert into t2_expType (name, description, exp_module, getCaseByID, expDetail_te
 values ('cmip6', 'CMIP6 Experiments','CMIP6','getCMIP6CaseByID','CMIP6.tmpl'),
        ('production', 'CESM2 Production Experiments','','',''),
        ('lens', 'CESM2 Large Ensemble Experiments','','',''),
-       ('TBD project', 'CESM2 TBD Project Experiments','','',''),
-       ('tuning', 'CESM2 Tuning Experiments','','','');
+       ('tuning', 'CESM2 Tuning Experiments','','',''),
+       ('C1', 'CESM2 Community Project C1 - Transient Holocene','','',''),
+       ('C2', 'CESM2 Community Project C2 - High-resolution ocean (POP) with biogeochemistry (BGC)','','',''),
+       ('C3', 'CESM2 Community Project C3 - Subseasonal-to-seasonal (S2S) hindcasts','','',''),
+       ('C4', 'CESM2 Community Project C4 - CESM2 with RCP8.5 projections','','',''),
+       ('C5', 'CESM2 Community Project C5 - Development of a CESM Arctic Prediction System (CAPS)','','','');
+
+
 
 

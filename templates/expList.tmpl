@@ -137,7 +137,7 @@
 		</div>
               </div>
 
-	      <p class="lead">The purpose of this project is to provide a single web portal to store metadata for CESM experiments including tracking run status, viewing diagnostics, and adding publication links.</p>
+	      <p class="lead">CESM2 experiments metadata including process status, diagnostics links, and publication links.</p>
 
 	      [% IF validstatus.status == 0 %]
 	      <div class="alert alert-danger text-center" role="alert">
@@ -151,7 +151,11 @@
 		  <li role="presentation"><a data-toggle="tab" role="tab" href="#cesm2tune" id="cesm2tune-tab">CESM2.0 Release Experiments</a></li>
 		  <li role="presentation"><a data-toggle="tab" role="tab" href="#cesm2exp" id="cesm2exp-tab">CESM2 Production Experiments</a></li>
 		  <li role="presentation"><a data-toggle="tab" role="tab" href="#cesm2lens" id="cesm2lens-tab">CESM2 LENS Experiments</a></li>
-		  <li role="presentation"><a data-toggle="tab" role="tab" href="#projectB" id="projectB-tab">CESM2 (TBD) Project Experiments</a></li>
+		  <li role="presentation"><a data-toggle="tab" role="tab" href="#C1" id="cesm2C1-tab">C1. Transient Holocene</a></li>
+		  <li role="presentation"><a data-toggle="tab" role="tab" href="#C2" id="cesm2C2-tab">C2. High-resolution Ocean</a></li>
+		  <li role="presentation"><a data-toggle="tab" role="tab" href="#C3" id="cesm2C3-tab">C3. S2S Hindcasts</a></li>
+		  <li role="presentation"><a data-toggle="tab" role="tab" href="#C4" id="cesm2C4-tab">C4. RCP8.5 Projections</a></li>
+		  <li role="presentation"><a data-toggle="tab" role="tab" href="#C5" id="cesm2C5-tab">C5. Arctic Prediction System</a></li>
 		</ul>
 
 		<div class="tab-content" id="dashTabContent">
@@ -841,7 +845,6 @@
 		  <!-- tab box for cesm2exp end -->
 
 
-
 		  <!-- tab box for cesm2lens start -->
 		  <div class="tab-pane fade" role="tabpanel" id="cesm2lens" aria-labelledby="cesm2lens-tab"> 
 		    <table id="cesm2LensTable" class="table table-striped table-condensed" style="width: 100%;">
@@ -864,16 +867,34 @@
 		  <!-- tab box for cesm2lens end -->
 
 
-		  <!-- tab box for projectB start -->
-		  <div class="tab-pane fade" role="tabpanel" id="projectB" aria-labelledby="projectB-tab"> 
-		    <table id="ProjectBTable" class="table table-striped table-condensed" style="width: 100%;">
+		  <!-- tab box for C1 start -->
+		  <div class="tab-pane fade" role="tabpanel" id="C1" aria-labelledby="cesm2C1-tab"> 
+		    <p>Community Project C1. Transient Holocene (11.4 M core-hours): The
+		    transient Holocene simulation will provide model
+		    data to the CESM community to more fully explore
+		    multidecadal and longer variability and rapid
+		    transitions of, for example: ENSO and other modes
+		    of climate variability; monsoons and droughts; the
+		    Atlantic meridional overturning circulation; and
+		    tropical/extratropical linkages. This
+		    unprecedented simulation, covering the period from
+		    9000 years ago until the beginning of the last
+		    millennium simulation (850 AD) - for a total of
+		    8150 years - will be run with the CESM2.1 FV2x1
+		    model version. This simulation was included as a
+		    community project simulation in the last CESM CSL
+		    allocation request, but needed to be deferred due
+		    to the delay in CESM2. Requested by PaleoWG and
+		    LIWG with AMWG and WAWG interests in the behavior
+		    of the FV2 model version.</p>
+		    <table id="C1Table" class="table table-striped table-condensed" style="width: 100%;">
 		      <thead>
 			<th>Case Name</th>
 			<th>Title</th>
 			<th>Archive Date</th>
 		      </thead>
 		      <tbody>
-			[% FOREACH exp IN projectB %]
+			[% FOREACH exp IN C1 %]
 			<tr>
 			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
 			  <td>[% exp.title %]</td>
@@ -883,7 +904,178 @@
 		      </tbody>
 		    </table>
 		  </div>
-		  <!-- tab box for projectB enc -->
+		  <!-- tab box for C1 end-->
+
+
+		  <!-- tab box for C2 start -->
+		  <div class="tab-pane fade" role="tabpanel" id="C2" aria-labelledby="cesm2C2-tab"> 
+		    <p>Community Project C2. High-resolution ocean
+		    (POP) with biogeochemistry (BGC) (15.0 M
+		    core-hours): Performing a hindcast eddy-resolving
+		    (0.1Â°) ocean simulation with BGC remains a
+		    high-priority. This is a frontier modeling
+		    capability and only a few such integrations have
+		    been conducted worldwide. A broad community of
+		    researchers has interest in these
+		    integrations. The model will use MARBL and will be
+		    forced with the newly developed JRA55
+		    inter-annually varying atmospheric data sets based
+		    on the Japanese Meteorological Agency Reanalysis
+		    Product. The simulation will be performed for the
+		    50-year period from 1967 - 2016. Requested
+		    by OMWG, PCWG, and BGCWG; directly feeds in to the
+		    world-wide ocean modeling community and the
+		    activities / efforts of the International CLIVAR
+		    Ocean Model Development Panel (OMDP).</p>
+		    <table id="C2Table" class="table table-striped table-condensed" style="width: 100%;">
+		      <thead>
+			<th>Case Name</th>
+			<th>Title</th>
+			<th>Archive Date</th>
+		      </thead>
+		      <tbody>
+			[% FOREACH exp IN C2 %]
+			<tr>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
+			  <td>[% exp.title %]</td>
+			  <td>[% exp.archive_date %]</td>
+			</tr>
+			[% END %]
+		      </tbody>
+		    </table>
+		  </div>
+		  <!-- tab box for C2 end-->
+
+
+		  <!-- tab box for C3 start -->
+		  <div class="tab-pane fade" role="tabpanel" id="C3" aria-labelledby="cesm2C3-tab"> 
+		    <p>Community Project C3. Subseasonal-to-seasonal
+		    (S2S) hindcasts (2.8 M core-hours): S2S hindcasts
+		    for years 1999 - 2018 will be carried out using
+		    the CESM2 nominal 1Â° version and following the
+		    Subseasonal Experiment (SubX) protocol. 10-member
+		    ensemble hindcasts will be initiated every
+		    Wednesday from March to mid-October and run for 45
+		    days each. Comparison of hindcasts with CESM2 to
+		    CESM1 will allow for the characterization in
+		    changes in model skill coming strictly from the
+		    new model physics in CESM2. The analysis will
+		    focus on simulation skill of weeks 3 to 6 surface
+		    temperature and precipitation as well as the skill
+		    of the Madden-Julian Oscillation, which is
+		    improved in climate simulations with CESM2 as
+		    compared to CESM1. Requested by AMWG with
+		    interests from OMWG and PCWG; directly
+		    complimenting the national SubX efforts.</p>
+		    <table id="C3Table" class="table table-striped table-condensed" style="width: 100%;">
+		      <thead>
+			<th>Case Name</th>
+			<th>Title</th>
+			<th>Archive Date</th>
+		      </thead>
+		      <tbody>
+			[% FOREACH exp IN C3 %]
+			<tr>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
+			  <td>[% exp.title %]</td>
+			  <td>[% exp.archive_date %]</td>
+			</tr>
+			[% END %]
+		      </tbody>
+		    </table>
+		  </div>
+		  <!-- tab box for C3 end-->
+
+
+		  <!-- tab box for C4 start -->
+		  <div class="tab-pane fade" role="tabpanel" id="C4" aria-labelledby="cesm2C4-tab"> 
+		    <p>Community Project C4. CESM2 with RCP8.5
+		    projections (6.3 M core-hours): CESM2 has
+		    considerable changes relative to the CESM1. In
+		    order to understand these changes and their impact
+		    on climate variability and change, simulations are
+		    needed with identical forcing for the 20th and
+		    21st centuries. Given this, an ensemble set of
+		    historical and future projections that apply the
+		    same forcing as in the CESM-LE configuration is
+		    proposed. Specifically, a 10-member ensemble of
+		    CESM2 simulations for the 1920-2100 period, forced
+		    by the same historical forcing as the CESM-LE and
+		    the RCP8.5 projection scenario will be performed,
+		    allowing comparisons of the historical and
+		    projected climate change under RCP8.5 with the
+		    projected climate change in the standard CMIP6
+		    runs with the CESM2 using SSP5-8.5 and
+		    SSP3-7.0. Given the huge success and wide use of
+		    the CESM-LE project, having the opportunity to
+		    establish how the CESM2 projections differ from
+		    the CESM-LE projections will be very beneficial to
+		    a large community of scientists. Requested by PCWG
+		    with significant interests from CVCWG and
+		    AMWG.</p>
+		    <table id="C4Table" class="table table-striped table-condensed" style="width: 100%;">
+		      <thead>
+			<th>Case Name</th>
+			<th>Title</th>
+			<th>Archive Date</th>
+		      </thead>
+		      <tbody>
+			[% FOREACH exp IN C4 %]
+			<tr>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
+			  <td>[% exp.title %]</td>
+			  <td>[% exp.archive_date %]</td>
+			</tr>
+			[% END %]
+		      </tbody>
+		    </table>
+		  </div>
+		  <!-- tab box for C4 end-->
+
+
+		  <!-- tab box for C5 start -->
+		  <div class="tab-pane fade" role="tabpanel" id="C5" aria-labelledby="cesm2C5-tab"> 
+		    <p>Community Project C5. Development of a CESM
+		    Arctic Prediction System (CAPS) (7.8 M
+		    core-hours): CESM is uniquely placed to advance
+		    understanding processes and predictability of
+		    polar regions. Predictability on scales from
+		    sub-seasonal to seasonal (S2S) out to decadal and
+		    centennial requires a high resolution coupled
+		    system. CESM2 with a refined mesh atmosphere at
+		    high resolution (7-15 km) can be coupled to
+		    high-resolution versions of the other component
+		    models. Before doing so, however, we propose to do
+		    initial tests and development with a 1Â° ocean
+		    with BGC coupled to a high-resolution
+		    atmosphere. As such, the request represents the
+		    start of a larger development of a coupled
+		    prediction system for the Arctic that would
+		    involve high resolution prediction with
+		    initialized forecasts when a more unified system
+		    is ready. It is consistent with one of
+		    NSF's 10 big ideas, i.e., Navigating the
+		    New Arctic. Requested by AMWG, LIWG, LMWG, and
+		    PCWG.</p>
+		    <table id="C5Table" class="table table-striped table-condensed" style="width: 100%;">
+		      <thead>
+			<th>Case Name</th>
+			<th>Title</th>
+			<th>Archive Date</th>
+		      </thead>
+		      <tbody>
+			[% FOREACH exp IN C5 %]
+			<tr>
+			  <td><a href="/expdb2.0/cgi-bin/expList.cgi?action=showCaseDetail&case_id=[% exp.case_id %]" target="_blank">[% exp.casename %]</a></td>
+			  <td>[% exp.title %]</td>
+			  <td>[% exp.archive_date %]</td>
+			</tr>
+			[% END %]
+		      </tbody>
+		    </table>
+		  </div>
+		  <!-- tab box for C5 end-->
+
 		</div>
 	      </div>
 	    </div>
