@@ -419,9 +419,9 @@
                                     </label>
                                   </div>
 
-<!--                                  <div class="radio">
+                                  <div class="radio">
                                     <label>
-                                      <input type="radio" name="loginType" id="loginTypeUCAS" value="UCAS" checked> UCAS
+                                      <input type="radio" name="loginType" id="loginTypeCIT" value="CIT"> CIT
                                     </label>
 				  </div> -->
 
