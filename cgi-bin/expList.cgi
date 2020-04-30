@@ -1541,7 +1541,7 @@ sub publishDASHProcess
 	updatePublishStatus($dbh, $ca->{'case_id'}, 19, 5, $item{luser_id}, $DASHFields->{'asset_size_MB'}, $pub_ens);    
 
 	# add a link to the DASH publication in the t2j_links table
-	my $description = $dbh->quote('DASH URL - enter search term "CESM2" along with any other experiment title keywords or casename');
+	my $description = $dbh->quote('DASH URL - enter search term CESM2 along with any other experiment title keywords or casename');
 	my $sql = qq(insert into t2j_links (case_id, process_id, linkType_id, link, description, last_update, approver_id)
                      value ($ca->{'case_id'}, 19, 1, "$config{'dset_web_url'}", $description, NOW(), $item{luser_id}));
 	my $sth = $dbh->prepare($sql);
