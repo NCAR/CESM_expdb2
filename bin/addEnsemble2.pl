@@ -25,10 +25,10 @@ my $dsn = $config{'dsn'};
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
 
-my @cases = ('b.e21.BWSSP245cmip6.f09_g17.CMIP6-SSP2-4.5-WACCM.004','b.e21.BWSSP245cmip6.f09_g17.CMIP6-SSP2-4.5-WACCM.005');
+my @cases = ('b.e21.BWSSP585cmip6.f09_g17.CMIP6-SSP5-8.5-WACCM.004','b.e21.BWSSP585cmip6.f09_g17.CMIP6-SSP5-8.5-WACCM.005');
 	     
 my @variant_labels = ('r4i1p1f1', 'r5i1p1f1');
-my $title = 'CMIP6 CESM2 future scenario SSP2-4.5, years 2015-2100, with WACCM6 with interactive chemistry (TSMLT1), interactive land (CLM5), coupled ocean (POP2) with biogeochemistry (MARBL), interactive sea ice (CICE5.1), and non-evolving land ice (CISM2.1).';
+my $title = 'CMIP6 CESM2 future scenario SSP5-8.5 between 2014-2100 with WACCM6 with interactive chemistry (TSMLT1), interactive land (CLM5), coupled ocean (POP2) with biogeochemistry (MARBL), interactive sea ice (CICE5.1), and non-evolving land ice (CISM2.1).';
 my ($sql, $sth, $sql1, $sth1, $ensemble_num);
 
 for (my $i=0; $i <= 1; $i++) {
@@ -50,8 +50,8 @@ for (my $i=0; $i <= 1; $i++) {
               variant_label, ensemble_num, ensemble_size, assign_id, science_id, request_date,
               source_type, nyears, source_id, branch_method, branch_time_in_parent,
               branch_time_in_child, parentCase_id) value
-              ($id, 287, NULL, 27, 280, '$variant_labels[$i]', $ensemble_num, 5, 262, 262, NOW(), 
-               'AGCM BGC CHEM AER', 86, 2, 'standard', '735110.0DO', '711385.0DO', NULL));
+              ($id, 285, NULL, 27, 285, '$variant_labels[$i]', $ensemble_num, 5, 398, 262, NOW(), 
+               'AGCM BGC CHEM AER', 85, 2, 'standard', '735110.0DO', '711385.0DO', 43));
     $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish();
