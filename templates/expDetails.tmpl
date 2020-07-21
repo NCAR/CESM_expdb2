@@ -155,7 +155,7 @@
 
 	      <div class="">
 		<p class="lead">The purpose of this project is to provide a single web portal to store metadata for CESM experiments including tracking run status, viewing diagnostics, and adding publication links.</p>
-		<span class="label label-danger">* You must have a valid CESM SVN developers login or a UCAS login to use the experiment database</span>
+		<span class="alert alert-danger">* You must have a valid CESM SVN developers login or a UCAS login to use the experiment database</span>
 	      </div>
 
 	      <br>
@@ -873,7 +873,8 @@
 
 		  <div id="publicationsCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="publicationsHeader">
 		    <div class="panel-body">
-		      <p class="small text-center">* You must be the
+
+		      <div class="alert alert-success">* You must be the
 		      scientific lead or archiver for this experiment
 		      or a expdb data manager in order to publish. After
 		      successful publication, it is up to the user to
@@ -881,7 +882,15 @@
 		      this experiment on disk. <b>Remember to add all links to
 		      publication sources under the "Case Diagnostics and Publication Links" accordion above
 		      or when updating the publication status.</b>
-		      </p>
+		      </div>
+
+		      <div class="alert alert-info">Updating either
+		      the ESGF or CDG status will automatically
+		      trigger the public view of these case details on
+		      the <a href="https://csegweb.cgd.ucar.edu/experiments/public/">CESM2
+		      Scientifically Validated Configurations</a>
+		      page.</div>
+
 
 		      <br>
 
