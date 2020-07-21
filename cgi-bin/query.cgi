@@ -55,33 +55,39 @@ my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db
 my $jsonObj = JSON->new->allow_nonref;
 my $json = $jsonObj->decode($data);
 
-my $queryType = $json->{'queryType'};
-my $expType = $json->{'expType'};
-my ($count, $case_id, $expType_id) = checkCase($dbh, $json->{'casename'}, $expType);
-my %case;
-$case{'case_id'} = $case_id;
-
 # look at the queryType to determine what needs to be returned
-if ($queryType eq 'checkCaseExists') {
-    # return the case_id
-    if ($count == 0) {
-	print $req->header('text/html', '500 Case does not exist!');
-	print to_json(\%case);
-    }
-    else {
-	print $req->header('text/html', '200');
-	print to_json(\%case);
-    }
-}
-elsif ($queryType eq 'CMIP6GlobalAtts') {
-    my $json = JSON->new->allow_nonref;
-    my ($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-    print $req->header('application/json');
-    print to_json($globalAtts);
+my $queryType = $json->{'queryType'};
+if ($queryType eq 'expTypes') {
+    my @expTypes = getExpTypes($dbh);
+    print $req->header('text/html', '200');
+    print to_json(\@expTypes);
 }
 else {
-    print $req->header('text/html', '501 invalid query type');
-    print $req->h1('False');
+    my $expType = $json->{'expType'};
+    my ($count, $case_id, $expType_id) = checkCase($dbh, $json->{'casename'}, $expType);
+    my %case;
+    $case{'case_id'} = $case_id;
+    if ($queryType eq 'checkCaseExists') {
+	# return the case_id
+	if ($count == 0) {
+	    print $req->header('text/html', '500 Case does not exist!');
+	    print to_json(\%case);
+	}
+	else {
+	    print $req->header('text/html', '200');
+	    print to_json(\%case);
+	}
+    }
+    elsif ($queryType eq 'CMIP6GlobalAtts') {
+	my $json = JSON->new->allow_nonref;
+	my ($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+	print $req->header('application/json');
+	print to_json($globalAtts);
+    }
+    else {
+	print $req->header('text/html', '501 invalid query type');
+	print $req->h1('False');
+    }
 }
 exit 0;
 
