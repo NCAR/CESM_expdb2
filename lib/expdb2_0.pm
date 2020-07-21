@@ -22,7 +22,7 @@ my %config = &getconfig;
 @EXPORT = qw(getCasesByType getPerfExperiments getAllCases getNCARUsers getCMIP6Users checkCase 
 getUserByID getNoteByID getLinkByID getProcess getLinkTypes getExpType getProcessStats 
 getCaseFields getCaseFieldByName getCaseNotes getPercentComplete getDiags getCaseByID
-updatePublishStatus getPublishStatus getEnsembles getLinkByTypeCaseID copySVNtrunkTag);
+updatePublishStatus getPublishStatus getEnsembles getLinkByTypeCaseID copySVNtrunkTag getExpTypes);
 
 sub getCasesByType
 {
@@ -763,3 +763,24 @@ EOF
 	) or die "can't send email to $lemail in copySVNtrunkTag";
 }
 
+sub getExpTypes
+{
+    my $dbh = shift;
+    my @expTypes;
+    my $sql = qq(select * from t2_expType);
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    while(my $ref = $sth->fetchrow_hashref())
+    {
+	my %expType;
+	$expType{'id'} = $ref->{'id'};
+	$expType{'name'} = $ref->{'name'};
+	$expType{'description'} = $ref->{'description'};
+	$expType{'exp_module'} = $ref->{'exp_module'};
+	$expType{'getCaseByID'} = $ref->{'getCaseByID'};
+	$expType{'expDetail_template'} = $ref->{'expDetail_template'};
+	push(@expTypes, \%expType);
+    }
+    $sth->finish();
+    return @expTypes;
+}
