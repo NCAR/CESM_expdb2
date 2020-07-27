@@ -4,6 +4,7 @@
 # remove a case from the expdb2.0 database tables
 # usage : removeCase.pl case=[case_id]
 #
+# TODO : remove corresponding SVN repo at https://svn-cesm2-expdb.cgd.ucar.edu
 
 use warnings;
 use strict;

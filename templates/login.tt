@@ -423,13 +423,7 @@
                                     <label>
                                       <input type="radio" name="loginType" id="loginTypeCIT" value="CIT"> CIT
                                     </label>
-				  </div> -->
-
-                                  <div class="radio">
-                                    <label>
-                                      <input type="radio" name="loginType" id="loginTypeCIT" value="CIT" checked> CIT
-                                    </label>
-                                  </div>
+				  </div>
 
                                     <!-- TODO find error why the sliders do not show properly but do on dev, console error blocking follow mixed from cgd, styles/atmos/fonts/Ubuntu-R-webfont.woff, styles/modern/fonts/fontawesome-webfont.woff2?v=4.7.0
                                     <div class="form-group">
