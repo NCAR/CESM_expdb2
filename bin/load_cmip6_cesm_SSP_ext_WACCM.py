@@ -92,7 +92,7 @@ def main(options):
 ##                 'ScenarioMIP'   : ['ssp585-WACCM', 'ssp370-WACCM', 'ssp245-WACCM', 'ssp126-WACCM', 'ssp534-over-WACCM'],
 ##                 'RFMIP'         : ['piClim-control-WACCM'] }
 
-    mip_exps = { 'ScenarioMIP'   : ['ssp585-ext-WACCM', 'ssp534-over-ext-WACCM'] }
+    mip_exps = { 'ScenarioMIP'   : ['ssp126-ext-WACCM', 'ssp585-ext-WACCM', 'ssp534-over-ext-WACCM'] }
 
     for mip, exps in mip_exps.iteritems():
         # get the design_mip_id from the t2_cmip6_MIP_types
