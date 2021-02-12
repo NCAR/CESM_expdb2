@@ -21,8 +21,10 @@ use expdb2_0;
 getCMIP6CaseByID checkCMIP6Sources CMIP6publishDSET getCMIP6Status getCMIP6StatusFast getCMIP6Inits getCMIP6Physics
 getCMIP6Forcings getCMIP6Diags isCMIP6User isCMIP6Publisher getCMIP6SourceIDs convertToCMIP6Time getCMIP6GlobalFileAtts);
 
-sub getCMIP6Experiments
-{
+
+# get the list of CMIP6 experiments for the dropdown on "Reserve a CMIP6 casename"
+sub getCMIP6Experiments {
+	# starting vars
     my $dbh = shift;
     my $restrict = shift;
     my ($sql1, $sth1);
@@ -30,70 +32,90 @@ sub getCMIP6Experiments
     my ($count, $case_id);
     my @CMIP6Exps;
 
+    # create the sql
     my $sql = "select * from t2_cmip6_exps order by name";
+
+    # check for a CMIP6 type
     if ($restrict eq 'cmip6') {
-	# restrict the list to only the WRCP CV defined experiments
-	$sql = "select * from t2_cmip6_exps where cesm_cmip6_id is null order by name";	
+		# restrict the list to only the WRCP CV defined experiments
+		$sql = "select * from t2_cmip6_exps where cesm_cmip6_id is null order by name";	
     }
 
+    # execute the sql
     my $sth = $dbh->prepare($sql);
     $sth->execute();
-    while(my $ref = $sth->fetchrow_hashref())
-    {
-	my %CMIP6Exp;
-	$CMIP6Exp{'exp_id'} = $ref->{'id'};
-	$CMIP6Exp{'expName'} = $ref->{'name'};
-	$CMIP6Exp{'description'} = $ref->{'description'};
-	$CMIP6Exp{'cmip6_exp_uid'} = $ref->{'uid'};
-	$CMIP6Exp{'designMIP'} = $ref->{'design_mip'};
-	$sql1 = qq(select count(case_id), case_id, 
-                   IFNULL(DATE_FORMAT(request_date, '%Y-%m-%d %H:%i'),'') as request_date from t2j_cmip6 
-                   where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
-	$sth1 = $dbh->prepare($sql1);
-	$sth1->execute();
-	($count, $case_id, $CMIP6Exp{'request_date'}) = $sth1->fetchrow();
-	$sth1->finish();
-	if( $count ) {
-	    $sql1 = qq(select DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i') from t2_cases
-                       where id = $case_id);
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    $CMIP6Exp{'archive_date'} = $sth1->fetchrow();
-	    $sth1->finish();
 
-	    $sql1 = qq(select case_id, 
-                       IFNULL(DATE_FORMAT(request_date, '%Y-%m-%d %H:%i'),'') as request_date from t2j_cmip6 
-                       where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
-	    $sth1 = $dbh->prepare($sql1);
-	    $sth1->execute();
-	    while(my $ref1 = $sth1->fetchrow_hashref())
-	    {
-		my %CMIP6EnsExp;
-		$CMIP6EnsExp{'exp_id'} = $ref->{'id'};
-		$CMIP6EnsExp{'expName'} = $ref->{'name'};
-		$CMIP6EnsExp{'description'} = $ref->{'description'};
-		$CMIP6EnsExp{'cmip6_exp_uid'} = $ref->{'uid'};
-		$CMIP6EnsExp{'designMIP'} = $ref->{'design_mip'};
-		$CMIP6EnsExp{'case_id'} = $ref1->{'case_id'};
-		$CMIP6EnsExp{'request_date'} = $ref1->{'request_date'};
-		$sql2 = qq(select casename, 
-                           IFNULL(DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i'),'') as archive_date from t2_cases 
-                           where id = $CMIP6EnsExp{'case_id'} and expType_id = 1);
-		$sth2 = $dbh->prepare($sql2);
-		$sth2->execute();
-		($CMIP6EnsExp{'casename'}, $CMIP6EnsExp{'archive_date'}) = $sth2->fetchrow();
-		$sth2->finish();
-		push(@CMIP6Exps, \%CMIP6EnsExp);
-	    }
-	    $sth1->finish();
-	}
-	else {
-	    push(@CMIP6Exps, \%CMIP6Exp);
-	}
+    # loop thru the db results
+    while(my $ref = $sth->fetchrow_hashref()) {
+    	# set the vars
+		my %CMIP6Exp;
+		$CMIP6Exp{'exp_id'} = $ref->{'id'};
+		$CMIP6Exp{'expName'} = $ref->{'name'};
+		$CMIP6Exp{'description'} = $ref->{'description'};
+		$CMIP6Exp{'cmip6_exp_uid'} = $ref->{'uid'};
+		$CMIP6Exp{'designMIP'} = $ref->{'design_mip'};
+
+		# create the sql and execute
+		$sql1 = qq(select count(case_id), case_id, IFNULL(DATE_FORMAT(request_date, '%Y-%m-%d %H:%i'),'') as request_date from t2j_cmip6 where case_id is not null and exp_id = $CMIP6Exp{'exp_id'});
+		$sth1 = $dbh->prepare($sql1);
+		$sth1->execute();
+
+		# set the results
+		($count, $case_id, $CMIP6Exp{'request_date'}) = $sth1->fetchrow();
+		$sth1->finish();
+
+		# check the ensemble count to grab other info
+		if( $count ) {
+			# create the sql and execute
+		    $sql1 = qq(select DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i') from t2_cases where id = $case_id); $sth1 = $dbh->prepare($sql1);
+		    $sth1->execute();
+
+		    # set the results
+		    $CMIP6Exp{'archive_date'} = $sth1->fetchrow();
+		    $sth1->finish();
+
+		    # create more sql and execute
+		    $sql1 = qq(select case_id, IFNULL(DATE_FORMAT(request_date, '%Y-%m-%d %H:%i'),'') as request_date from t2j_cmip6 where case_id is not null and exp_id = $CMIP6Exp{'exp_id'}); $sth1 = $dbh->prepare($sql1);
+		    $sth1->execute();
+
+		    # loop thru the db results
+		    while(my $ref1 = $sth1->fetchrow_hashref()) {
+		    	# set the vars
+				my %CMIP6EnsExp;
+				$CMIP6EnsExp{'exp_id'} = $ref->{'id'};
+				$CMIP6EnsExp{'expName'} = $ref->{'name'};
+				$CMIP6EnsExp{'description'} = $ref->{'description'};
+				$CMIP6EnsExp{'cmip6_exp_uid'} = $ref->{'uid'};
+				$CMIP6EnsExp{'designMIP'} = $ref->{'design_mip'};
+				$CMIP6EnsExp{'case_id'} = $ref1->{'case_id'};
+				$CMIP6EnsExp{'request_date'} = $ref1->{'request_date'};
+
+				# create the sql and execute
+				$sql2 = qq(select casename, IFNULL(DATE_FORMAT(archive_date, '%Y-%m-%d %H:%i'),'') as archive_date from t2_cases where id = $CMIP6EnsExp{'case_id'} and expType_id = 1); $sth2 = $dbh->prepare($sql2);
+				$sth2->execute();
+
+				# set the results
+				($CMIP6EnsExp{'casename'}, $CMIP6EnsExp{'archive_date'}) = $sth2->fetchrow();
+				$sth2->finish();
+
+				# push into the return array
+				push(@CMIP6Exps, \%CMIP6EnsExp);
+		    }
+
+		    $sth1->finish();
+		}
+		# no other info so just push
+		else {
+			# push into the return array
+		    push(@CMIP6Exps, \%CMIP6Exp);
+		}
     }
+    # close out the db connection and return the results
     $sth->finish();
     return @CMIP6Exps;
 }
+
+
 
 sub getCMIP6MIPs
 {

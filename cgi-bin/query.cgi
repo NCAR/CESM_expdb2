@@ -44,11 +44,10 @@ my $dsn = $config{'dsn'};
 
 # check the authentication
 my ($authsuccessful, $autherror) = &svn_authenticate($user, $password);
-if(!$authsuccessful)
-{
-# problem with the authorization so return a 401 error
-    print $req->header('text/html', '401 SVN username/password incorrect!');
-    die "401 - Unauthorized";
+if(!$authsuccessful) {
+	# problem with the authorization so return a 401 error
+	print $req->header('text/html', '401 SVN username/password incorrect!');
+	die "401 - Unauthorized";
 }
 
 my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die "unable to connect to db: $DBI::errstr";
@@ -66,27 +65,29 @@ else {
     my $expType = $json->{'expType'};
     my ($count, $case_id, $expType_id) = checkCase($dbh, $json->{'casename'}, $expType);
     my %case;
+
     $case{'case_id'} = $case_id;
+    
     if ($queryType eq 'checkCaseExists') {
-	# return the case_id
-	if ($count == 0) {
-	    print $req->header('text/html', '500 Case does not exist!');
-	    print to_json(\%case);
-	}
-	else {
-	    print $req->header('text/html', '200');
-	    print to_json(\%case);
-	}
+		# return the case_id
+		if ($count == 0) {
+		    print $req->header('text/html', '500 Case does not exist!');
+		    print to_json(\%case);
+		}
+		else {
+		    print $req->header('text/html', '200');
+		    print to_json(\%case);
+		}
     }
     elsif ($queryType eq 'CMIP6GlobalAtts') {
-	my $json = JSON->new->allow_nonref;
-	my ($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
-	print $req->header('application/json');
-	print to_json($globalAtts);
+		my $json = JSON->new->allow_nonref;
+		my ($case, $status, $project, $notes, $links, $globalAtts) = getCMIP6CaseByID($dbh, $case_id);
+		print $req->header('application/json');
+		print to_json($globalAtts);
     }
     else {
-	print $req->header('text/html', '501 invalid query type');
-	print $req->h1('False');
+		print $req->header('text/html', '501 invalid query type');
+		print $req->h1('False');
     }
 }
 exit 0;

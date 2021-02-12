@@ -24,6 +24,7 @@ use Log::Log4perl;
 Log::Log4perl->init("/usr/local/expdb-2.0.0/conf/cmip6-json-log.conf");
 my $logger = Log::Log4perl->get_logger();
 
+# set starting vars
 my %item;
 my $status;
 my $count;
@@ -31,11 +32,13 @@ my $last_update;
 my ($sql, $sth);
 my ($sql1, $sth1);
 
+# grab the datafile or exit
 my $datafile = param('datafile');
 if (!defined($datafile)) {
     die("Specify the CMIP6_experiment_id.json file. Usage parseCMIP6JSON.pl datafile=CMIP6_experiment_id.json");
 }
 
+# read the datafile
 my $data;
 open(my $fh, '<', $datafile) or die "cannot open file $datafile";
 {
@@ -44,6 +47,7 @@ open(my $fh, '<', $datafile) or die "cannot open file $datafile";
 }
 close($fh);
 
+# log it
 $logger->debug("data = " . $data);
 
 # Get the necessary config vars 

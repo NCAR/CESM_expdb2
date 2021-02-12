@@ -12,7 +12,6 @@ from __future__ import print_function
 import sys
 
 # check the system python version and require 2.7.x or greater
-
 if sys.hexversion < 0x02070000:
     print(70 * "*")
     print("ERROR: {0} requires python >= 2.7.x. ".format(sys.argv[0]))
