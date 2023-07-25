@@ -19,9 +19,3 @@ DASH-JSON-records
 dash-cgd-prod
 dset-JSON-to-ISO19139
 dset-web-accessible-folder-dev
-
-# ignore apple DS_Store files
-.DS_Store
-
-# ignore other apple files
-._*
