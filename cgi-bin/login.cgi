@@ -12,7 +12,7 @@ use Data::Dumper;
 use Log::Log4perl;
 use Exporter;
 use lib qw(.);
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 use session;
 use user;
@@ -113,7 +113,7 @@ sub showloginpage {
 
     #my $loginpage = "../templates/login.tmpl";
     my $loginpage = "../templates/login.tt";
-    my $tt = Template->new(RELATIVE => 1, INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates');
+    my $tt = Template->new(RELATIVE => 1, INCLUDE_PATH => '/var/www/html/styles:/var/www/html/expdb2.0/templates');
     print "Content-type: text/html \n\n";
     $tt->process($loginpage, $vars) or die ("problem processing $loginpage,", $tt->error());
 }
