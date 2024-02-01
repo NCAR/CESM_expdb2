@@ -18,11 +18,11 @@ use Log::Log4perl qw(get_logger);
 use Log::Log4perl::DataDumper;
 use Template;
 use lib qw(.);
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 use session;
 use user;
-use lib "/home/www/html/expdb2.0/lib";
+use lib "/var/www/html/expdb2.0/lib";
 use expdb2_0;
 use CMIP6;
 use DASH;
@@ -322,7 +322,7 @@ sub showExpList
     my $template = Template->new({
 	#ENCODING => 'utf8',
 	RELATIVE => 1,
-	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
+	INCLUDE_PATH => '/var/www/html/styles:/var/www/html/expdb2.0/templates',
 				 });
 
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
@@ -406,7 +406,7 @@ sub showCaseDetail
     my $template = Template->new({
 	#ENCODING => 'utf8',
 	RELATIVE => 1,
-	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
+	INCLUDE_PATH => '/var/www/html/includes:/var/www/html/expdb2.0/templates',
 				 });
 
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
@@ -1456,7 +1456,7 @@ sub publishDASHProcess
 
     my $template = Template->new({
 	RELATIVE => 1,
-	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
+	INCLUDE_PATH => '/var/www/html/includes:/var/www/html/expdb2.0/templates',
 				 });
     my $outfile = qq($config{CESM_JSON_records}/$casename.txt);
     $template->process($tmplFile, $vars, $outfile) || die ("Problem processing $tmplFile, ", $template->error());
