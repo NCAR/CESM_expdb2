@@ -13,7 +13,7 @@ use CGI::Session qw/-ip-match/;
 use Email::Simple;
 use Email::Sender::Simple qw(sendmail);
 use Email::Sender::Transport::Sendmail qw();
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 
 my %config = &getconfig;
