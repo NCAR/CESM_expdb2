@@ -591,7 +591,7 @@ sub reserveCaseCMIP6
 $item{lfirstname} $item{llastname} has reserved a CMIP6 casename in the CESM2 Experiments Database.
 Please follow this link to review the submission.
 
-http://csegweb.cgd.ucar.edu/expdb2.0 
+https://csegweb.cgd.ucar.edu/expdb2.0 
 
 1. Login using your CESM SVN developer login OR your UCAS login 
 2. Select or click on the unique case name, $case_name, to review. 
