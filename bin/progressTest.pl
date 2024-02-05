@@ -9,10 +9,10 @@ use DBD::mysql;
 use lib qw(.);
 use Date::Manip;
 
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 
-use lib "/home/www/html/expdb2.0/lib";
+use lib "/var/www/html/expdb2.0/lib";
 use expdb2_0;
 use CMIP6;
 

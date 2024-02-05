@@ -668,7 +668,7 @@ EOF
 $item{lfirstname} $item{llastname} has reserved a CMIP6 DCPP Ensemble in the CESM2 Experiments Database.
 Please follow this link to review the submission.
 
-http://csegweb.cgd.ucar.edu/expdb2.0 
+https://csegweb.cgd.ucar.edu/expdb2.0 
 
 1. Login using your CESM SVN developer login OR your UCAS login 
 2. Select or click on the unique case names, starting with the first ensemble member $case_name, to review. 

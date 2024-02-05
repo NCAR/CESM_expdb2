@@ -15,11 +15,11 @@ use HTML::Entities;
 use Data::FormValidator;
 use Template;
 use lib qw(.);
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 ##use session;
 use user;
-use lib "/home/www/html/expdb2.0/lib";
+use lib "/var/www/html/expdb2.0/lib";
 use expdb2_0;
 
 #------
@@ -143,7 +143,7 @@ sub showExpList
     my $template = Template->new({
 	ENCODING => 'utf8',
 	RELATIVE => 1,
-	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
+	INCLUDE_PATH => '/var/www/html/includes:/var/www/html/expdb2.0/templates',
 				 });
 
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
@@ -190,7 +190,7 @@ sub showCaseDetail
     my $template = Template->new({
 	ENCODING => 'utf8',
 	RELATIVE => 1,
-	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
+	INCLUDE_PATH => '/var/www/html/includes:/var/www/html/expdb2.0/templates',
 				 });
 
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());
@@ -328,7 +328,7 @@ EOF
     my $template = Template->new({
 	ENCODING => 'utf8',
 	RELATIVE => 1,
-	INCLUDE_PATH => '/home/www/html/includes:/home/www/html/expdb2.0/templates',
+	INCLUDE_PATH => '/var/www/html/includes:/var/www/html/expdb2.0/templates',
 				 });
 
     $template->process($tmplFile, $vars) || die ("Problem processing $tmplFile, ", $template->error());

@@ -13,7 +13,7 @@ use DBD::mysql;
 use Time::localtime;
 use DateTime::Format::MySQL;
 use Array::Utils qw(:all);
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 
 # Get the necessary config vars for the database

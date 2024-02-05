@@ -19,10 +19,10 @@ Log::Log4perl->init("/usr/local/expdb-2.0.0/conf/expdb-mail-log.conf");
 my $logger = Log::Log4perl->get_logger();
 Log::Log4perl::DataDumper::override($logger);
 
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 
-use lib "/home/www/html/expdb2.0/lib";
+use lib "/var/www/html/expdb2.0/lib";
 use expdb2_0;
 use CMIP6;
 

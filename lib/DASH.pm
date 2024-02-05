@@ -11,9 +11,9 @@ use Exporter;
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser); 
 use CGI::Session qw/-ip-match/;
 use SVN::Client;
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
-use lib "/home/www/html/expdb2.0/lib";
+use lib "/var/www/html/expdb2.0/lib";
 use CMIP6;
 use expdb2_0;
 

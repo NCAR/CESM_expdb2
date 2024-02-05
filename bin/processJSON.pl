@@ -17,10 +17,10 @@ use Time::Seconds;
 use URI::Escape;
 
 use lib qw(.);
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 use session;
-use lib "/home/www/html/expdb2.0/lib";
+use lib "/var/www/html/expdb2.0/lib";
 use expdb2_0;
 use CMIP6;
 

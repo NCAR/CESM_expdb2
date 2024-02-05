@@ -14,7 +14,7 @@ use lib qw(.);
 use CGI qw(:standard);
 use CGI::Carp qw(fatalsToBrowser warningsToBrowser); 
 
-use lib "/home/www/html/csegdb/lib";
+use lib "/var/www/html/csegdb/lib";
 use config;
 
 # Get the necessary config vars for the database
